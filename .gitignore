@@ -10,7 +10,9 @@ build
 .DS_Store
 
 # android studio
+captures
 local.properties
+.externalNativeBuild
 
 # output files
 tongs-output

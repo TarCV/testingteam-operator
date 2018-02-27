@@ -1,6 +1,8 @@
 Goals of this fork
 ==================
- - [ ] Use JUnit 4 facilities to get list of test methods to execute
+![build status](https://travis-ci.org/TarCV/fork.svg?branch=ju-suiteprovider)
+
+ - [x] Use JUnit 4 facilities to get list of test methods to execute
  (possibly with childs created by runners such as Parameterized)
 
  - [ ] Support all the runners provided out of box in  ASTL
@@ -9,8 +11,6 @@ Goals of this fork
   devices via annotations
 
  - [ ] Support custom filters
-
- - [x] Clean tested app data before executing each testcase
 
  - [ ] Option to clean/reinstall tested app before testcase execution
 
