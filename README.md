@@ -10,6 +10,8 @@ Goals of this fork
 
  - [ ] Support custom filters
 
+ - [x] Clean tested app data before executing each testcase
+
  - [ ] Option to clean/reinstall tested app before testcase execution
 
  - [ ] Restore support of original Fork annotations
