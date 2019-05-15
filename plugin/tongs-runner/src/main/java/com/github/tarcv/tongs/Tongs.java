@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -31,9 +31,11 @@ public final class Tongs {
 
     private final TongsRunner tongsRunner;
     private final File output;
+    private final boolean terminateDdm;
 
     public Tongs(Configuration configuration) {
         this.output = configuration.getOutput();
+        this.terminateDdm = configuration.shouldTerminateDdm();
         setConfiguration(configuration);
         this.tongsRunner = tongsRunner();
     }
@@ -51,7 +53,9 @@ public final class Tongs {
 		} finally {
             long duration = millisSinceNanoTime(startOfTestsMs);
             logger.info(formatPeriod(0, duration, "'Total time taken:' H 'hours' m 'minutes' s 'seconds'"));
-            adb().terminate();
+            if (terminateDdm) {
+                adb().terminate();
+            }
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -25,11 +25,14 @@ import java.util.Collection;
  */
 public class Adb {
     private final AndroidDebugBridge bridge;
+    private volatile boolean isInited;
 
     public Adb(File sdk) {
         AndroidDebugBridge.initIfNeeded(false /*clientSupport*/);
         File adbPath = FileUtils.getFile(sdk, "platform-tools", "adb");
         bridge = AndroidDebugBridge.createBridge(adbPath.getAbsolutePath(), false /*forceNewBridge*/);
+        isInited = true;
+
         long timeOut = 30000; // 30 sec
         int sleepTime = 1000;
         while (!bridge.hasInitialDeviceList() && timeOut > 0) {
@@ -43,11 +46,15 @@ public class Adb {
     }
 
     public Collection<IDevice> getDevices() {
+        if (!isInited) {
+            throw new IllegalStateException("Adb cannot be used after terminate() was called");
+        }
         return Arrays.asList(bridge.getDevices());
     }
 
     public void terminate() {
         AndroidDebugBridge.terminate();
+        isInited = false;
     }
 
     private void sleep(int sleepTime) {

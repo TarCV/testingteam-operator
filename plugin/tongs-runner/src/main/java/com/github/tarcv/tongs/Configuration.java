@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -61,6 +61,7 @@ public class Configuration implements TongsConfiguration {
     private final boolean autoGrantPermissions;
     private final String excludedAnnotation;
     private final TongsIntegrationTestRunType tongsIntegrationTestRunType;
+    private final boolean terminateDdm;
 
     private ApplicationInfo applicationInfo;
 
@@ -88,6 +89,7 @@ public class Configuration implements TongsConfiguration {
         this.excludedAnnotation = builder.excludedAnnotation;
         this.tongsIntegrationTestRunType = builder.tongsIntegrationTestRunType;
         this.applicationInfo = builder.applicationInfo;
+        this.terminateDdm = builder.terminateDdm;
     }
 
     @Override
@@ -214,6 +216,11 @@ public class Configuration implements TongsConfiguration {
     }
 
     @Override
+    public boolean shouldTerminateDdm() {
+        return terminateDdm;
+    }
+
+    @Override
     public TongsIntegrationTestRunType getTongsIntegrationTestRunType() {
         return tongsIntegrationTestRunType;
     }
@@ -242,6 +249,7 @@ public class Configuration implements TongsConfiguration {
         private String excludedAnnotation;
         private ApplicationInfo applicationInfo;
         private TongsIntegrationTestRunType tongsIntegrationTestRunType = NONE;
+        private boolean terminateDdm = true;
 
         public static Builder configuration() {
             return new Builder();
@@ -339,6 +347,11 @@ public class Configuration implements TongsConfiguration {
 
         public Builder withTongsIntegrationTestRunType(TongsIntegrationTestRunType tongsIntegrationTestRunType) {
             this.tongsIntegrationTestRunType = tongsIntegrationTestRunType;
+            return this;
+        }
+
+        public Builder withDdmTermination(boolean terminateDdm) {
+            this.terminateDdm = terminateDdm;
             return this;
         }
 
