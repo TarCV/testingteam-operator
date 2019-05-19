@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,9 +14,9 @@
 package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.common.io.Resources;
 import com.github.tarcv.tongs.io.HtmlGenerator;
+import com.github.tarcv.tongs.system.io.FileManager;
 
 import org.lesscss.LessCompiler;
 
@@ -28,6 +28,7 @@ import static com.google.common.collect.Collections2.transform;
 import static com.github.tarcv.tongs.io.Files.copyResource;
 import static com.github.tarcv.tongs.summary.HtmlConverters.toHtmlLogCatMessages;
 import static com.github.tarcv.tongs.summary.HtmlConverters.toHtmlSummary;
+import static com.github.tarcv.tongs.system.io.FileType.HTML;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 
 public class HtmlSummaryPrinter implements SummaryPrinter {
@@ -53,10 +54,17 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
 	private final File staticOutput;
 	private final LogCatRetriever retriever;
     private final HtmlGenerator htmlGenerator;
+	private final FileManager fileManager;
 
-    public HtmlSummaryPrinter(File rootOutput, LogCatRetriever retriever, HtmlGenerator htmlGenerator) {
+	public HtmlSummaryPrinter(
+    		File rootOutput,
+			LogCatRetriever retriever,
+			HtmlGenerator htmlGenerator,
+			FileManager fileManager
+	) {
 		this.retriever = retriever;
         this.htmlGenerator = htmlGenerator;
+        this.fileManager = fileManager;
         htmlOutput = new File(rootOutput, HTML_OUTPUT);
 		staticOutput = new File(htmlOutput, STATIC);
 	}
@@ -67,7 +75,7 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
         htmlOutput.mkdirs();
 		copyAssets();
 		generateCssFromLess();
-		HtmlSummary htmlSummary = toHtmlSummary(summary);
+		HtmlSummary htmlSummary = toHtmlSummary(fileManager, summary);
         htmlGenerator.generateHtml("tongspages/index.html", htmlOutput, INDEX_FILENAME, htmlSummary);
         generatePoolHtml(htmlSummary);
 		generatePoolTestsHtml(htmlSummary);
@@ -117,16 +125,14 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
             File poolTestsDir = new File(htmlOutput, "pools/" + pool.plainPoolName);
             poolTestsDir.mkdirs();
             for (HtmlTestResult testResult : pool.testResults) {
-                String fileName = testResult.plainClassName + "__" + testResult.plainMethodName + ".html";
-                addLogcats(testResult, pool);
-                htmlGenerator.generateHtml("tongspages/pooltest.html", poolTestsDir, fileName, testResult, pool);
+				addLogcats(testResult, pool);
+                htmlGenerator.generateHtml("tongspages/pooltest.html", poolTestsDir, testResult.fileNameForTest + HTML.getSuffix(), testResult, pool);
             }
         }
 	}
 
     private void addLogcats(HtmlTestResult testResult, HtmlPoolSummary pool) {
-        TestIdentifier testIdentifier = new TestIdentifier(testResult.plainClassName, testResult.plainMethodName);
-        List<LogCatMessage> logCatMessages = retriever.retrieveLogCat(pool.plainPoolName, testResult.deviceSafeSerial, testIdentifier);
+		List<LogCatMessage> logCatMessages = retriever.retrieveLogCat(pool.plainPoolName, testResult.deviceSafeSerial, testResult.testIdentifier);
         testResult.logcatMessages = transform(logCatMessages, toHtmlLogCatMessages());
     }
 }

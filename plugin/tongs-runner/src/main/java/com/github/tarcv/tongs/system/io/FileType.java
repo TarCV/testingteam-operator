@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -19,6 +19,12 @@ public enum FileType {
     ANIMATION ("animation", "gif"),
     SCREENRECORD ("screenrecord", "mp4"),
     COVERAGE ("coverage", "ec"),
+    HTML("html", "html"),
+
+    /**
+     * Generates filename like `filename.` (with the dot in the end)
+     */
+    DOT_WITHOUT_EXTENSION("", "")
     ;
 
     private final String directory;

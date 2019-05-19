@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,7 +13,11 @@
  */
 package com.github.tarcv.tongs.injector.summary;
 
-import com.github.tarcv.tongs.summary.*;
+import com.github.tarcv.tongs.summary.CompositeSummaryPrinter;
+import com.github.tarcv.tongs.summary.HtmlSummaryPrinter;
+import com.github.tarcv.tongs.summary.JsonSummarySerializer;
+import com.github.tarcv.tongs.summary.LogSummaryPrinter;
+import com.github.tarcv.tongs.summary.SummaryPrinter;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuredOutput;
 import static com.github.tarcv.tongs.injector.GsonInjector.gson;
@@ -34,7 +38,7 @@ public class SummaryPrinterInjector {
     }
 
     private static SummaryPrinter htmlSummaryPrinter() {
-        return new HtmlSummaryPrinter(configuredOutput(), logCatRetriever(), htmlGenerator());
+        return new HtmlSummaryPrinter(configuredOutput(), logCatRetriever(), htmlGenerator(), fileManager());
     }
 
     private static SummaryPrinter jsonSummarySerializer() {

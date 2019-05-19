@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -52,6 +52,8 @@ public class DangerousNamesTest {
         return new Object[] {
                 "$THIS_IS_NOT_A_VAR",
                 "       1       ",
+                "#######",
+                "!!!!!!!",
                 "'''''''",
                 "\"\"\"\"\"\"\"\"",
                 "()$(echo)`echo`()$(echo)`echo`()$(echo)`echo`()$(echo)`echo`()$(echo)`echo`" +

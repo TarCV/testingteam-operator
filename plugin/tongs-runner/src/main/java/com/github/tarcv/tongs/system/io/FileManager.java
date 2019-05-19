@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
@@ -34,4 +34,6 @@ public interface FileManager {
     File[] getFiles(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier);
 
     File getFile(FileType fileType, String pool, String safeSerial, TestIdentifier testIdentifier);
+
+    String createFilenameForTest(TestIdentifier testIdentifier, FileType fileType);
 }

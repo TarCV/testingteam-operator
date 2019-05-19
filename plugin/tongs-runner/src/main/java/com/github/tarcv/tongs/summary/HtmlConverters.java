@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,9 +14,11 @@
 package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.common.base.Function;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Diagnostics;
+import com.github.tarcv.tongs.system.io.FileManager;
 
 import javax.annotation.Nullable;
 
@@ -24,17 +26,18 @@ import static com.google.common.collect.Collections2.transform;
 import static com.github.tarcv.tongs.model.Diagnostics.SCREENSHOTS;
 import static com.github.tarcv.tongs.model.Diagnostics.VIDEO;
 import static com.github.tarcv.tongs.summary.OutcomeAggregator.toPoolOutcome;
+import static com.github.tarcv.tongs.system.io.FileType.DOT_WITHOUT_EXTENSION;
 import static com.github.tarcv.tongs.utils.ReadableNames.readableClassName;
 import static com.github.tarcv.tongs.utils.ReadableNames.readablePoolName;
 import static com.github.tarcv.tongs.utils.ReadableNames.readableTestMethodName;
 
 class HtmlConverters {
 
-	public static HtmlSummary toHtmlSummary(Summary summary) {
+	public static HtmlSummary toHtmlSummary(FileManager fileManager, Summary summary) {
 		HtmlSummary htmlSummary = new HtmlSummary();
 		htmlSummary.title = summary.getTitle();
 		htmlSummary.subtitle = summary.getSubtitle();
-		htmlSummary.pools = transform(summary.getPoolSummaries(), toHtmlPoolSummary());
+		htmlSummary.pools = transform(summary.getPoolSummaries(), toHtmlPoolSummary(fileManager));
 		htmlSummary.ignoredTests = summary.getIgnoredTests();
 		htmlSummary.failedTests = summary.getFailedTests();
         htmlSummary.fatalCrashedTests = summary.getFatalCrashedTests();
@@ -42,7 +45,9 @@ class HtmlConverters {
 		return htmlSummary;
 	}
 
-	private static Function<PoolSummary, HtmlPoolSummary> toHtmlPoolSummary() {
+	private static Function<PoolSummary, HtmlPoolSummary> toHtmlPoolSummary(
+			final FileManager fileManager
+	) {
 		return new Function<PoolSummary, HtmlPoolSummary> () {
 			@Override
 			@Nullable
@@ -53,7 +58,7 @@ class HtmlConverters {
 				htmlPoolSummary.prettyPoolName = readablePoolName(poolName);
                 htmlPoolSummary.plainPoolName = poolName;
                 htmlPoolSummary.testCount = poolSummary.getTestResults().size();
-                htmlPoolSummary.testResults = transform(poolSummary.getTestResults(), toHtmlTestResult(poolName));
+                htmlPoolSummary.testResults = transform(poolSummary.getTestResults(), toHtmlTestResult(fileManager, poolName));
 				return htmlPoolSummary;
 			}
 
@@ -64,7 +69,10 @@ class HtmlConverters {
         };
 	}
 
-	private static Function<TestResult, HtmlTestResult> toHtmlTestResult(final String poolName) {
+	private static Function<TestResult, HtmlTestResult> toHtmlTestResult(
+			final FileManager fileManager,
+			final String poolName
+	) {
 		return new Function<TestResult, HtmlTestResult>(){
 			@Override
 			@Nullable
@@ -74,8 +82,8 @@ class HtmlConverters {
 				htmlTestResult.prettyClassName = readableClassName(input.getTestClass());
 				htmlTestResult.prettyMethodName = readableTestMethodName(input.getTestMethod());
 				htmlTestResult.timeTaken = String.format("%.2f", input.getTimeTaken());
-				htmlTestResult.plainMethodName = input.getTestMethod();
-				htmlTestResult.plainClassName = input.getTestClass();
+				htmlTestResult.testIdentifier = new TestIdentifier(input.getTestClass(), input.getTestMethod());
+				htmlTestResult.fileNameForTest = fileManager.createFilenameForTest(htmlTestResult.testIdentifier , DOT_WITHOUT_EXTENSION);
 				htmlTestResult.poolName = poolName;
 				htmlTestResult.trace = input.getTrace().split("\n");
 				// Keeping logcats in memory is hugely wasteful. Now they're read at page-creation.

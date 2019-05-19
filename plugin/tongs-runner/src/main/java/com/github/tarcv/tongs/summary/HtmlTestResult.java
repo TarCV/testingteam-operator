@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,6 +13,8 @@
  */
 package com.github.tarcv.tongs.summary;
 
+import com.android.ddmlib.testrunner.TestIdentifier;
+
 import java.util.Collection;
 
 /**
@@ -24,9 +26,9 @@ public class HtmlTestResult {
 	public String prettyMethodName;
 	public String deviceSerial;
 	public String deviceSafeSerial;
-	public String plainMethodName;
 	public String deviceModelDespaced;
-	public String plainClassName;
+	public TestIdentifier testIdentifier;
+	public String fileNameForTest;
 	public String poolName;
 	public Collection<HtmlLogCatMessage> logcatMessages;
 	public String timeTaken;

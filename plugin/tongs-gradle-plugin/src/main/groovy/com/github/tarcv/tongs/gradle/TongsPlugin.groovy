@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -16,6 +16,7 @@ package com.github.tarcv.tongs.gradle
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryPlugin
+import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.api.BaseVariantOutput
 import com.android.build.gradle.api.TestVariant
 import com.github.tarcv.tongs.TongsConfigurationExtension
@@ -57,7 +58,8 @@ class TongsPlugin implements Plugin<Project> {
 
         def tongsTask = project.tasks.create("${TASK_PREFIX}${variant.name.capitalize()}", TongsRunTask)
 
-        variant.testedVariant.outputs.all { BaseVariantOutput baseVariantOutput ->
+        def testedVariant = (ApkVariant) variant.testedVariant
+        testedVariant.outputs.all { BaseVariantOutput baseVariantOutput ->
             checkTestedVariants(baseVariantOutput)
             tongsTask.configure {
                 TongsConfigurationExtension config = project.tongs
@@ -65,8 +67,7 @@ class TongsPlugin implements Plugin<Project> {
                 description = "Runs instrumentation tests on all the connected devices for '${variant.name}' variation and generates a report with screenshots"
                 group = JavaBasePlugin.VERIFICATION_GROUP
 
-                def firstOutput = variant.outputs.asList().first()
-                instrumentationApk = new File(firstOutput.packageApplication.outputDirectory.path + "/" + firstOutput.outputFileName)
+                instrumentationApk = variant.outputs[0].outputFile
 
                 title = config.title
                 subtitle = config.subtitle
@@ -85,7 +86,7 @@ class TongsPlugin implements Plugin<Project> {
                 excludedAnnotation = config.excludedAnnotation
                 tongsIntegrationTestRunType = config.tongsIntegrationTestRunType
 
-                applicationApk = new File(baseVariantOutput.packageApplication.outputDirectory.path + "/" + baseVariantOutput.outputFileName)
+                applicationApk = baseVariantOutput.outputFile
 
                 String baseOutputDir = config.baseOutputDir
                 File outputBase
@@ -96,7 +97,7 @@ class TongsPlugin implements Plugin<Project> {
                 }
                 output = new File(outputBase, variant.name)
 
-                dependsOn variant.testedVariant.assemble, variant.assemble
+                dependsOn testedVariant.assembleProvider.get(), variant.assembleProvider.get()
             }
             tongsTask.outputs.upToDateWhen { false }
         }
