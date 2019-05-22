@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,8 +13,9 @@
  */
 package com.github.tarcv.tongs.model;
 
-import com.android.annotations.Nullable;
 import com.android.ddmlib.IDevice;
+
+import javax.annotation.Nullable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 

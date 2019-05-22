@@ -19,7 +19,7 @@ import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.api.BaseVariantOutput
 import com.android.build.gradle.api.TestVariant
-import com.github.tarcv.tongs.TongsConfigurationExtension
+import com.github.tarcv.tongs.TongsConfigurationGradleExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
@@ -39,7 +39,10 @@ class TongsPlugin implements Plugin<Project> {
             throw new IllegalStateException("Android plugin is not found")
         }
 
-        project.extensions.add "tongs", TongsConfigurationExtension
+        project.extensions.add "tongs", TongsConfigurationGradleExtension
+        project.dependencies {
+            androidTestImplementation "com.github.tarcv.tongs:tongs-ondevice:${BuildConfig.PLUGIN_VERSION}"
+        }
 
         def tongsTask = project.task(TASK_PREFIX) {
             group = JavaBasePlugin.VERIFICATION_GROUP
@@ -62,7 +65,7 @@ class TongsPlugin implements Plugin<Project> {
         testedVariant.outputs.all { BaseVariantOutput baseVariantOutput ->
             checkTestedVariants(baseVariantOutput)
             tongsTask.configure {
-                TongsConfigurationExtension config = project.tongs
+                TongsConfigurationGradleExtension config = project.tongs
 
                 description = "Runs instrumentation tests on all the connected devices for '${variant.name}' variation and generates a report with screenshots"
                 group = JavaBasePlugin.VERIFICATION_GROUP

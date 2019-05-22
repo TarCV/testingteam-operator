@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -10,23 +10,9 @@
  */
 package com.github.tarcv.tongs;
 
-import groovy.lang.Closure;
-
 public class PoolingStrategy {
     public Boolean splitTablets;
     public Boolean eachDevice;
     public ComputedPooling computed;
     public ManualPooling manual;
-
-    public void computed(Closure<?> computedClosure) {
-        computed = new ComputedPooling();
-        computedClosure.setDelegate(computed);
-        computedClosure.call();
-    }
-
-    public void manual(Closure<?> manualClosure) {
-        manual = new ManualPooling();
-        manualClosure.setDelegate(manual);
-        manualClosure.call();
-    }
 }

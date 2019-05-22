@@ -1,0 +1,5 @@
+apply plugin: 'com.github.dcendents.android-maven'
+
+tasks.register('publishToMavenLocal') {
+    dependsOn 'install'
+}

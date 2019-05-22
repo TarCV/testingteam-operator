@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,15 +13,7 @@ package com.github.tarcv.tongs;
 
 import java.util.*;
 
-import groovy.lang.Closure;
-
 public class ManualPooling {
 
     public Map<String, Collection<String>> groupings;
-
-    public void groupings(Closure<?> groupingsClosure) {
-        groupings = new HashMap<>();
-        groupingsClosure.setDelegate(groupings);
-        groupingsClosure.call();
-    }
 }

@@ -28,29 +28,35 @@ mainClassName = 'com.github.tarcv.tongs.TongsCli'
 sourceCompatibility = rootProject.sourceCompatibility
 targetCompatibility = rootProject.sourceCompatibility
 
+apply from: '../dependencies.gradle'
+
 dependencies {
     compile project(':tongs-common')
-    compile 'org.codehaus.groovy:groovy-all:2.4.15'
-    compile(
-            "com.beust:jcommander:$JCOMMANDER_VERSION",
-            "org.slf4j:slf4j-log4j12:$SLF4J_VERSION",
-            "com.google.code.gson:gson:$GSON_VERSION",
-            'org.simpleframework:simple-xml:2.7.1',
-            'com.madgag:animated-gif-lib:1.2',
-    )
+    implementation deps.androidToolsCommon
+    implementation deps.ddmlib
+    implementation deps.guava
+    implementation deps.commonsIo
+    implementation deps.commonsLang
+    implementation deps.jsr305
+    implementation deps.mustacheCompiler
+    implementation deps.jcommander
+    implementation deps.slf4j
+    implementation deps.gson
+    implementation 'org.simpleframework:simple-xml:2.7.1'
+    implementation 'com.madgag:animated-gif-lib:1.2'
 
-    compile('org.lesscss:lesscss:1.7.0.1.1') {
+    implementation('org.lesscss:lesscss:1.7.0.1.1') {
         exclude module: 'slf4j-simple'
     }
 
-    testCompile("org.hamcrest:hamcrest-all:$HAMCREST_VERSION")
-    testCompile("junit:junit:$JUNIT_VERSION") {
+    testImplementation deps.hamcrest
+    testImplementation(deps.junit) {
         exclude module:'hamcrest-core'
     }
-    testCompile(
-            "org.jmock:jmock:$JMOCK_VERSION",
-            "org.jmock:jmock-junit4:$JMOCK_VERSION")
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    testImplementation(
+            deps.jmock,
+            deps.jmockJUnit)
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
 }
 
 jar {
@@ -62,6 +68,7 @@ jar {
                 'Built-Gradle': gradle.gradleVersion,
                 'Main-class': mainClassName
     }
+//    archiveBaseName = POM_ARTIFACT_ID
 }
 
 run {

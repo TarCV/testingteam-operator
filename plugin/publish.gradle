@@ -1,0 +1,11 @@
+apply plugin: 'maven-publish'
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            artifact(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+}

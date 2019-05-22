@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@ sourceCompatibility = rootProject.sourceCompatibility
 targetCompatibility = rootProject.sourceCompatibility
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
+    compileOnly gradleApi()
+    compileOnly localGroovy()
     compile project(':tongs-runner')
-    compile "com.android.tools.build:gradle:$androidPlugin"
+    compileOnly "com.android.tools.build:gradle:$androidPlugin"
 }
 
 jar {
@@ -32,4 +32,30 @@ jar {
     }
 }
 
+tasks.register('writeBuildConfig', DefaultTask.class) { task ->
+    def baseOutputDir = "${project.buildDir}/generated/sources/buildConfig"
+    group = 'build'
+    description = 'Generates BuildConfig.groovy'
 
+    inputs.property("Project version name", {
+        return project.VERSION_NAME
+    })
+    outputs.dir(baseOutputDir)
+    sourceSets.main.groovy.srcDir file(baseOutputDir)
+            
+    doLast {
+        def packageOutputDir = "$baseOutputDir/com/github/tarcv/tongs/gradle"
+        if (!file(packageOutputDir).isDirectory() && !file(packageOutputDir).mkdirs()) {
+            throw new IOException('Failed to create output directory')
+        }
+        
+        file("$packageOutputDir/BuildConfig.groovy").write("""
+package com.github.tarcv.tongs.gradle
+
+class BuildConfig {
+    final static String PLUGIN_VERSION = "${project.VERSION_NAME}" 
+}
+""")
+    }
+}
+compileGroovy.dependsOn('writeBuildConfig')

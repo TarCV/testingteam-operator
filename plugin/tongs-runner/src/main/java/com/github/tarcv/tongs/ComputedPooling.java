@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -12,10 +12,7 @@ package com.github.tarcv.tongs;
 
 import com.github.tarcv.tongs.model.Device;
 
-import java.util.HashMap;
 import java.util.Map;
-
-import groovy.lang.Closure;
 
 public class ComputedPooling {
     public enum Characteristic implements DeviceCharacteristicReader {
@@ -55,10 +52,4 @@ public class ComputedPooling {
 
     public Characteristic characteristic;
     public Map<String, Integer> groups;
-
-    public void groups(Closure<?> groupsClosure) {
-        groups = new HashMap<>();
-        groupsClosure.setDelegate(groups);
-        groupsClosure.call();
-    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -9,25 +9,17 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.tarcv.tongs.suite;
+package com.github.tarcv.tongs
 
-public class FakeTestClassMatcher implements TestClassMatcher {
-    private boolean matches;
+class TongsConfigurationGradleExtension extends TongsConfigurationExtension {
+    /**
+     * The strategy that will be used to calculate the grouping of devices to pools.
+     */
+    public GradlePoolingStrategy poolingStrategy;
 
-    private FakeTestClassMatcher() {
-    }
-
-    public static FakeTestClassMatcher fakeTestClassMatcher() {
-        return new FakeTestClassMatcher();
-    }
-
-    public FakeTestClassMatcher thatAlwaysMatches() {
-        matches = true;
-        return this;
-    }
-
-    @Override
-    public boolean matchesPatterns(String typeDescriptor) {
-        return matches;
+    void poolingStrategy(Closure<?> poolingStrategyClosure) {
+        poolingStrategy = new GradlePoolingStrategy()
+        poolingStrategyClosure.setDelegate(poolingStrategy)
+        poolingStrategyClosure.call()
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -12,14 +12,12 @@ package com.github.tarcv.tongs;
 
 import java.util.Collection;
 
-import groovy.lang.Closure;
-
 import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.NONE;
 
 /**
  * Tongs extension.
  */
-public class TongsConfigurationExtension {
+public abstract class TongsConfigurationExtension {
 
     /**
      * Output directory for Tongs report files. If empty, the default dir will be used.
@@ -87,11 +85,6 @@ public class TongsConfigurationExtension {
     public int retryPerTestCaseQuota;
 
     /**
-     * The strategy that will be used to calculate the grouping of devices to pools.
-     */
-    public PoolingStrategy poolingStrategy;
-
-    /**
      * Indicate that in Marshmallow+ all the required runtime permissions are granted automatically.
      * Default is true.
      */
@@ -101,12 +94,6 @@ public class TongsConfigurationExtension {
      * Filter test run to tests without given annotation
      */
     public String excludedAnnotation;
-
-    public void poolingStrategy(Closure<?> poolingStrategyClosure) {
-        poolingStrategy = new PoolingStrategy();
-        poolingStrategyClosure.setDelegate(poolingStrategy);
-        poolingStrategyClosure.call();
-    }
 
     /**
      * Specifies that Tongs should run using one of "under integration test" modes
