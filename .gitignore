@@ -13,4 +13,4 @@ build
 local.properties
 
 # output files
-fork-output
+tongs-output

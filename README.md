@@ -1,4 +1,21 @@
-[![Build Status](https://travis-ci.org/shazam/fork.svg?branch=master)](https://travis-ci.org/shazam/fork)  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/848eae2d11bc422caec3ac215557f38c)](https://www.codacy.com/app/i-giannakakis/fork?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=shazam/fork&amp;utm_campaign=Badge_Grade)
+Goals of this fork
+==================
+ - [ ] Use JUnit 4 facilities to get list of test methods to execute
+ (possibly with childs created by runners such as Parameterized)
+
+ - [ ] Support all the runners provided out of box in  ASTL
+
+ - [ ] Support cases where some testcases are disabled on some
+  devices via annotations
+
+ - [ ] Support custom filters
+
+ - [ ] Option to clean/reinstall tested app before testcase execution
+
+ - [ ] Restore support of original Fork annotations
+
+***Original README content below***
+===================================
 
 Fork tools
 ==========
@@ -30,7 +47,7 @@ First, you need to add a build-script dependency. You can have access to snapsho
 ```gradle
 buildscript {
   dependencies {
-    classpath 'com.shazam.fork:fork-gradle-plugin:3.3.0'
+    classpath 'com.github.tarcv.tongs:fork-gradle-plugin:3.3.0'
   }
 }
 ```
@@ -42,14 +59,14 @@ buildscript {
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
   }
   dependencies {
-    classpath 'com.shazam.fork:fork-gradle-plugin:3.4.0-SNAPSHOT'
+    classpath 'com.github.tarcv.tongs:fork-gradle-plugin:3.4.0-SNAPSHOT'
   }
 }
 ```
 
 Apply the Fork plugin
 ```
-apply plugin: 'com.shazam.fork'
+apply plugin: 'com.github.tarcv.tongs'
 ```
 
 You're now done. If you had any instrumentation test tasks before, the plugin has added Fork tasks. You can verify by running:
@@ -152,7 +169,7 @@ To do so, you have to add an annotation called `RevokePermission`. Here is an ex
 Remember to add the fork client-side library to your project to have access to the annotation.
 To do so, in your app's dependencies add:
 ```
-    androidTestImplementation "com.shazam.fork:fork-client:3.3.0"
+    androidTestImplementation "com.github.tarcv.tongs:fork-client:3.3.0"
 ```
 
 After every test case, all the runtime permissions will be automatically re-granted even if the test fails.
@@ -275,7 +292,7 @@ To be able to use the Flakiness Reporter add these dependencies:
 ```gradle
 buildscript {
     dependencies {
-        classpath "com.shazam.fork:fork-reporter-jenkins-gradle-plugin:3.3.0"
+        classpath "com.github.tarcv.tongs:fork-reporter-jenkins-gradle-plugin:3.3.0"
     }
     repositories {
         maven { url "http://repo.jenkins-ci.org/public/" }
@@ -285,7 +302,7 @@ buildscript {
 
 Apply the Jenkins Flakiness Reporter plugin
 ```
-apply plugin: 'com.shazam.fork.reporter.jenkins'
+apply plugin: 'com.github.tarcv.tongs.reporter.jenkins'
 ```
 
 You can easily execute the Reporter with the following command.
