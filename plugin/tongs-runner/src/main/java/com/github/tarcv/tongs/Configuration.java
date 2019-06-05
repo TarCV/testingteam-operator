@@ -14,7 +14,6 @@
 package com.github.tarcv.tongs;
 
 import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
-import com.github.tarcv.tongs.runner.TestRunParameters;
 import com.github.tarcv.tongs.system.axmlparser.ApplicationInfo;
 import com.github.tarcv.tongs.system.axmlparser.ApplicationInfoFactory;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,7 +46,6 @@ public class Configuration implements TongsConfiguration {
     private final File output;
     private final String title;
     private final String subtitle;
-    private final Pattern testClassPattern;
     private final String testPackage;
     private final long testOutputTimeout;
     private final IRemoteAndroidTestRunner.TestSize testSize;
@@ -58,7 +55,6 @@ public class Configuration implements TongsConfiguration {
     private final int retryPerTestCaseQuota;
     private final boolean isCoverageEnabled;
     private final PoolingStrategy poolingStrategy;
-    private final boolean autoGrantPermissions;
     private final String excludedAnnotation;
     private final TongsIntegrationTestRunType tongsIntegrationTestRunType;
     private final boolean terminateDdm;
@@ -75,7 +71,6 @@ public class Configuration implements TongsConfiguration {
         output = builder.output;
         title = builder.title;
         subtitle = builder.subtitle;
-        testClassPattern = Pattern.compile(builder.testClassRegex);
         testPackage = builder.testPackage;
         testOutputTimeout = builder.testOutputTimeout;
         testSize = builder.testSize;
@@ -85,7 +80,6 @@ public class Configuration implements TongsConfiguration {
         retryPerTestCaseQuota = builder.retryPerTestCaseQuota;
         isCoverageEnabled = builder.isCoverageEnabled;
         poolingStrategy = builder.poolingStrategy;
-        autoGrantPermissions = builder.autoGrantPermissions;
         this.excludedAnnotation = builder.excludedAnnotation;
         this.tongsIntegrationTestRunType = builder.tongsIntegrationTestRunType;
         this.applicationInfo = builder.applicationInfo;
@@ -148,12 +142,6 @@ public class Configuration implements TongsConfiguration {
 
     @Override
     @Nonnull
-    public Pattern getTestClassPattern() {
-        return testClassPattern;
-    }
-
-    @Override
-    @Nonnull
     public String getTestPackage() {
         return testPackage;
     }
@@ -201,11 +189,6 @@ public class Configuration implements TongsConfiguration {
     }
 
     @Override
-    public boolean isAutoGrantingPermissions() {
-        return autoGrantPermissions;
-    }
-
-    @Override
     public String getExcludedAnnotation() {
         return excludedAnnotation;
     }
@@ -235,7 +218,6 @@ public class Configuration implements TongsConfiguration {
         private File output;
         private String title;
         private String subtitle;
-        private String testClassRegex;
         private String testPackage;
         private long testOutputTimeout;
         private IRemoteAndroidTestRunner.TestSize testSize;
@@ -245,7 +227,6 @@ public class Configuration implements TongsConfiguration {
         private int retryPerTestCaseQuota;
         private boolean isCoverageEnabled;
         private PoolingStrategy poolingStrategy;
-        private boolean autoGrantPermissions;
         private String excludedAnnotation;
         private ApplicationInfo applicationInfo;
         private TongsIntegrationTestRunType tongsIntegrationTestRunType = NONE;
@@ -282,11 +263,6 @@ public class Configuration implements TongsConfiguration {
 
         public Builder withSubtitle(String subtitle) {
             this.subtitle = subtitle;
-            return this;
-        }
-
-        public Builder withTestClassRegex(String testClassRegex) {
-            this.testClassRegex = testClassRegex;
             return this;
         }
 
@@ -335,11 +311,6 @@ public class Configuration implements TongsConfiguration {
             return this;
         }
 
-        public Builder withAutoGrantPermissions(boolean autoGrantPermissions) {
-            this.autoGrantPermissions = autoGrantPermissions;
-            return this;
-        }
-
         public Builder withExcludedAnnotation(String excludedAnnotation) {
             this.excludedAnnotation = excludedAnnotation;
             return this;
@@ -373,7 +344,6 @@ public class Configuration implements TongsConfiguration {
 
             title = assignValueOrDefaultIfNull(title, Defaults.TITLE);
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);
-            testClassRegex = assignValueOrDefaultIfNull(testClassRegex, CommonDefaults.TEST_CLASS_REGEX);
             testPackage = assignValueOrDefaultIfNull(testPackage, instrumentationInfo.getApplicationPackage());
             testOutputTimeout = assignValueOrDefaultIfZero(testOutputTimeout, Defaults.TEST_OUTPUT_TIMEOUT_MILLIS);
             excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.<String>emptyList());

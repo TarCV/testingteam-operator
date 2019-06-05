@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -31,18 +31,15 @@ public class Installer {
 	private final String instrumentationPackage;
 	private final File apk;
 	private final File testApk;
-    private final boolean autoGrantPermissions;
 
 	public Installer(String applicationPackage,
 					 String instrumentationPackage,
 					 File apk,
-					 File testApk,
-					 boolean autoGrantPermissions) {
+					 File testApk) {
 		this.applicationPackage = applicationPackage;
 		this.instrumentationPackage = instrumentationPackage;
 		this.apk = apk;
 		this.testApk = testApk;
-		this.autoGrantPermissions = autoGrantPermissions;
 	}
 
 	public void prepareInstallation(IDevice device) {
@@ -58,16 +55,11 @@ public class Installer {
 				logger.debug("Uninstalling {} from {}", appPackage, device.getSerialNumber());
 				device.uninstallPackage(appPackage);
 				logger.debug("Installing {} to {}", appPackage, device.getSerialNumber());
-				device.installPackage(appApk.getAbsolutePath(), true, optionalAutoGrantPermissionFlag(device));
+				device.installPackage(appApk.getAbsolutePath(), true);
 			} catch (InstallException e) {
 				throw new RuntimeException(message, e);
 			}
         });
-	}
-
-	@Nonnull
-	private String optionalAutoGrantPermissionFlag(IDevice device) {
-		return isMarshmallowOrMore(device) && autoGrantPermissions ? "-g" : "";
 	}
 
 	private boolean isMarshmallowOrMore(@Nonnull IDevice device){
@@ -94,6 +86,7 @@ public class Installer {
         }
     }
 
+	// TODO: test this still works after clearing data was added
     private void grantMockLocationInMarshmallow(final IDevice device, final String appPackage) {
         if (isMarshmallowOrMore(device)) {
             CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();

@@ -74,7 +74,6 @@ class TongsPlugin implements Plugin<Project> {
 
                 title = config.title
                 subtitle = config.subtitle
-                testClassRegex = config.testClassRegex
                 testPackage = config.testPackage
                 testOutputTimeout = config.testOutputTimeout
                 testSize = config.testSize
@@ -84,7 +83,6 @@ class TongsPlugin implements Plugin<Project> {
                 retryPerTestCaseQuota = config.retryPerTestCaseQuota
                 isCoverageEnabled = config.isCoverageEnabled
                 poolingStrategy = config.poolingStrategy
-                autoGrantPermissions = config.autoGrantPermissions
                 ignoreFailures = config.ignoreFailures
                 excludedAnnotation = config.excludedAnnotation
                 tongsIntegrationTestRunType = config.tongsIntegrationTestRunType

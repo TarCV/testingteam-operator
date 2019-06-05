@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,15 +13,15 @@
  */
 package com.github.tarcv.tongs.summary;
 
+import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.common.collect.Sets;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
@@ -46,9 +46,13 @@ public class SummaryCompiler {
     Summary compileSummary(Collection<Pool> pools, Collection<TestCaseEvent> testCases) {
         Summary.Builder summaryBuilder = aSummary();
 
+        Map<TestIdentifier, TestCaseEvent> eventMap = testCases.stream()
+                .collect(Collectors.toMap(o -> new TestIdentifier(o.getTestClass(), o.getTestMethod()),
+                        Function.identity(), (o1, o2) -> o1));
+
         Set<TestResult> testResults = Sets.newHashSet();
         for (Pool pool : pools) {
-            Collection<TestResult> testResultsForPool = getTestResultsForPool(pool);
+            Collection<TestResult> testResultsForPool = getTestResultsForPool(pool, eventMap);
             testResults.addAll(testResultsForPool);
 
             PoolSummary poolSummary = aPoolSummary()
@@ -73,12 +77,34 @@ public class SummaryCompiler {
         return summaryBuilder.build();
     }
 
-    private Collection<TestResult> getTestResultsForPool(Pool pool) {
+    private Collection<TestResult> getTestResultsForPool(Pool pool, Map<TestIdentifier, TestCaseEvent> eventMap) {
         Set<TestResult> testResults = Sets.newHashSet();
 
         Collection<TestResult> testResultsForPoolDevices = pool.getDevices()
                 .stream()
-                .map(device -> deviceTestFilesRetriever.getTestResultsForDevice(pool, device))
+                .map(device -> {
+                    return deviceTestFilesRetriever
+                            .getTestResultsForDevice(pool, device).stream()
+                            .map(testResult -> {
+                                // TODO: In current Tongs implementation testMetrics and properties is the same, probably split them later
+                                TestCaseEvent testCaseEvent = eventMap.get(new TestIdentifier(testResult.getTestClass(), testResult.getTestMethod()));
+                                if (testCaseEvent != null) {
+                                    Map<String, String> xmlMetrics = testResult.getMetrics();
+                                    Map<String, String> outMetrics = new HashMap<>();
+
+                                    // Metrics from XML Output take priority
+                                    outMetrics.putAll(testCaseEvent.getProperties());
+                                    outMetrics.putAll(xmlMetrics);
+
+                                    return new TestResult.Builder(testResult)
+                                            .withTestMetrics(outMetrics)
+                                            .build();
+                                } else {
+                                    return testResult;
+                                }
+                            })
+                            .collect(Collectors.toSet());
+                })
                 .reduce(Sets.newHashSet(), (accum, set) -> {
                     accum.addAll(set);
                     return accum;

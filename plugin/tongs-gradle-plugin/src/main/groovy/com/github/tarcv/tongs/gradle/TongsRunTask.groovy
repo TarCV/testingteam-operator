@@ -55,8 +55,6 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
 
     String subtitle
 
-    String testClassRegex
-
     String testPackage
 
     boolean isCoverageEnabled
@@ -75,8 +73,6 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
 
     PoolingStrategy poolingStrategy
 
-    boolean autoGrantPermissions;
-
     String excludedAnnotation
 
     TongsConfiguration.TongsIntegrationTestRunType tongsIntegrationTestRunType
@@ -94,7 +90,6 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
                 .withOutput(output)
                 .withTitle(title)
                 .withSubtitle(subtitle)
-                .withTestClassRegex(testClassRegex)
                 .withTestPackage(testPackage)
                 .withTestOutputTimeout(testOutputTimeout)
                 .withTestSize(testSize)
@@ -104,7 +99,6 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
                 .withRetryPerTestCaseQuota(retryPerTestCaseQuota)
                 .withCoverageEnabled(isCoverageEnabled)
                 .withPoolingStrategy(poolingStrategy)
-                .withAutoGrantPermissions(autoGrantPermissions)
                 .withExcludedAnnotation(excludedAnnotation)
                 .withTongsIntegrationTestRunType(tongsIntegrationTestRunType)
                 .withDdmTermination(false) // AGP doesn't terminate DdmLib, neither should Tongs

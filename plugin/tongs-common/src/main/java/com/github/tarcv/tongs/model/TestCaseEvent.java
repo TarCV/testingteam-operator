@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@ package com.github.tarcv.tongs.model;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.common.base.Objects;
+import com.google.gson.JsonObject;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -28,19 +30,19 @@ public class TestCaseEvent {
     private final String testMethod;
     private final String testClass;
     private final boolean isIgnored;
-    private final List<String> permissionsToRevoke;
+    private final List<String> permissionsToGrant;
     private final Map<String, String> properties;
 
-    private TestCaseEvent(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToRevoke, Map<String, String> properties) {
+    private TestCaseEvent(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToGrant, Map<String, String> properties) {
         this.testMethod = testMethod;
         this.testClass = testClass;
         this.isIgnored = isIgnored;
-        this.permissionsToRevoke = permissionsToRevoke;
+        this.permissionsToGrant = permissionsToGrant;
         this.properties = properties;
     }
 
-    public static TestCaseEvent newTestCase(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToRevoke, Map<String, String> properties) {
-        return new TestCaseEvent(testMethod, testClass, isIgnored, permissionsToRevoke, properties);
+    public static TestCaseEvent newTestCase(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToGrant, Map<String, String> properties, JsonObject info) {
+        return new TestCaseEvent(testMethod, testClass, isIgnored, permissionsToGrant, properties);
     }
 
     public static TestCaseEvent newTestCase(@Nonnull TestIdentifier testIdentifier) {
@@ -64,8 +66,8 @@ public class TestCaseEvent {
         return isIgnored;
     }
 
-    public List<String> getPermissionsToRevoke() {
-        return permissionsToRevoke;
+    public List<String> getPermissionsToGrant() {
+        return permissionsToGrant;
     }
 
     public Map<String, String> getProperties() {

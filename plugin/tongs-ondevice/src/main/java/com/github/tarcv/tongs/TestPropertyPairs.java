@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,15 +11,16 @@
 
 package com.github.tarcv.tongs;
 
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RUNTIME)
 @Target({METHOD})
-public @interface TestProperties {
-    String[] keys() default {};
-    String[] values() default {};
+@Inherited
+public @interface TestPropertyPairs {
+    String[] value() default {};
 }

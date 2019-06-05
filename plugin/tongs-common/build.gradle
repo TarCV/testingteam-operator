@@ -28,7 +28,6 @@ dependencies {
     implementation deps.commonsLang
     implementation deps.commonsIo
 
-    implementation project(':tongs-client')
     implementation "com.github.spullara.mustache.java:compiler:0.8.0"
     implementation deps.gson
     implementation deps.slf4j

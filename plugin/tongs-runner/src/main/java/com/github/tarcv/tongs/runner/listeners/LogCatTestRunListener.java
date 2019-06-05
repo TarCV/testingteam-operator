@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,7 +13,7 @@
  */
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.logcat.*;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.gson.Gson;
@@ -21,31 +21,27 @@ import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.system.io.FileManager;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 class LogCatTestRunListener implements ITestRunListener {
+	private final LogcatReceiver logcatReceiver;
     private final FileManager fileManager;
     private final Pool pool;
 	private final Device device;
-	private final LogCatReceiverTask logCatReceiverTask;
-	private final LogCatListener logCatListener;
-	private final List<LogCatMessage> logCatMessages;
     private final Gson gson;
 
     public LogCatTestRunListener(Gson gson, FileManager fileManager, Pool pool, Device device) {
+		this.logcatReceiver = new LogcatReceiver(device);
         this.gson = gson;
         this.fileManager = fileManager;
         this.pool = pool;
 		this.device = device;
-		logCatMessages = new ArrayList<>();
-		logCatListener = new MessageCollectingLogCatListener(logCatMessages);
-		logCatReceiverTask = new LogCatReceiverTask(device.getDeviceInterface());
 	}
 
 	@Override
 	public void testRunStarted(String runName, int testCount) {
-		logCatReceiverTask.addLogCatListener(logCatListener);
-		new Thread(logCatReceiverTask, "CatLogger-" + runName + "-" + device.getSerial()).start();
+		logcatReceiver.start(runName);
 	}
 
 	@Override
@@ -66,12 +62,7 @@ class LogCatTestRunListener implements ITestRunListener {
 
     @Override
 	public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-		List<LogCatMessage> copyOfLogCatMessages;
-		synchronized (logCatMessages) {
-			int size = logCatMessages.size();
-			copyOfLogCatMessages = new ArrayList<>(size);
-			copyOfLogCatMessages.addAll(logCatMessages);
-		}
+		List<LogCatMessage> copyOfLogCatMessages = logcatReceiver.getMessages();
         LogCatWriter logCatWriter = new CompositeLogCatWriter(
                 new JsonLogCatWriter(gson, fileManager, pool, device),
                 new RawLogCatWriter(fileManager, pool, device));
@@ -89,22 +80,6 @@ class LogCatTestRunListener implements ITestRunListener {
 
 	@Override
 	public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
-		logCatReceiverTask.stop();
-		logCatReceiverTask.removeLogCatListener(logCatListener);
-	}
-
-	private final class MessageCollectingLogCatListener implements LogCatListener {
-		private final List<LogCatMessage> logCatMessages;
-
-		public MessageCollectingLogCatListener(List<LogCatMessage> messageList) {
-			logCatMessages = messageList;
-		}
-
-		@Override
-		public void log(List<LogCatMessage> msgList) {
-			synchronized (logCatMessages) {
-				logCatMessages.addAll(msgList);
-			}
-		}
+		logcatReceiver.stop();
 	}
 }

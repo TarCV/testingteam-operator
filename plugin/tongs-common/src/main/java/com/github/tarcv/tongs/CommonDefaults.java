@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ public class CommonDefaults {
     public static final String ANDROID_SDK = System.getenv("ANDROID_HOME");
     public static final String TONGS = "tongs-";
     public static final String JSON = "json";
-    public static final String TEST_CLASS_REGEX = "^((?!Abstract).)*Test$";
     public static final String TONGS_SUMMARY_FILENAME_FORMAT = TONGS + "%s." + JSON;
     public static final String TONGS_SUMMARY_FILENAME_REGEX = TONGS + ".*\\." + JSON;
     public static final String BUILD_ID_TOKEN = "{BUILD_ID}";

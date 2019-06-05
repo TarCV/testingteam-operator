@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -14,6 +14,7 @@ import com.github.tarcv.test.Config.PACKAGE
 import org.apache.commons.exec.CommandLine
 import org.apache.commons.exec.DefaultExecutor
 import org.apache.commons.exec.PumpStreamHandler
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assume
 import org.junit.Test
@@ -34,19 +35,20 @@ class FunctionalPostConditionTest {
             acc
         }
 
-        assert(simplifiedResults.size == 1+3+3+4+11) { "All tests should be executed" }
+        // Numbers are test case counts per classes in alphabetical order
+        assert(simplifiedResults.size == 11+2+2+2+1+1+8+8+2+4) { "All tests should be executed" }
     }
 
     @Test
     fun testNumberedParameterizedTestExecutedCorrectly() {
         doAssertionsForParameterizedTests(
-                """$packageForRegex\.ParameterizedTest#test\[\d+]""".toRegex(), 3)
+                """$packageForRegex\.ParameterizedTest#test\[\d+]""".toRegex(), 8)
     }
 
     @Test
     fun testNamedParameterizedTestExecutedCorrectly() {
         doAssertionsForParameterizedTests(
-                """$packageForRegex\.ParameterizedNamedTest#test\[\s*param = .+]""".toRegex(), 3)
+                """$packageForRegex\.ParameterizedNamedTest#test\[\s*param = .+]""".toRegex(), 8)
     }
 
     @Test
@@ -118,6 +120,27 @@ class FunctionalPostConditionTest {
                     .forEach { actualPath ->
                         this@FunctionalPostConditionTest.assertNotMangledByShell(actualPath)
                     }
+        }
+    }
+
+    @Test
+    fun testExpectedPropertiesFromAnnotationsAreInJsons() {
+        val poolSummaries = getSummaryData().getJSONArray("poolSummaries")
+        assert(poolSummaries.length() == 1)
+        val testResults = getTestResults() as Iterable<JSONObject>
+
+        val normalPropertiesTest = testResults.single { it.getString("testMethod") == "normalPropertiesTest" }
+        with(normalPropertiesTest.getJSONObject("testMetrics")) {
+            assert(getString("x") == "1")
+            assert(getString("y") == "2")
+            assert(keySet() == setOf("x", "y"))
+        }
+
+        val normalPropertyPairsTest = testResults.single { it.getString("testMethod") == "normalPropertyPairsTest" }
+        with(normalPropertyPairsTest.getJSONObject("testMetrics")) {
+            assert(getString("v") == "1")
+            assert(getString("w") == "2")
+            assert(keySet() == setOf("v", "w"))
         }
     }
 
@@ -203,10 +226,7 @@ private fun doAssertionsForParameterizedTests(pattern: Regex, expectedCount: Int
 }
 
 private fun getSimplifiedResults(): List<Pair<String, String>> {
-    val poolSummaries = getSummaryData().getJSONArray("poolSummaries")
-    assert(poolSummaries.length() == 1)
-    val testResults = (poolSummaries[0] as JSONObject).getJSONArray("testResults")
-    val simplifiedResults = testResults.map {
+    val simplifiedResults = getTestResults().map {
         val result = it as JSONObject
         val serial = result.getJSONObject("device").getString("serial")
         val testClass = result.getString("testClass")
@@ -214,6 +234,13 @@ private fun getSimplifiedResults(): List<Pair<String, String>> {
         "$testClass#$testMethod" to serial
     }
     return simplifiedResults
+}
+
+private fun getTestResults(): JSONArray {
+    val poolSummaries = getSummaryData().getJSONArray("poolSummaries")
+    assert(poolSummaries.length() == 1)
+    val testResults = (poolSummaries[0] as JSONObject).getJSONArray("testResults")
+    return testResults
 }
 
 private fun getSummaryData(): JSONObject {

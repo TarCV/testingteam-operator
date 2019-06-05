@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.summary;
 
+import com.google.gson.JsonObject;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.Device;
@@ -93,7 +94,7 @@ public class SummaryCompilerTest {
             newTestCase(new TestIdentifier("com.example.CompletedClassTest", "doesJobProperly")),
             newTestCase(new TestIdentifier("com.example.CompletedClassTest2", "doesJobProperly")),
             newTestCase("doesJobProperly", "com.example.FailedClassTest", false,
-                    emptyList(), testMetricsForFailedTest),
+                    emptyList(), testMetricsForFailedTest, new JsonObject()),
             newTestCase(new TestIdentifier("com.example.IgnoredClassTest", "doesJobProperly"), true),
             newTestCase(new TestIdentifier("com.example.SkippedClassTest", "doesJobProperly"))
     );

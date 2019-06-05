@@ -14,6 +14,7 @@ import com.android.ddmlib.*
 import com.android.ddmlib.IDevice.Feature.SCREEN_RECORD
 import com.android.ddmlib.log.LogReceiver
 import com.android.sdklib.AndroidVersion
+import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
@@ -30,7 +31,8 @@ class StubDevice(
         private val characteristics: String,
         private val testCommandDelay: Long
 ) : IDevice {
-    val deviceLogFile = File("${serial}_adb.log")
+    private val deviceLogFile = File("${serial}_adb.log")
+    private var logcatReceiver: IShellOutputReceiver? = null
 
     override fun startScreenRecorder(remoteFilePath: String, options: ScreenRecorderOptions, receiver: IShellOutputReceiver) {
         synchronized(this) {
@@ -52,6 +54,14 @@ class StubDevice(
             val outputBytes = "<stub> <stub> <stub> <stub> <stub>".toByteArray()
 
             if (command.contains("am instrument")) {
+                if (command.contains("-e log true")) {
+                    logcatReceiver?.run {
+                        TestAndroidTestRunnerFactory.logcatLines.forEach {
+                            val bytes = ("$it\r\n").toByteArray()
+                            addOutput(bytes, 0, bytes.size)
+                        }
+                    }
+                }
                 sleep(testCommandDelay)
             }
 
@@ -60,8 +70,12 @@ class StubDevice(
                 close()
             }
 
-            receiver.addOutput(outputBytes, 0, outputBytes.size)
-            receiver.flush()
+            if (command.contains("logcat")) {
+                logcatReceiver = receiver
+            } else {
+                receiver.addOutput(outputBytes, 0, outputBytes.size)
+                receiver.flush()
+            }
         }
     }
 
@@ -142,6 +156,7 @@ class StubDevice(
 
     override fun isOnline(): Boolean = true
 
+    override fun getClientName(pid: Int): String = "client$pid"
 
     // Methods below this line are not used Tongs and therefore doesn't need to be stubbed
 
@@ -166,10 +181,6 @@ class StubDevice(
     }
 
     override fun installRemotePackage(remoteFilePath: String?, reinstall: Boolean, vararg extraArgs: String?) {
-        TODO("not implemented")
-    }
-
-    override fun getClientName(pid: Int): String {
         TODO("not implemented")
     }
 

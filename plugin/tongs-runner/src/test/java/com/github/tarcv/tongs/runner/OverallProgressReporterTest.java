@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.runner;
 
+import com.google.gson.JsonObject;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
@@ -39,7 +40,7 @@ public class OverallProgressReporterTest {
     private final Pool A_POOL = aDevicePool()
             .addDevice(A_DEVICE)
             .build();
-    private final TestCaseEvent A_TEST_CASE = newTestCase("aTestMethod", "aTestClass", false, emptyList(), emptyMap());
+    private final TestCaseEvent A_TEST_CASE = newTestCase("aTestMethod", "aTestClass", false, emptyList(), emptyMap(), new JsonObject());
 
     private OverallProgressReporter overallProgressReporter;
 

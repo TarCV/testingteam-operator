@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.model;
 
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,8 +41,8 @@ public class PoolTestCaseAccumulatorTestFailure {
             .addDevice(ANOTHER_DEVICE)
             .build();
     
-    private final TestCaseEvent A_TEST_CASE = newTestCase("a_method", "a_class", false, emptyList(), emptyMap());
-    private final TestCaseEvent ANOTHER_TEST_CASE = newTestCase("another_method", "a_class", false, emptyList(), emptyMap());
+    private final TestCaseEvent A_TEST_CASE = newTestCase("a_method", "a_class", false, emptyList(), emptyMap(), new JsonObject());
+    private final TestCaseEvent ANOTHER_TEST_CASE = newTestCase("another_method", "a_class", false, emptyList(), emptyMap(), new JsonObject());
 
     PoolTestCaseFailureAccumulator subject;
 

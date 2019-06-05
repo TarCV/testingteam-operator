@@ -20,7 +20,7 @@ android {
 
 
     defaultConfig {
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion 27
         versionCode 30401
         versionName VERSION_NAME

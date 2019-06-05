@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -64,32 +64,16 @@ public class PermissionGrantingManager {
         }
     }
 
-    public void restorePermissions(@Nonnull String applicationPackage,
-                                   @Nonnull IDevice device,
-                                   @Nonnull List<String> permissionsToRestore) {
-        if (!permissionsToRestore.isEmpty() && configuration.isAutoGrantingPermissions()) {
-            List<String> permissionsToGrant = new ArrayList<>(permissionsToRestore.size());
-
-            List<Permission> permissions = configuration.getApplicationInfo().getPermissions();
-            for (Permission permission : permissions) {
-                if (deviceApiLevelInRange(device, permission) && permissionsToRestore.contains(permission.getPermissionName())) {
-                    permissionsToGrant.add(permission.getPermissionName());
-                }
-            }
-
-            grantPermissions(applicationPackage, device, permissionsToGrant);
-        }
-    }
-
-    private void grantPermissions(@Nonnull String applicationPackage,
+    public void grantPermissions(@Nonnull String applicationPackage,
                                   @Nonnull IDevice device,
                                   @Nonnull List<String> permissionsToGrant) {
         if (!permissionsToGrant.isEmpty()) {
             long start = System.currentTimeMillis();
             for (String permissionToGrant : permissionsToGrant) {
                 try {
-                    device.executeShellCommand(format("pm grant %s %s",
-                            applicationPackage, permissionToGrant), NO_OP_RECEIVER);
+                    String command = format("pm grant %s %s", applicationPackage, permissionToGrant);
+                    logger.info("Cmd: " + command);
+                    device.executeShellCommand(command, NO_OP_RECEIVER);
                 } catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
                     throw new UnsupportedOperationException(format("Unable to grant permission %s", permissionToGrant), e);
                 }

@@ -35,11 +35,6 @@ public abstract class TongsConfigurationExtension {
     public boolean isCoverageEnabled;
 
     /**
-     * Regex determining the class names to consider when finding tests to run.
-     */
-    public String testClassRegex;
-
-    /**
      * The title of the final report
      */
     public String title;
@@ -83,12 +78,6 @@ public abstract class TongsConfigurationExtension {
      * Max number of time each testCase is attempted again before declaring it as a failure.
      */
     public int retryPerTestCaseQuota;
-
-    /**
-     * Indicate that in Marshmallow+ all the required runtime permissions are granted automatically.
-     * Default is true.
-     */
-    public boolean autoGrantPermissions = true;
 
     /**
      * Filter test run to tests without given annotation

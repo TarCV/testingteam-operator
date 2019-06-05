@@ -14,11 +14,12 @@ package com.github.tarcv.tongs;
 import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
 import com.github.tarcv.tongs.system.axmlparser.ApplicationInfo;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public interface TongsConfiguration {
     @Nonnull
@@ -49,9 +50,6 @@ public interface TongsConfiguration {
     String getSubtitle();
 
     @Nonnull
-    Pattern getTestClassPattern();
-
-    @Nonnull
     String getTestPackage();
 
     long getTestOutputTimeout();
@@ -71,8 +69,6 @@ public interface TongsConfiguration {
     boolean isCoverageEnabled();
 
     PoolingStrategy getPoolingStrategy();
-
-    boolean isAutoGrantingPermissions();
 
     String getExcludedAnnotation();
 

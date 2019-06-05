@@ -13,12 +13,18 @@
  */
 package com.github.tarcv.tongs;
 
-import com.beust.jcommander.*;
+import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.Reader;
 
 import static com.github.tarcv.tongs.Configuration.Builder.configuration;
 import static com.github.tarcv.tongs.injector.GsonInjector.gson;
@@ -89,7 +95,6 @@ public class TongsCli {
                     .withOutput(tongsConfiguration.baseOutputDir != null ? cleanFile(tongsConfiguration.baseOutputDir) : cleanFile(Defaults.TONGS_OUTPUT))
                     .withTitle(tongsConfiguration.title)
                     .withSubtitle(tongsConfiguration.subtitle)
-                    .withTestClassRegex(tongsConfiguration.testClassRegex)
                     .withTestPackage(tongsConfiguration.testPackage)
                     .withTestOutputTimeout(tongsConfiguration.testOutputTimeout)
                     .withTestSize(tongsConfiguration.testSize)
@@ -99,7 +104,6 @@ public class TongsCli {
                     .withRetryPerTestCaseQuota(tongsConfiguration.retryPerTestCaseQuota)
                     .withCoverageEnabled(tongsConfiguration.isCoverageEnabled)
                     .withPoolingStrategy(tongsConfiguration.poolingStrategy)
-                    .withAutoGrantPermissions(tongsConfiguration.autoGrantPermissions)
                     .withExcludedAnnotation(tongsConfiguration.excludedAnnotation)
                     .build();
 

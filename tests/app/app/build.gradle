@@ -10,7 +10,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.github.tarcv.tongstestapp"
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -40,6 +40,8 @@ dependencies {
 
 tongs {
     title = "Acceptance tests"
+
+    testPackage = "com.github.tarcv.test"
 
     totalAllowedRetryQuota = 4
     retryPerTestCaseQuota = 2

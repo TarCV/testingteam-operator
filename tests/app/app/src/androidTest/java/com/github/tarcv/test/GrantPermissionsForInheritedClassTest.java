@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -10,17 +10,37 @@
 
 package com.github.tarcv.test;
 
+import android.content.pm.PackageManager;
 import android.support.test.rule.ActivityTestRule;
+import android.support.v4.content.ContextCompat;
+import com.github.tarcv.tongs.GrantPermission;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class NormalTest {
+import static android.Manifest.permission;
+import static org.junit.Assert.assertEquals;
+
+@GrantPermission({permission.WRITE_CALENDAR})
+class BaseClass {}
+
+public class GrantPermissionsForInheritedClassTest extends BaseClass {
     @Rule
     public ActivityTestRule<MainActivity> rule = new ActivityTestRule<>(
             MainActivity.class, true, true);
 
     @Test
-    public void test() {
+    public void testPermissionGranted1() {
+        assertEquals(PackageManager.PERMISSION_GRANTED,
+                ContextCompat.checkSelfPermission(rule.getActivity(), permission.WRITE_CALENDAR));
+
+        TestHelpers.basicTestSteps();
+    }
+
+    @Test
+    public void testPermissionGranted2() {
+        assertEquals(PackageManager.PERMISSION_GRANTED,
+                ContextCompat.checkSelfPermission(rule.getActivity(), permission.WRITE_CALENDAR));
+
         TestHelpers.basicTestSteps();
     }
 }

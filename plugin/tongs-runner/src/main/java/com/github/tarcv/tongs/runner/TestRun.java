@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -10,11 +10,7 @@
  */
 package com.github.tarcv.tongs.runner;
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.*;
 import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
@@ -23,7 +19,6 @@ import com.google.common.base.Strings;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.system.PermissionGrantingManager;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,10 +49,11 @@ class TestRun {
 
 	public void execute() {
 		String applicationPackage = testRunParameters.getApplicationPackage();
+		String testPackage = testRunParameters.getTestPackage();
 		IDevice device = testRunParameters.getDeviceInterface();
 
 		RemoteAndroidTestRunner runner =
-				remoteAndroidTestRunnerFactory.createRemoteAndroidTestRunner(testRunParameters.getTestPackage(), testRunParameters.getTestRunner(), device);
+				remoteAndroidTestRunnerFactory.createRemoteAndroidTestRunner(testPackage, testRunParameters.getTestRunner(), device);
 
 		TestCaseEvent test = testRunParameters.getTest();
 		String testClassName = test.getTestClass();
@@ -87,21 +83,21 @@ class TestRun {
 		}
 
 		clearPackageData(device, applicationPackage);
-		clearPackageData(device, testRunParameters.getTestPackage());
+		clearPackageData(device, testPackage);
 
-		List<String> permissionsToRevoke = testRunParameters.getTest().getPermissionsToRevoke();
-
-		permissionGrantingManager.revokePermissions(applicationPackage, device, permissionsToRevoke);
+		List<String> permissionsToGrant = testRunParameters.getTest().getPermissionsToGrant();
+		permissionGrantingManager.grantPermissions(applicationPackage, device, permissionsToGrant);
+		permissionGrantingManager.grantPermissions(testPackage, device, permissionsToGrant);
 
 		try {
-			logger.error("Cmd: " + runner.getAmInstrumentCommand());
+			logger.info("Cmd: " + runner.getAmInstrumentCommand());
 			runner.run(testRunListeners);
 		} catch (ShellCommandUnresponsiveException | TimeoutException e) {
 			logger.warn("Test: " + testClassName + " got stuck. You can increase the timeout in settings if it's too strict");
 		} catch (AdbCommandRejectedException | IOException e) {
 			throw new RuntimeException(format("Error while running test %s %s", test.getTestClass(), test.getTestMethod()), e);
 		} finally {
-			permissionGrantingManager.restorePermissions(applicationPackage, device, permissionsToRevoke);
+			permissionGrantingManager.revokePermissions(applicationPackage, device, permissionsToGrant);
 		}
 
     }
@@ -110,7 +106,9 @@ class TestRun {
 		long start = System.currentTimeMillis();
 
 		try {
-			device.executeShellCommand(format("pm clear %s", applicationPackage), new NullOutputReceiver());
+			String command = format("pm clear %s", applicationPackage);
+			logger.info("Cmd: " + command);
+			device.executeShellCommand(command, new NullOutputReceiver());
 		} catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
 			throw new UnsupportedOperationException(format("Unable to clear package data (%s)", applicationPackage), e);
 		}
