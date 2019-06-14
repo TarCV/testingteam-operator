@@ -23,7 +23,7 @@ import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 
-class FunctionalPostConditionTest {
+class FunctionalSummaryTest {
     private val packageForRegex = PACKAGE.replace(".", """\.""")
 
     @Test
@@ -74,7 +74,7 @@ class FunctionalPostConditionTest {
                                 ?: throw AssertionError("Unexpected screenrecord line ${it}")
                     }
                     .forEach { actualPath ->
-                        this@FunctionalPostConditionTest.assertNotMangledByShell(actualPath)
+                        this@FunctionalSummaryTest.assertNotMangledByShell(actualPath)
                     }
         }
     }
@@ -96,7 +96,7 @@ class FunctionalPostConditionTest {
                                 ?: throw AssertionError("Unexpected screenrecord line ${it}")
                     }
                     .forEach { actualPath ->
-                        this@FunctionalPostConditionTest.assertNotMangledByShell(actualPath)
+                        this@FunctionalSummaryTest.assertNotMangledByShell(actualPath)
                     }
         }
     }
@@ -118,7 +118,7 @@ class FunctionalPostConditionTest {
                                 ?: throw AssertionError("Unexpected screenrecord line ${it}")
                     }
                     .forEach { actualPath ->
-                        this@FunctionalPostConditionTest.assertNotMangledByShell(actualPath)
+                        this@FunctionalSummaryTest.assertNotMangledByShell(actualPath)
                     }
         }
     }

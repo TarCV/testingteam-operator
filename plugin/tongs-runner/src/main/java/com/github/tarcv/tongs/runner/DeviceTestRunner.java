@@ -68,7 +68,7 @@ public class DeviceTestRunner implements Runnable {
 
             TestCaseEvent testCaseEvent;
             while ((testCaseEvent = queueOfTestsInPool.poll()) != null) {
-                TestRun testRun = testRunFactory.createTestRun(testCaseEvent,
+                AndroidInstrumentedTestRun testRun = testRunFactory.createTestRun(testCaseEvent,
                         device,
                         pool,
                         progressReporter,

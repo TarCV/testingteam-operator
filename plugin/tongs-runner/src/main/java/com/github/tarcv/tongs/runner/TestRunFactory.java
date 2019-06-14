@@ -17,6 +17,8 @@ import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.listeners.TestRunListenersFactory;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 
@@ -33,11 +35,11 @@ public class TestRunFactory {
         this.testRunListenersFactory = testRunListenersFactory;
     }
 
-    public TestRun createTestRun(TestCaseEvent testCase,
-                                 Device device,
-                                 Pool pool,
-                                 ProgressReporter progressReporter,
-                                 Queue<TestCaseEvent> queueOfTestsInPool) {
+    public AndroidInstrumentedTestRun createTestRun(TestCaseEvent testCase,
+                                                    Device device,
+                                                    Pool pool,
+                                                    ProgressReporter progressReporter,
+                                                    Queue<TestCaseEvent> queueOfTestsInPool) {
         TestRunParameters testRunParameters = testRunParameters()
                 .withDeviceInterface(device.getDeviceInterface())
                 .withTest(testCase)
@@ -65,10 +67,17 @@ public class TestRunFactory {
             remoteAndroidTestRunnerFactory = new RemoteAndroidTestRunnerFactory();
         }
 
-        return new TestRun(
+        TongsTestCaseContext testRunContext = new TongsTestCaseContext(
+                configuration,
+                pool,
+                device,
+                testCase
+        );
+        return new AndroidInstrumentedTestRun(
                 pool.getName(),
                 testRunParameters,
                 testRunListeners,
+                Collections.singletonList(new AndroidCleanupTestRuleFactory().create(testRunContext)),
                 permissionGrantingManager(),
                 remoteAndroidTestRunnerFactory);
     }

@@ -27,22 +27,25 @@ import java.util.List;
 
 import static java.lang.String.format;
 
-class TestRun {
-	private static final Logger logger = LoggerFactory.getLogger(TestRun.class);
+class AndroidInstrumentedTestRun {
+	private static final Logger logger = LoggerFactory.getLogger(AndroidInstrumentedTestRun.class);
     private final String poolName;
 	private final TestRunParameters testRunParameters;
 	private final List<ITestRunListener> testRunListeners;
+	private final List<TestRule> testRules;
 	private final PermissionGrantingManager permissionGrantingManager;
 	private final IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory;
 
-	public TestRun(String poolName,
-				   TestRunParameters testRunParameters,
-				   List<ITestRunListener> testRunListeners,
-				   PermissionGrantingManager permissionGrantingManager,
-				   IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory) {
+	public AndroidInstrumentedTestRun(String poolName,
+									  TestRunParameters testRunParameters,
+									  List<ITestRunListener> testRunListeners,
+									  List<TestRule> testRules,
+									  PermissionGrantingManager permissionGrantingManager,
+									  IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory) {
         this.poolName = poolName;
 		this.testRunParameters = testRunParameters;
 		this.testRunListeners = testRunListeners;
+		this.testRules = testRules;
 		this.permissionGrantingManager = permissionGrantingManager;
 		this.remoteAndroidTestRunnerFactory = remoteAndroidTestRunnerFactory;
 	}
@@ -82,8 +85,7 @@ class TestRun {
 			logger.info("No excluding any test based on annotations");
 		}
 
-		clearPackageData(device, applicationPackage);
-		clearPackageData(device, testPackage);
+		testRules.forEach(TestRule::before);
 
 		List<String> permissionsToGrant = testRunParameters.getTest().getPermissionsToGrant();
 		permissionGrantingManager.grantPermissions(applicationPackage, device, permissionsToGrant);
@@ -98,21 +100,9 @@ class TestRun {
 			throw new RuntimeException(format("Error while running test %s %s", test.getTestClass(), test.getTestMethod()), e);
 		} finally {
 			permissionGrantingManager.revokePermissions(applicationPackage, device, permissionsToGrant);
+
+			testRules.forEach(TestRule::after);
 		}
 
     }
-
-	private void clearPackageData(IDevice device, String applicationPackage) {
-		long start = System.currentTimeMillis();
-
-		try {
-			String command = format("pm clear %s", applicationPackage);
-			logger.info("Cmd: " + command);
-			device.executeShellCommand(command, new NullOutputReceiver());
-		} catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
-			throw new UnsupportedOperationException(format("Unable to clear package data (%s)", applicationPackage), e);
-		}
-
-		logger.debug("Clearing application data: {} (took {}ms)", applicationPackage, (System.currentTimeMillis() - start));
-	}
 }
