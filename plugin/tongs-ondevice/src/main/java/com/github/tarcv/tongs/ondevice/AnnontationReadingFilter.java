@@ -45,8 +45,8 @@ public class AnnontationReadingFilter extends Filter {
 
             // Method annotations override class ones, so they should be added last
             Class<?> testClass = description.getTestClass();
-            appendSuperclassAnnotations(testClass, annotationsInfo);
-            appendAnnotationInfos(Arrays.asList(testClass.getAnnotations()),
+            appendSuperclassAnnotationsRoot(testClass, annotationsInfo);
+            appendAnnotationInfos(Arrays.asList(testClass.getDeclaredAnnotations()),
                     annotationsInfo);
             appendAnnotationInfos(description.getAnnotations(), annotationsInfo);
 
@@ -66,15 +66,19 @@ public class AnnontationReadingFilter extends Filter {
         return true;
     }
 
-    private void appendSuperclassAnnotations(Class<?> testClass, JSONArray annotationsInfo) throws JSONException {
+    private void appendSuperclassAnnotationsRoot(Class<?> testClass, JSONArray annotationsInfo) throws JSONException {
         for (Class<?> iface : testClass.getInterfaces()) {
-            appendSuperclassAnnotations(iface, annotationsInfo);
+            appendSuperclassAnnotationsFull(iface, annotationsInfo);
         }
 
         Class<?> superclass = testClass.getSuperclass();
         if (superclass != Object.class && superclass != testClass && superclass != null) {
-            appendSuperclassAnnotations(superclass, annotationsInfo);
+            appendSuperclassAnnotationsFull(superclass, annotationsInfo);
         }
+    }
+
+    private void appendSuperclassAnnotationsFull(Class<?> testClass, JSONArray annotationsInfo) throws JSONException {
+        appendSuperclassAnnotationsRoot(testClass, annotationsInfo);
 
         ArrayList<Annotation> eligibleAnnotations = new ArrayList<>();
         for (Annotation annotation : testClass.getDeclaredAnnotations()) {

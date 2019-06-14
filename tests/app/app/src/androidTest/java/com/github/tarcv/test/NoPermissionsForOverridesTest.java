@@ -22,7 +22,10 @@ import static org.junit.Assert.assertEquals;
 
 abstract class BaseMethodsClass {
     @GrantPermission({permission.WRITE_CALENDAR})
-    public abstract void testNoPermissionForOverrides();
+    public abstract void testNoPermissionForAbstractOverrides();
+
+    @GrantPermission({permission.WRITE_CALENDAR})
+    public void testNoPermissionForNormalOverrides() { }
 }
 
 public class NoPermissionsForOverridesTest extends BaseMethodsClass {
@@ -32,7 +35,16 @@ public class NoPermissionsForOverridesTest extends BaseMethodsClass {
 
     @Test
     @Override
-    public void testNoPermissionForOverrides() {
+    public void testNoPermissionForAbstractOverrides() {
+        assertEquals(PackageManager.PERMISSION_DENIED,
+                ContextCompat.checkSelfPermission(rule.getActivity(), permission.WRITE_CALENDAR));
+
+        TestHelpers.basicTestSteps();
+    }
+
+    @Test
+    @Override
+    public void testNoPermissionForNormalOverrides() {
         assertEquals(PackageManager.PERMISSION_DENIED,
                 ContextCompat.checkSelfPermission(rule.getActivity(), permission.WRITE_CALENDAR));
 

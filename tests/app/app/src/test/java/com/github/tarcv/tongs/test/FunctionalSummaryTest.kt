@@ -36,7 +36,7 @@ class FunctionalSummaryTest {
         }
 
         // Numbers are test case counts per classes in alphabetical order
-        assert(simplifiedResults.size == 11+2+2+2+1+1+8+8+2+4) { "All tests should be executed" }
+        assert(simplifiedResults.size == 11+2+2+2+2+1+8+8+2+4) { "All tests should be executed" }
     }
 
     @Test
