@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,10 +13,11 @@
  */
 package com.github.tarcv.tongs.pooling;
 
+import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.Devices;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Loads pools of devices based on their characteristics.
@@ -28,5 +29,5 @@ public interface DevicePoolLoader {
      * @param devices the devices that this pool loader can apply to
 	 * @return the pools loaded from this loader
 	 */
-	Collection<Pool> loadPools(Devices devices);
+	Collection<Pool> loadPools(List<Device> devices);
 }

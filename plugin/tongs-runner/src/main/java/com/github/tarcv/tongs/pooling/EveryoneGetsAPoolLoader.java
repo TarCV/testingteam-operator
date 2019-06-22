@@ -13,10 +13,12 @@
  */
 package com.github.tarcv.tongs.pooling;
 
-import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.model.Device;
+import com.github.tarcv.tongs.model.Pool;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 
@@ -26,9 +28,9 @@ import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 public class EveryoneGetsAPoolLoader implements DevicePoolLoader {
 
 	@Override
-	public Collection<Pool> loadPools(Devices devices) {
+	public Collection<Pool> loadPools(List<Device> devices) {
         ArrayList<Pool> pools = new ArrayList<>();
-        for (Device device : devices.getDevices()) {
+        for (Device device : devices) {
             Pool pool = aDevicePool().addDevice(device).withName(device.getSerial()).build();
             pools.add(pool);
         }

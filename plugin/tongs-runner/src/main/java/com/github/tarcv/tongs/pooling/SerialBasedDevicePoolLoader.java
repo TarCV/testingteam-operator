@@ -14,10 +14,12 @@
 package com.github.tarcv.tongs.pooling;
 
 import com.github.tarcv.tongs.ManualPooling;
-import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.model.Device;
+import com.github.tarcv.tongs.model.Pool;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static java.util.Map.Entry;
@@ -32,13 +34,16 @@ public class SerialBasedDevicePoolLoader implements DevicePoolLoader {
         this.manualPooling = manualPooling;
     }
 
-	public Collection<Pool> loadPools(Devices devices) {
+	public Collection<Pool> loadPools(List<Device> devices) {
 		Collection<Pool> pools = new ArrayList<>();
 
         for (Entry<String, Collection<String>> pool : manualPooling.groupings.entrySet()) {
             Pool.Builder poolBuilder = aDevicePool().withName(pool.getKey());
             for (String serial : pool.getValue()) {
-                Device device = devices.getDevice(serial);
+                Device device = devices.stream()
+                        .filter(d -> d.getSerial().equals(serial))
+                        .findFirst()
+                        .orElseThrow(RuntimeException::new);
                 if (device != null) {
                     poolBuilder.addDevice(device);
                 }

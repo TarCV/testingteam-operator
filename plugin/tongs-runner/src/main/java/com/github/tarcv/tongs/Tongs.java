@@ -20,7 +20,6 @@ import java.io.File;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.setConfiguration;
 import static com.github.tarcv.tongs.injector.TongsRunnerInjector.tongsRunner;
-import static com.github.tarcv.tongs.injector.system.AdbInjector.adb;
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
@@ -31,11 +30,9 @@ public final class Tongs {
 
     private final TongsRunner tongsRunner;
     private final File output;
-    private final boolean terminateDdm;
 
     public Tongs(Configuration configuration) {
         this.output = configuration.getOutput();
-        this.terminateDdm = configuration.shouldTerminateDdm();
         setConfiguration(configuration);
         this.tongsRunner = tongsRunner();
     }
@@ -53,9 +50,6 @@ public final class Tongs {
 		} finally {
             long duration = millisSinceNanoTime(startOfTestsMs);
             logger.info(formatPeriod(0, duration, "'Total time taken:' H 'hours' m 'minutes' s 'seconds'"));
-            if (terminateDdm) {
-                adb().terminate();
-            }
 		}
 	}
 }

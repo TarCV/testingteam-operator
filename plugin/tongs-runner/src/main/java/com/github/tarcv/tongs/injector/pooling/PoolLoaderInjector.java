@@ -14,13 +14,13 @@ package com.github.tarcv.tongs.injector.pooling;
 import com.github.tarcv.tongs.pooling.PoolLoader;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
-import static com.github.tarcv.tongs.injector.device.DeviceLoaderInjector.deviceLoader;
+import static com.github.tarcv.tongs.injector.device.ConnectedDeviceProviderInjectorKt.connectedDeviceProvider;
 
 public class PoolLoaderInjector {
 
     private PoolLoaderInjector() {}
 
     public static PoolLoader poolLoader() {
-        return new PoolLoader(deviceLoader(), configuration());
+        return new PoolLoader(connectedDeviceProvider(), configuration());
     }
 }

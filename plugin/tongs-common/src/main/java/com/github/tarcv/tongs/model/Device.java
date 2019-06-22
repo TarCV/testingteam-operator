@@ -31,6 +31,7 @@ public class Device {
 	private final boolean isTablet;
 	private final DisplayGeometry geometry;
     private final Diagnostics diagnostics;
+	private String nameSuffix;
 
 	public String getSerial() {
 		return serial;
@@ -73,7 +74,15 @@ public class Device {
         return diagnostics;
     }
 
-    public static class Builder {
+	public String getName() {
+		return model + nameSuffix;
+	}
+
+	public void setNameSuffix(String suffix) {
+		nameSuffix = suffix;
+	}
+
+	public static class Builder {
         private String serial = "Unspecified serial";
         private String manufacturer = "Unspecified manufacturer";
         private String model = "Unspecified model";

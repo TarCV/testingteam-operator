@@ -14,8 +14,8 @@
 package com.github.tarcv.tongs.pooling;
 
 import com.github.tarcv.tongs.ComputedPooling;
-import com.github.tarcv.tongs.model.*;
-
+import com.github.tarcv.tongs.model.Device;
+import com.github.tarcv.tongs.model.Pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,15 +35,15 @@ public class ComputedDevicePoolLoader implements DevicePoolLoader {
         this.computedPoolsCategorizer = new ComputedPoolsCategorizer(computedPooling);
     }
 
-    public Collection<Pool> loadPools(Devices devices) {
+    public Collection<Pool> loadPools(List<Device> devices) {
         Collection<Pool> pools = createComputedPools(devices);
         ensureAllPoolsAreRepresented(pools);
         return pools;
     }
 
-    private Collection<Pool> createComputedPools(Devices devices) {
+    private Collection<Pool> createComputedPools(List<Device> devices) {
         Map<String, Pool.Builder> pools = new HashMap<>();
-        for (Device device : devices.getDevices()) {
+        for (Device device : devices) {
             String poolName = computedPoolsCategorizer.poolForDevice(device);
             if (poolName != null) {
                 if (!pools.containsKey(poolName)) {
