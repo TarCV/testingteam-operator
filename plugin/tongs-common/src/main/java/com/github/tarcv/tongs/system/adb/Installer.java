@@ -43,8 +43,12 @@ public class Installer {
 	}
 
 	public void prepareInstallation(IDevice device) {
-		reinstall(device, applicationPackage, apk);
-		reinstall(device, instrumentationPackage, testApk);
+		if (apk != null) {
+			reinstall(device, applicationPackage, apk);
+		}
+		if (testApk != null) {
+			reinstall(device, instrumentationPackage, testApk);
+		}
 		grantMockLocationInMarshmallow(device, applicationPackage);
 	}
 

@@ -14,8 +14,6 @@
 package com.github.tarcv.tongs;
 
 import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
-import com.github.tarcv.tongs.system.axmlparser.ApplicationInfo;
-import com.github.tarcv.tongs.system.axmlparser.ApplicationInfoFactory;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
 
 import org.slf4j.Logger;
@@ -59,8 +57,6 @@ public class Configuration implements TongsConfiguration {
     private final TongsIntegrationTestRunType tongsIntegrationTestRunType;
     private final boolean terminateDdm;
 
-    private ApplicationInfo applicationInfo;
-
     private Configuration(Builder builder) {
         androidSdk = builder.androidSdk;
         applicationApk = builder.applicationApk;
@@ -82,7 +78,6 @@ public class Configuration implements TongsConfiguration {
         poolingStrategy = builder.poolingStrategy;
         this.excludedAnnotation = builder.excludedAnnotation;
         this.tongsIntegrationTestRunType = builder.tongsIntegrationTestRunType;
-        this.applicationInfo = builder.applicationInfo;
         this.terminateDdm = builder.terminateDdm;
     }
 
@@ -93,13 +88,13 @@ public class Configuration implements TongsConfiguration {
     }
 
     @Override
-    @Nonnull
+    @Nullable
     public File getApplicationApk() {
         return applicationApk;
     }
 
     @Override
-    @Nonnull
+    @Nullable
     public File getInstrumentationApk() {
         return instrumentationApk;
     }
@@ -194,11 +189,6 @@ public class Configuration implements TongsConfiguration {
     }
 
     @Override
-    public ApplicationInfo getApplicationInfo() {
-        return applicationInfo;
-    }
-
-    @Override
     public boolean shouldTerminateDdm() {
         return terminateDdm;
     }
@@ -228,7 +218,6 @@ public class Configuration implements TongsConfiguration {
         private boolean isCoverageEnabled;
         private PoolingStrategy poolingStrategy;
         private String excludedAnnotation;
-        private ApplicationInfo applicationInfo;
         private TongsIntegrationTestRunType tongsIntegrationTestRunType = NONE;
         private boolean terminateDdm = true;
 
@@ -266,8 +255,23 @@ public class Configuration implements TongsConfiguration {
             return this;
         }
 
+        public Builder withApplicationPackage(String applicationPackage) {
+            this.applicationPackage = applicationPackage;
+            return this;
+        }
+
+        public Builder withInstrumentationPackage(String instrumentationPackage) {
+            this.instrumentationPackage = instrumentationPackage;
+            return this;
+        }
+
         public Builder withTestPackage(String testPackage) {
             this.testPackage = testPackage;
+            return this;
+        }
+
+        public Builder withTestRunnerClass(String testRunnerClass) {
+            this.testRunnerClass = testRunnerClass;
             return this;
         }
 
@@ -329,22 +333,33 @@ public class Configuration implements TongsConfiguration {
         public Configuration build() {
             checkNotNull(androidSdk, "SDK is required.");
             checkArgument(androidSdk.exists(), "SDK directory does not exist.");
-            checkNotNull(applicationApk, "Application APK is required.");
-            checkArgument(applicationApk.exists(), "Application APK file does not exist.");
-            checkNotNull(instrumentationApk, "Instrumentation APK is required.");
-            checkArgument(instrumentationApk.exists(), "Instrumentation APK file does not exist.");
-            InstrumentationInfo instrumentationInfo = parseFromFile(instrumentationApk);
-            checkNotNull(instrumentationInfo.getApplicationPackage(), "Application package was not found in test APK");
-            applicationPackage = instrumentationInfo.getApplicationPackage();
-            checkNotNull(instrumentationInfo.getInstrumentationPackage(), "Instrumentation package was not found in test APK");
-            instrumentationPackage = instrumentationInfo.getInstrumentationPackage();
-            checkNotNull(instrumentationInfo.getTestRunnerClass(), "Test runner class was not found in test APK");
-            testRunnerClass = instrumentationInfo.getTestRunnerClass();
+            if (instrumentationApk != null) {
+                checkNotNull(applicationApk, "Application APK is required when instrumentation APK is set.");
+                checkArgument(applicationApk.exists(), "Application APK file does not exist.");
+            }
+            if (applicationApk != null) {
+                checkNotNull(instrumentationApk, "Instrumentation APK is required when application APK is set.");
+                checkArgument(instrumentationApk.exists(), "Instrumentation APK file does not exist.");
+            }
+            if (instrumentationApk != null) {
+                InstrumentationInfo instrumentationInfo = parseFromFile(instrumentationApk);
+                checkNotNull(instrumentationInfo.getApplicationPackage(), "Application package was not found in test APK");
+                applicationPackage = instrumentationInfo.getApplicationPackage();
+                checkNotNull(instrumentationInfo.getInstrumentationPackage(), "Instrumentation package was not found in test APK");
+                instrumentationPackage = instrumentationInfo.getInstrumentationPackage();
+                checkNotNull(instrumentationInfo.getTestRunnerClass(), "Test runner class was not found in test APK");
+                testRunnerClass = instrumentationInfo.getTestRunnerClass();
+            } else {
+                checkNotNull(applicationPackage, "Application package name is required when instrumentation APK is not set");
+                checkNotNull(instrumentationPackage, "Instrumentation package name is required when instrumentation APK is not set");
+                checkNotNull(testRunnerClass, "Test runner class is required when instrumentation APK is not set");
+            }
+            testPackage = assignValueOrDefaultIfNull(testPackage, applicationPackage);
+
             checkNotNull(output, "Output path is required.");
 
             title = assignValueOrDefaultIfNull(title, Defaults.TITLE);
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);
-            testPackage = assignValueOrDefaultIfNull(testPackage, instrumentationInfo.getApplicationPackage());
             testOutputTimeout = assignValueOrDefaultIfZero(testOutputTimeout, Defaults.TEST_OUTPUT_TIMEOUT_MILLIS);
             excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.<String>emptyList());
             checkArgument(totalAllowedRetryQuota >= 0, "Total allowed retry quota should not be negative.");
@@ -352,7 +367,6 @@ public class Configuration implements TongsConfiguration {
             retryPerTestCaseQuota = assignValueOrDefaultIfZero(retryPerTestCaseQuota, Defaults.RETRY_QUOTA_PER_TEST_CASE);
             logArgumentsBadInteractions();
             poolingStrategy = validatePoolingStrategy(poolingStrategy);
-            applicationInfo = ApplicationInfoFactory.parseFromFile(applicationApk);
             return new Configuration(this);
         }
 

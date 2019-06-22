@@ -95,8 +95,8 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
     companion object {
         const val functionalTestTestcaseDuration = 2345L
 
-        private const val expectedTestPackage = "com.github.tarcv.tongstestapp.test"
-        private const val expectedTestRunner = "android.support.test.runner.AndroidJUnitRunner"
+        private const val expectedTestPackage = "com.github.tarcv.tongstestapp.f[12].test"
+        private const val expectedTestRunner = "(?:android.support.test.runner.AndroidJUnitRunner|com.github.tarcv.test.f2.TestRunner)"
         val logOnlyCommandPattern =
                 ("am\\s+instrument\\s+-w\\s+-r\\s+" +
                         " -e package com.github.tarcv.test" +

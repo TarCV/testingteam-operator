@@ -17,12 +17,15 @@ import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.ApkVariant
-import com.android.build.gradle.api.BaseVariantOutput
+import com.android.build.gradle.api.InstallableVariant
 import com.android.build.gradle.api.TestVariant
 import com.github.tarcv.tongs.TongsConfigurationGradleExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.tasks.TaskProvider
+
+import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN
 
 /**
  * Gradle plugin for Tongs.
@@ -51,32 +54,27 @@ class TongsPlugin implements Plugin<Project> {
 
         BaseExtension android = project.android
         android.testVariants.all { TestVariant variant ->
-            TongsRunTask tongsTaskForTestVariant = createTask(variant, project)
+            TaskProvider<TongsRunTask> tongsTaskForTestVariant = registerTask(variant, project)
             tongsTask.dependsOn tongsTaskForTestVariant
         }
     }
 
-    private static TongsRunTask createTask(final TestVariant variant, final Project project) {
-        checkTestVariants(variant)
-
-        def tongsTask = project.tasks.create("${TASK_PREFIX}${variant.name.capitalize()}", TongsRunTask)
-
-        def testedVariant = (ApkVariant) variant.testedVariant
-        testedVariant.outputs.all { BaseVariantOutput baseVariantOutput ->
-            checkTestedVariants(baseVariantOutput)
-            tongsTask.configure {
+    private static TaskProvider<TongsRunTask> registerTask(final TestVariant variant, final Project project) {
+        return project.tasks.register("${TASK_PREFIX}${variant.name.capitalize()}", TongsRunTask) { task ->
+            def testedVariant = (ApkVariant) variant.testedVariant
+            task.configure {
                 TongsConfigurationGradleExtension config = project.tongs
 
                 description = "Runs instrumentation tests on all the connected devices for '${variant.name}' variation and generates a report with screenshots"
                 group = JavaBasePlugin.VERIFICATION_GROUP
 
-                instrumentationApk = variant.outputs[0].outputFile
-
                 title = config.title
                 subtitle = config.subtitle
+                applicationPackage = testedVariant.applicationId
+                instrumentationPackage = variant.applicationId
                 testPackage = config.testPackage
                 testOutputTimeout = config.testOutputTimeout
-                testSize = config.testSize
+                testRunnerClass = variant.mergedFlavor.testInstrumentationRunner
                 excludedSerials = config.excludedSerials
                 fallbackToScreenshots = config.fallbackToScreenshots
                 totalAllowedRetryQuota = config.totalAllowedRetryQuota
@@ -87,8 +85,6 @@ class TongsPlugin implements Plugin<Project> {
                 excludedAnnotation = config.excludedAnnotation
                 tongsIntegrationTestRunType = config.tongsIntegrationTestRunType
 
-                applicationApk = baseVariantOutput.outputFile
-
                 String baseOutputDir = config.baseOutputDir
                 File outputBase
                 if (baseOutputDir) {
@@ -98,31 +94,17 @@ class TongsPlugin implements Plugin<Project> {
                 }
                 output = new File(outputBase, variant.name)
 
-                dependsOn testedVariant.assembleProvider.get(), variant.assembleProvider.get()
+                if (config.tongsIntegrationTestRunType != STUB_PARALLEL_TESTRUN) {
+                    dependsOn(((InstallableVariant) testedVariant).installProvider, ((InstallableVariant) variant).installProvider)
+                }
             }
-            tongsTask.outputs.upToDateWhen { false }
+            task.outputs.upToDateWhen { false }
         }
-        return tongsTask
     }
 
     private static checkTestVariants(TestVariant testVariant) {
         if (testVariant.outputs.size() > 1) {
             throw new UnsupportedOperationException("The Tongs plugin does not support abi/density splits for test APKs")
-        }
-    }
-
-    /**
-     * Checks that if the base variant contains more than one outputs (and has therefore splits), it is the universal APK.
-     * Otherwise, we can test the single output. This is a workaround until Tongs supports test & app splits properly.
-     *
-     * @param baseVariant the tested variant
-     */
-    private static checkTestedVariants(BaseVariantOutput baseVariantOutput) {
-        if (baseVariantOutput.outputs.size() > 1) {
-            throw new UnsupportedOperationException(
-                    "The Tongs plugin does not support abi splits for app APKs, but supports testing via a universal APK. " +
-                            "Add the flag \"universalApk true\" in the android.splits.abi configuration."
-            )
         }
     }
 }

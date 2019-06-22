@@ -1,5 +1,16 @@
+/*
+ * Copyright 2019 TarCV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ */
+
 package com.github.tarcv.tongs.test
 
+import com.github.tarcv.test.BuildConfig.FLAVOR
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.nio.file.Files
@@ -7,14 +18,32 @@ import java.nio.file.Paths
 
 class FunctionalLogTest {
     @Test
+    fun testRunnerIsCorrect() {
+        (getTestLineGroups(0) + getTestLineGroups(1)).entries
+                .filter { entry -> entry.key.isNotEmpty() }
+                .map { entry -> entry.value }
+                .map { it.last() }
+                .forEach { runCommand ->
+                    val expectedRunner = when (FLAVOR) {
+                        "f1" ->"android.support.test.runner.AndroidJUnitRunner"
+                        "f2" ->"com.github.tarcv.test.f2.TestRunner"
+                        else -> throw AssertionError("Got an unexpected build flavor")
+                    }
+                    assert(runCommand.endsWith("/$expectedRunner")) {
+                        "Command to run a test should contain $expectedRunner. Actual: $runCommand"
+                    }
+                }
+    }
+
+    @Test
     fun testClearBeforeTests() {
         (getTestLineGroups(0) + getTestLineGroups(1)).entries
                 .filter { entry -> entry.key.isNotEmpty() }
                 .map { entry -> entry.value }
                 .forEach {
             val beforeLines = it.subList(0, it.size - 1)
-            assert(beforeLines.count { line -> line == "pm clear com.github.tarcv.tongstestapp" } == 1)
-            assert(beforeLines.count { line -> line == "pm clear com.github.tarcv.tongstestapp.test" } == 1)
+            assert(beforeLines.count { line -> line == "pm clear com.github.tarcv.tongstestapp.$FLAVOR" } == 1)
+            assert(beforeLines.count { line -> line == "pm clear com.github.tarcv.tongstestapp.$FLAVOR.test" } == 1)
         }
     }
 

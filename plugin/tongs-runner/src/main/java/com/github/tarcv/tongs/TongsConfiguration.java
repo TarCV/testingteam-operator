@@ -12,11 +12,9 @@
 package com.github.tarcv.tongs;
 
 import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
-import com.github.tarcv.tongs.system.axmlparser.ApplicationInfo;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,10 +23,10 @@ public interface TongsConfiguration {
     @Nonnull
     File getAndroidSdk();
 
-    @Nonnull
+    @Nullable
     File getApplicationApk();
 
-    @Nonnull
+    @Nullable
     File getInstrumentationApk();
 
     @Nonnull
@@ -73,8 +71,6 @@ public interface TongsConfiguration {
     String getExcludedAnnotation();
 
     TongsIntegrationTestRunType getTongsIntegrationTestRunType();
-
-    ApplicationInfo getApplicationInfo();
 
     boolean shouldTerminateDdm();
 
