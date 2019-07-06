@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -10,13 +10,13 @@
 
 package com.github.tarcv.tongs.runner.listeners
 
-import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.model.Device
+import com.github.tarcv.tongs.runner.PreregisteringLatch
 import java.io.File
 import java.io.FileWriter
 
-class RecordingTestRunListener(device: Device, isLogOnly: Boolean) : ITestRunListener {
+class RecordingTestRunListener(device: Device, isLogOnly: Boolean, latch: PreregisteringLatch?) : BaseListener(latch) {
     private val deviceSerial = device.serial
     private val writer: FileWriter by lazy {
         val filename = if (isLogOnly) {
@@ -67,12 +67,16 @@ class RecordingTestRunListener(device: Device, isLogOnly: Boolean) : ITestRunLis
     }
 
     override fun testRunEnded(elapsedTime: Long, runMetrics: Map<String, String>?) {
-        val metricsString = runMetrics
-                ?.entries
-                ?.toList()
-                ?.sortedBy { it.key }
-                ?.joinToString(";") { "${it.key} -> ${it.value}" }
-        writer.append("$deviceSerial testRunEnded $elapsedTime,{$metricsString}$separator")
-        writer.close()
+        try {
+            val metricsString = runMetrics
+                    ?.entries
+                    ?.toList()
+                    ?.sortedBy { it.key }
+                    ?.joinToString(";") { "${it.key} -> ${it.value}" }
+            writer.append("$deviceSerial testRunEnded $elapsedTime,{$metricsString}$separator")
+            writer.close()
+        } finally {
+            onWorkFinished()
+        }
     }
 }

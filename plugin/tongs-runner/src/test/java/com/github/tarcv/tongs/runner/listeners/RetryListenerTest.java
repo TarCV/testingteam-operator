@@ -49,7 +49,7 @@ public class RetryListenerTest {
     @Test
     public void reschedulesTestIfTestRunFailedAndDeleteTraceFiles() {
         RetryListener retryListener =
-                new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner);
+                new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
 
         mockery.checking(new Expectations() {{
             oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTest, fatalCrashedTestCaseEvent);
@@ -67,7 +67,7 @@ public class RetryListenerTest {
     @Test
     public void doesNotDeleteTraceFilesIfCannotRescheduleTestAfterTestRunFailed() {
         RetryListener retryListener =
-                new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner);
+                new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
 
         mockery.checking(new Expectations() {{
             oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTest, fatalCrashedTestCaseEvent);

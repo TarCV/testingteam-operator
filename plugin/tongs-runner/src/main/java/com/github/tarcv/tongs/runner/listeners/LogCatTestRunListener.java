@@ -14,8 +14,8 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.google.gson.Gson;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
@@ -24,14 +24,15 @@ import com.github.tarcv.tongs.system.io.FileManager;
 import java.util.List;
 import java.util.Map;
 
-class LogCatTestRunListener implements ITestRunListener {
+class LogCatTestRunListener extends BaseListener {
 	private final LogcatReceiver logcatReceiver;
     private final FileManager fileManager;
     private final Pool pool;
 	private final Device device;
     private final Gson gson;
 
-    public LogCatTestRunListener(Gson gson, FileManager fileManager, Pool pool, Device device) {
+    public LogCatTestRunListener(Gson gson, FileManager fileManager, Pool pool, Device device, PreregisteringLatch latch) {
+		super(latch);
 		this.logcatReceiver = new LogcatReceiver(device);
         this.gson = gson;
         this.fileManager = fileManager;
@@ -80,6 +81,10 @@ class LogCatTestRunListener implements ITestRunListener {
 
 	@Override
 	public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
-		logcatReceiver.stop();
+    	try {
+			logcatReceiver.stop();
+		} finally {
+    		onWorkFinished();
+		}
 	}
 }

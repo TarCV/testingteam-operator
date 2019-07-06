@@ -26,6 +26,8 @@ import org.gradle.api.tasks.VerificationTask
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.nio.file.Paths
+
 import static com.github.tarcv.tongs.Configuration.Builder.configuration
 
 /**
@@ -106,7 +108,7 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
 
         boolean success = new Tongs(configuration).run()
         if (!success && !ignoreFailures) {
-            throw new GradleException("Tests failed! See ${output}/html/index.html")
+            throw new GradleException("Tests failed! See ${Paths.get(output.absolutePath, 'html', 'index.html')}")
         }
     }
 }

@@ -17,6 +17,8 @@ import com.android.ddmlib.IDevice;
 
 import javax.annotation.Nullable;
 
+import java.util.Objects;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -80,6 +82,29 @@ public class Device {
 
 	public void setNameSuffix(String suffix) {
 		nameSuffix = suffix;
+	}
+
+	/**
+	 * Returns an object that uniquely identify underlying device and which has equals and hashCode implementations
+	 *  that are reproducible when a new instance of Device is created from the same device
+	 *
+	 * @return object uniquely identifying underlying device
+	 */
+	private Object getUniqueIdentifier() {
+		return serial;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof Device)) return false;
+		Device device = (Device) o;
+		return getUniqueIdentifier().equals(device.getUniqueIdentifier());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(getUniqueIdentifier());
 	}
 
 	public static class Builder {

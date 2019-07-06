@@ -52,6 +52,10 @@ public class SummaryGeneratorHook extends Thread {
         Runtime.getRuntime().addShutdownHook(this);
     }
 
+    public void unregisterHook() {
+        Runtime.getRuntime().removeShutdownHook(this);
+    }
+
     /**
      * This only gets executed once, but needs to check the flag in case it finished normally and then shutdown.
      * It can only be called after {@link SummaryGeneratorHook#registerHook(Collection, Collection)}.

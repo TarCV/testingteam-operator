@@ -10,6 +10,7 @@
 
 package com.github.tarcv.tongs.test
 
+import com.github.tarcv.test.BuildConfig
 import com.github.tarcv.test.Config.PACKAGE
 import org.apache.commons.exec.CommandLine
 import org.apache.commons.exec.DefaultExecutor
@@ -36,7 +37,7 @@ class FunctionalSummaryTest {
         }
 
         // Numbers are test case counts per classes in alphabetical order
-        assert(simplifiedResults.size == 11+2+2+2+2+1+8+8+2+4) { "All tests should be executed" }
+        assert(simplifiedResults.size == 11+4+2+2+2+2+1+8+8+2+4) { "All tests should be executed" }
     }
 
     @Test
@@ -55,6 +56,24 @@ class FunctionalSummaryTest {
     fun testDangerousNamesTestExecutedCorrectly() {
         doAssertionsForParameterizedTests(
                 """$packageForRegex\.DangerousNamesTest#test\[\s*param = .+]""".toRegex(), 11)
+    }
+
+    @Test
+    fun testApi22IsOnlyExecutedOnTheSecondDevice() {
+        val simplifiedResults = getSimplifiedResults()
+        val testsPerDevice = simplifiedResults
+                .filter { """$packageForRegex\.FilteredTest#api22Only\[\s*.+]""".toRegex().matches(it.first) }
+                .fold(HashMap<String, AtomicInteger>()) { acc, test ->
+                    acc
+                            .computeIfAbsent(test.second) { AtomicInteger(0) }
+                            .incrementAndGet()
+                    acc
+                }
+                .entries
+                .toList()
+        assert(testsPerDevice.isNotEmpty()) { "API 20 only tests should be executed" }
+        assert(testsPerDevice.size == 1) { "API 20 only should be executed on exactly 1 device (got ${testsPerDevice.size})" }
+        assert(testsPerDevice[0].value.get() == 4) { "Exactly 4 API 20 only test cases should be executed on ${testsPerDevice[0].key} device" }
     }
 
     @Test
@@ -249,10 +268,10 @@ private fun getSummaryData(): JSONObject {
 }
 
 private fun getSummaryJsonFile(): File {
-    val summaryDir = File("build/reports/tongs/debugAndroidTest/summary")
+    val summaryDir = File("build/reports/tongs/${BuildConfig.FLAVOR}DebugAndroidTest/summary")
     val jsons = summaryDir.listFiles { file, s ->
         summaryDir == file && s.toLowerCase().endsWith(".json")
     }
-    assert(jsons != null && jsons.isNotEmpty()) { "Summary json should be created" }
+    assert(jsons != null && jsons.size == 1) { "Exactly one summary json should be created" }
     return jsons[0]
 }

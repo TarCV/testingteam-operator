@@ -15,14 +15,14 @@ import com.android.ddmlib.logcat.LogCatListener
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.logcat.LogCatReceiverTask
 import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
-import org.slf4j.LoggerFactory
+import java.util.*
+import kotlin.collections.ArrayList
 
 class LogcatReceiver(
         private val device: Device
 ) {
     private val logCatReceiverTask = LogCatReceiverTask(device.deviceInterface)
-    private val logCatMessages = ArrayList<LogCatMessage>()
+    private val logCatMessages = Collections.synchronizedList(ArrayList<LogCatMessage>())
     private val logCatListener = MessageCollectingLogCatListener(logCatMessages)
 
     val messages: List<LogCatMessage>

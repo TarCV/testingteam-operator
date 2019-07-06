@@ -42,7 +42,7 @@ public class PoolLoader {
     public Collection<Pool> loadPools() throws NoDevicesForPoolException, NoPoolLoaderConfiguredException {
         if (configuration.getTongsIntegrationTestRunType() == STUB_PARALLEL_TESTRUN) {
             Device device1 = createStubDevice("tongs-5554", 25);
-            Device device2 = createStubDevice("tongs-5556", 25);
+            Device device2 = createStubDevice("tongs-5556", 22);
 
             Pool pool = new Pool.Builder()
                     .withName("Stub 2 device pool")

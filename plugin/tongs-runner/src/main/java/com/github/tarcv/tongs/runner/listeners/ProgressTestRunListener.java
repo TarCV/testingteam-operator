@@ -11,7 +11,6 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.PoolProgressTracker;
@@ -19,11 +18,12 @@ import com.github.tarcv.tongs.runner.ProgressReporter;
 
 import java.util.Map;
 
-class ProgressTestRunListener implements ITestRunListener {
+class ProgressTestRunListener extends BaseListener {
 
     private final PoolProgressTracker poolProgressTracker;
 
     ProgressTestRunListener(Pool pool, ProgressReporter progressReporter) {
+        super(null);
         poolProgressTracker = progressReporter.getProgressTrackerFor(pool);
     }
 
@@ -64,11 +64,6 @@ class ProgressTestRunListener implements ITestRunListener {
 
     @Override
     public void testRunStopped(long elapsedTime) {
-
-    }
-
-    @Override
-    public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
 
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,16 +11,23 @@
 
 package com.github.tarcv.tongs.injector.pooling;
 
+import com.github.tarcv.tongs.Configuration;
+import com.github.tarcv.tongs.injector.device.ConnectedDeviceProviderInjector;
 import com.github.tarcv.tongs.pooling.PoolLoader;
 
+import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN;
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
-import static com.github.tarcv.tongs.injector.device.ConnectedDeviceProviderInjectorKt.connectedDeviceProvider;
 
 public class PoolLoaderInjector {
 
     private PoolLoaderInjector() {}
 
     public static PoolLoader poolLoader() {
-        return new PoolLoader(connectedDeviceProvider(), configuration());
+        Configuration configuration = configuration();
+        if (configuration.getTongsIntegrationTestRunType() == STUB_PARALLEL_TESTRUN) {
+            return new PoolLoader(null, configuration); // TODO: replace null with stub ConnectedDeviceProvider
+        } else {
+            return new PoolLoader(ConnectedDeviceProviderInjector.INSTANCE.connectedDeviceProvider(), configuration);
+        }
     }
 }

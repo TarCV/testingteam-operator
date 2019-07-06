@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.runner.TestRetryer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class RetryListener extends NoOpITestRunListener {
+public class RetryListener extends BaseListener {
     private static final Logger logger = LoggerFactory.getLogger(RetryListener.class);
     private final Device device;
     private final TestCaseEvent currentTestCaseEvent;
@@ -38,15 +39,23 @@ public class RetryListener extends NoOpITestRunListener {
                          Device device,
                          TestCaseEvent currentTestCaseEvent,
                          TestRetryer testRetryer,
-                         DeviceTestFilesCleaner deviceTestFilesCleaner) {
+                         DeviceTestFilesCleaner deviceTestFilesCleaner,
+                         PreregisteringLatch latch) {
+        super(latch);
         checkNotNull(device);
         checkNotNull(currentTestCaseEvent);
         checkNotNull(pool);
+        checkNotNull(latch);
         this.testRetryer = testRetryer;
         this.device = device;
         this.currentTestCaseEvent = currentTestCaseEvent;
         this.pool = pool;
         this.deviceTestFilesCleaner = deviceTestFilesCleaner;
+    }
+
+    @Override
+    public void testRunStarted(String runName, int testCount) {
+
     }
 
     @Override
@@ -60,18 +69,46 @@ public class RetryListener extends NoOpITestRunListener {
     }
 
     @Override
+    public void testAssumptionFailure(TestIdentifier test, String trace) {
+
+    }
+
+    @Override
+    public void testIgnored(TestIdentifier test) {
+
+    }
+
+    @Override
+    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
+
+    }
+
+    @Override
     public void testRunFailed(String errorMessage) {
-        logger.info("Test run failed due to a fatal error: " + errorMessage);
-        if (failedTest == null) {
-            logger.info("Reschedule all started tests by this test run");
-            rescheduleTestExecution(startedTest);
+        try {
+            logger.info("Test run failed due to a fatal error: " + errorMessage);
+            if (failedTest == null) {
+                logger.info("Reschedule all started tests by this test run");
+                rescheduleTestExecution(startedTest);
+            }
+        } finally {
+            onWorkFinished();
         }
     }
 
     @Override
+    public void testRunStopped(long elapsedTime) {
+
+    }
+
+    @Override
     public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
-        if (failedTest != null) {
-            rescheduleTestExecution(failedTest);
+        try {
+            if (failedTest != null) {
+                rescheduleTestExecution(failedTest);
+            }
+        } finally {
+            onWorkFinished();
         }
     }
 

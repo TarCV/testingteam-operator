@@ -11,10 +11,10 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.system.io.FileManager;
 
 import java.io.File;
@@ -22,7 +22,7 @@ import java.util.Map;
 
 import static com.github.tarcv.tongs.system.io.FileType.SCREENRECORD;
 
-class ScreenRecorderTestRunListener implements ITestRunListener {
+class ScreenRecorderTestRunListener extends BaseListener {
     private final FileManager fileManager;
     private final Pool pool;
     private final Device device;
@@ -31,7 +31,8 @@ class ScreenRecorderTestRunListener implements ITestRunListener {
     private boolean hasFailed;
     private ScreenRecorderStopper screenRecorderStopper;
 
-    public ScreenRecorderTestRunListener(FileManager fileManager, Pool pool, Device device) {
+    public ScreenRecorderTestRunListener(FileManager fileManager, Pool pool, Device device, PreregisteringLatch latch) {
+        super(latch);
         this.fileManager = fileManager;
         this.pool = pool;
         this.device = device;
@@ -58,17 +59,29 @@ class ScreenRecorderTestRunListener implements ITestRunListener {
 
     @Override
     public void testAssumptionFailure(TestIdentifier test, String trace) {
-        screenRecorderStopper.stopScreenRecord(hasFailed);
+        try {
+            screenRecorderStopper.stopScreenRecord(hasFailed);
+        } finally {
+            onWorkFinished();
+        }
     }
 
     @Override
     public void testIgnored(TestIdentifier test) {
-        screenRecorderStopper.stopScreenRecord(hasFailed);
+        try {
+            screenRecorderStopper.stopScreenRecord(hasFailed);
+        } finally {
+            onWorkFinished();
+        }
     }
 
     @Override
     public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-        screenRecorderStopper.stopScreenRecord(hasFailed);
+        try {
+            screenRecorderStopper.stopScreenRecord(hasFailed);
+        } finally {
+            onWorkFinished();
+        }
     }
 
     @Override
@@ -77,9 +90,6 @@ class ScreenRecorderTestRunListener implements ITestRunListener {
 
     @Override
     public void testRunStopped(long elapsedTime) {
-    }
 
-    @Override
-    public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
     }
 }

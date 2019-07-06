@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,7 +11,6 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
 
 import org.slf4j.Logger;
@@ -22,10 +21,14 @@ import java.util.Map;
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
 
-class SlowWarningTestRunListener implements ITestRunListener {
+class SlowWarningTestRunListener extends BaseListener {
     private static final Logger logger = LoggerFactory.getLogger(SlowWarningTestRunListener.class);
     private static final long TEST_LENGTH_THRESHOLD_MILLIS = 30 * 1000;
     private long startTime;
+
+    public SlowWarningTestRunListener() {
+        super(null);
+    }
 
     @Override
     public void testRunStarted(String runName, int testCount) {
@@ -67,11 +70,6 @@ class SlowWarningTestRunListener implements ITestRunListener {
 
     @Override
     public void testRunStopped(long elapsedTime) {
-
-    }
-
-    @Override
-    public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
 
     }
 }

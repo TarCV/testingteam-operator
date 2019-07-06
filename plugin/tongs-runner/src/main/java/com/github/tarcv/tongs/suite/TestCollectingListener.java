@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -10,24 +10,37 @@
 
 package com.github.tarcv.tongs.suite;
 
-import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.runner.listeners.BaseListener;
+import com.google.gson.JsonObject;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Records identifiers of started tests
+ *
+ * Serves as temporary container for annotation info until farther refactoring
  */
-class TestCollectingListener implements ITestRunListener {
+public class TestCollectingListener extends BaseListener {
     private final Set<TestIdentifier> tests = Collections.synchronizedSet(new HashSet<>());
+    private final List<Map.Entry<TestIdentifier, JsonObject>> infos = Collections.synchronizedList(new ArrayList<>());
+
+    public TestCollectingListener() {
+        super(null);
+    }
 
     public Set<TestIdentifier> getTests() {
         synchronized (tests) {
             return Collections.unmodifiableSet(new HashSet<>(tests));
         }
+    }
+
+    public List<Map.Entry<TestIdentifier, JsonObject>> getInfos() {
+        return infos;
+    }
+
+    public void publishTestInfo(List<Map.Entry<TestIdentifier, JsonObject>> info) {
+        infos.addAll(info);
     }
 
     @Override
