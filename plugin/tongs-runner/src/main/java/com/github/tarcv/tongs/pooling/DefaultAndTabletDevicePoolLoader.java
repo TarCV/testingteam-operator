@@ -13,10 +13,12 @@
  */
 package com.github.tarcv.tongs.pooling;
 
-import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.model.Device;
+import com.github.tarcv.tongs.model.Pool;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 
@@ -31,12 +33,12 @@ public class DefaultAndTabletDevicePoolLoader implements DevicePoolLoader {
 	public DefaultAndTabletDevicePoolLoader() {
     }
 
-	public Collection<Pool> loadPools(Devices devices) {
+	public Collection<Pool> loadPools(List<Device> devices) {
         Collection<Pool> pools = new ArrayList<>();
         Pool.Builder defaultPoolBuilder = aDevicePool().withName(DEFAULT_POOL_NAME);
         Pool.Builder tabletPoolBuilder = aDevicePool().withName(TABLETS);
 
-        for (Device device : devices.getDevices()) {
+        for (Device device : devices) {
             if (device.isTablet()) {
                 tabletPoolBuilder.addDevice(device);
             } else {

@@ -73,6 +73,7 @@ public class TongsRunner {
             progressReporter.stop();
 
             boolean overallSuccess = summaryGeneratorHook.defineOutcome();
+            summaryGeneratorHook.unregisterHook();
             logger.info("Overall success: " + overallSuccess);
             return overallSuccess;
         } catch (NoPoolLoaderConfiguredException | NoDevicesForPoolException e) {

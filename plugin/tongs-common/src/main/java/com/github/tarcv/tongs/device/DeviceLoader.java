@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -12,74 +12,14 @@ package com.github.tarcv.tongs.device;
 
 import com.android.ddmlib.IDevice;
 import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Devices;
-import com.github.tarcv.tongs.system.adb.Adb;
-
-import java.util.*;
-
-import javax.annotation.Nonnull;
 
 import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
-import static com.github.tarcv.tongs.model.Devices.Builder.devices;
 
 /**
  * Turns a serial number or an IDevice reference to a Device.
  */
 public class DeviceLoader {
-    private final Adb adb;
-    private final DeviceGeometryRetriever deviceGeometryRetriever;
-    private final Collection<String> excludedSerials;
-
-    public DeviceLoader(Adb adb, DeviceGeometryRetriever deviceGeometryRetriever, Collection<String> excludedSerials) {
-        this.adb = adb;
-        this.deviceGeometryRetriever = deviceGeometryRetriever;
-        this.excludedSerials = excludedSerials;
-    }
-
-    /**
-     * Retrieve all connected and non-excluded devices.
-     *
-     * @return the connected devices
-     */
-    public Devices loadDevices() {
-        Devices.Builder devicesBuilder = devices();
-        List<IDevice> iDevices = loadAllDevices();
-        for (IDevice iDevice : iDevices) {
-            devicesBuilder.putDevice(iDevice.getSerialNumber(), loadDeviceCharacteristics(iDevice));
-        }
-
-        return devicesBuilder.build();
-    }
-
-    public Device loadDevice(@Nonnull String serial) throws DeviceCouldNotBeFoundException {
-        Optional<IDevice> deviceOptional = loadAllDevices()
-                .stream()
-                .filter(d -> serial.equals(d.getSerialNumber()))
-                .findFirst();
-
-        if (deviceOptional.isPresent()) {
-            return loadDeviceCharacteristics(deviceOptional.get());
-        }
-        throw new DeviceCouldNotBeFoundException("Could not load device with serial: " + serial);
-    }
-
-    /**
-     * Retrieve all connected devices which survive the TONGS_EXCLUDED_SERIAL filter.
-     *
-     * @return a list of connected devices
-     */
-    private List<IDevice> loadAllDevices() {
-        List<IDevice> devices = new ArrayList<>();
-        for (IDevice device : adb.getDevices()) {
-            String serialNumber = device.getSerialNumber();
-            if (!excludedSerials.contains(serialNumber)) {
-                devices.add(device);
-            }
-        }
-        return devices;
-    }
-
-    private Device loadDeviceCharacteristics(IDevice device) {
+    public static Device loadDeviceCharacteristics(IDevice device, DeviceGeometryRetriever deviceGeometryRetriever) {
         return aDevice()
                 .withSerial(device.getSerialNumber())
                 .withManufacturer(device.getProperty("ro.product.manufacturer"))

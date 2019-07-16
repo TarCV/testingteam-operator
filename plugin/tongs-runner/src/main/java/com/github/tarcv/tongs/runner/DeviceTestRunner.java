@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,18 +13,19 @@
  */
 package com.github.tarcv.tongs.runner;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.DdmPreferences;
+import com.android.ddmlib.IDevice;
 import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.model.TestCaseEventQueue;
 import com.github.tarcv.tongs.system.adb.Installer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import static com.github.tarcv.tongs.device.DeviceUtilsKt.clearLogcat;
 import static com.github.tarcv.tongs.system.io.RemoteFileManager.*;
 
 public class DeviceTestRunner implements Runnable {
@@ -33,7 +34,7 @@ public class DeviceTestRunner implements Runnable {
     private final Installer installer;
     private final Pool pool;
     private final Device device;
-    private final Queue<TestCaseEvent> queueOfTestsInPool;
+    private final TestCaseEventQueue queueOfTestsInPool;
     private final CountDownLatch deviceCountDownLatch;
     private final ProgressReporter progressReporter;
     private final TestRunFactory testRunFactory;
@@ -41,7 +42,7 @@ public class DeviceTestRunner implements Runnable {
     public DeviceTestRunner(Installer installer,
                             Pool pool,
                             Device device,
-                            Queue<TestCaseEvent> queueOfTestsInPool,
+                            TestCaseEventQueue queueOfTestsInPool,
                             CountDownLatch deviceCountDownLatch,
                             ProgressReporter progressReporter,
                             TestRunFactory testRunFactory) {
@@ -58,6 +59,7 @@ public class DeviceTestRunner implements Runnable {
     public void run() {
         IDevice deviceInterface = device.getDeviceInterface();
         try {
+            // TODO: Move all set up work outside of this class
             DdmPreferences.setTimeOut(30000);
             installer.prepareInstallation(deviceInterface);
             // For when previous run crashed/disconnected and left files behind
@@ -66,14 +68,28 @@ public class DeviceTestRunner implements Runnable {
             createCoverageDirectory(deviceInterface);
             clearLogcat(deviceInterface);
 
-            TestCaseEvent testCaseEvent;
-            while ((testCaseEvent = queueOfTestsInPool.poll()) != null) {
-                AndroidInstrumentedTestRun testRun = testRunFactory.createTestRun(testCaseEvent,
-                        device,
-                        pool,
-                        progressReporter,
-                        queueOfTestsInPool);
-                testRun.execute();
+            while (true) {
+                TestCaseEventQueue.TestCaseTask testCaseTask = queueOfTestsInPool.pollForDevice(device, 10);
+                PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
+                if (testCaseTask != null) {
+                    testCaseTask.doWork(testCaseEvent -> {
+                        try {
+                            AndroidInstrumentedTestRun testRun = testRunFactory.createTestRun(testCaseEvent,
+                                    device,
+                                    pool,
+                                    progressReporter,
+                                    queueOfTestsInPool,
+                                    workCountdownLatch);
+                            workCountdownLatch.finalizeRegistering();
+                            testRun.execute();
+                        } finally {
+                            workCountdownLatch.await(15, TimeUnit.SECONDS);
+                        }
+                        return null;
+                    });
+                } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
+                    break;
+                }
             }
         } finally {
             logger.info("Device {} from pool {} finished", device.getSerial(), pool.getName());
@@ -81,11 +97,5 @@ public class DeviceTestRunner implements Runnable {
         }
     }
 
-    private void clearLogcat(final IDevice device) {
-        try {
-            device.executeShellCommand("logcat -c", new NullOutputReceiver());
-        } catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
-            logger.warn("Could not clear logcat on device: " + device.getSerialNumber(), e);
-        }
-    }
+
 }

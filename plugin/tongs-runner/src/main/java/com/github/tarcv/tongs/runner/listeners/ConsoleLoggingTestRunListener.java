@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -21,11 +21,12 @@ import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import static java.lang.String.format;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-class ConsoleLoggingTestRunListener extends NoOpITestRunListener {
+class ConsoleLoggingTestRunListener extends BaseListener {
     private static final Logger logger = LoggerFactory.getLogger(ConsoleLoggingTestRunListener.class);
     private static final SimpleDateFormat TEST_TIME = new SimpleDateFormat("mm.ss");
     private static final String PERCENT = "%02d%%";
@@ -39,10 +40,16 @@ class ConsoleLoggingTestRunListener extends NoOpITestRunListener {
                                   String serial,
                                   String modelName,
                                   ProgressReporter progressReporter) {
+        super(null);
         this.serial = serial;
         this.modelName = modelName;
         this.progressReporter = progressReporter;
         this.testPackage = testPackage;
+    }
+
+    @Override
+    public void testRunStarted(String runName, int testCount) {
+
     }
 
     @Override
@@ -67,6 +74,11 @@ class ConsoleLoggingTestRunListener extends NoOpITestRunListener {
     @Override
     public void testIgnored(TestIdentifier test) {
         logger.debug("ignored test {}", testCase(test));
+    }
+
+    @Override
+    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
+
     }
 
     @Override

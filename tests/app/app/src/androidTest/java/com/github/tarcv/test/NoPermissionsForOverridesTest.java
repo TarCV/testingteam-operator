@@ -11,14 +11,15 @@
 package com.github.tarcv.test;
 
 import android.content.pm.PackageManager;
+import android.support.test.filters.SdkSuppress;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v4.content.ContextCompat;
 import com.github.tarcv.tongs.GrantPermission;
+import static org.junit.Assert.assertEquals;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static android.Manifest.permission;
-import static org.junit.Assert.assertEquals;
 
 abstract class BaseMethodsClass {
     @GrantPermission({permission.WRITE_CALENDAR})
@@ -34,6 +35,7 @@ public class NoPermissionsForOverridesTest extends BaseMethodsClass {
             MainActivity.class, true, true);
 
     @Test
+    @SdkSuppress(minSdkVersion = 23)
     @Override
     public void testNoPermissionForAbstractOverrides() {
         assertEquals(PackageManager.PERMISSION_DENIED,
@@ -43,6 +45,7 @@ public class NoPermissionsForOverridesTest extends BaseMethodsClass {
     }
 
     @Test
+    @SdkSuppress(minSdkVersion = 23)
     @Override
     public void testNoPermissionForNormalOverrides() {
         assertEquals(PackageManager.PERMISSION_DENIED,

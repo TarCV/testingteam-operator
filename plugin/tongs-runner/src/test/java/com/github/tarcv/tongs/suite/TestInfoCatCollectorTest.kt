@@ -30,7 +30,7 @@ class TestInfoCatCollectorTest {
     fun testSingleThread() {
         val bundle = CollectorBundle(collector)
 
-        val finalResult: MutableList<JsonObject> = with(bundle) {
+        val finalResult: List<JsonObject> = with(bundle) {
             val result = supplier.get()
             accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "0000-1001:{"))
             accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "0000-1002:\"a"))

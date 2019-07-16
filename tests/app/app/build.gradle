@@ -22,6 +22,28 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "flavor"
+    productFlavors {
+        f1 {
+            dimension "flavor"
+            applicationIdSuffix ".f1"
+        }
+        f2 {
+            dimension "flavor"
+            applicationIdSuffix ".f2"
+            testInstrumentationRunner "com.github.tarcv.test.f2.TestRunner"
+        }
+    }
+
+    splits {
+        density {
+            enable true
+
+            reset()
+            include "420dpi", "xxhdpi"
+        }
+    }
 }
 
 dependencies {

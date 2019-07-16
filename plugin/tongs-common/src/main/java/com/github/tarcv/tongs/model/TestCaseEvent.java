@@ -15,6 +15,8 @@ import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.common.base.Objects;
 import com.google.gson.JsonObject;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -32,17 +34,19 @@ public class TestCaseEvent {
     private final boolean isIgnored;
     private final List<String> permissionsToGrant;
     private final Map<String, String> properties;
+    private final HashSet<Device> excludedDevices;
 
-    private TestCaseEvent(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToGrant, Map<String, String> properties) {
+    private TestCaseEvent(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToGrant, Map<String, String> properties, Collection<Device> excludedDevices) {
         this.testMethod = testMethod;
         this.testClass = testClass;
         this.isIgnored = isIgnored;
         this.permissionsToGrant = permissionsToGrant;
         this.properties = properties;
+        this.excludedDevices = new HashSet<>(excludedDevices);
     }
 
-    public static TestCaseEvent newTestCase(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToGrant, Map<String, String> properties, JsonObject info) {
-        return new TestCaseEvent(testMethod, testClass, isIgnored, permissionsToGrant, properties);
+    public static TestCaseEvent newTestCase(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToGrant, Map<String, String> properties, JsonObject info, Collection<Device> excludedDevices) {
+        return new TestCaseEvent(testMethod, testClass, isIgnored, permissionsToGrant, properties, excludedDevices);
     }
 
     public static TestCaseEvent newTestCase(@Nonnull TestIdentifier testIdentifier) {
@@ -51,7 +55,11 @@ public class TestCaseEvent {
 
     public static TestCaseEvent newTestCase(@Nonnull TestIdentifier testIdentifier, boolean isIgnored) {
         return new TestCaseEvent(testIdentifier.getTestName(), testIdentifier.getClassName(), isIgnored,
-                emptyList(), emptyMap());
+                emptyList(), emptyMap(), emptyList());
+    }
+
+    public boolean isExcluded(Device device) {
+        return excludedDevices.contains(device);
     }
 
     public String getTestMethod() {

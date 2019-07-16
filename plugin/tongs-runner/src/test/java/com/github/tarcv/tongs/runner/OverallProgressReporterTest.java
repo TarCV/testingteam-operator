@@ -40,7 +40,7 @@ public class OverallProgressReporterTest {
     private final Pool A_POOL = aDevicePool()
             .addDevice(A_DEVICE)
             .build();
-    private final TestCaseEvent A_TEST_CASE = newTestCase("aTestMethod", "aTestClass", false, emptyList(), emptyMap(), new JsonObject());
+    private final TestCaseEvent A_TEST_CASE = newTestCase("aTestMethod", "aTestClass", false, emptyList(), emptyMap(), new JsonObject(), emptyList());
 
     private OverallProgressReporter overallProgressReporter;
 

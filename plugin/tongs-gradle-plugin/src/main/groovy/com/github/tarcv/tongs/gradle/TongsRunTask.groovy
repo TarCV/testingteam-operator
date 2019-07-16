@@ -26,6 +26,8 @@ import org.gradle.api.tasks.VerificationTask
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.nio.file.Paths
+
 import static com.github.tarcv.tongs.Configuration.Builder.configuration
 
 /**
@@ -39,23 +41,21 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
     /** If true then test failures do not cause a build failure. */
     boolean ignoreFailures
 
-    /** Instrumentation APK. */
-    @InputFile
-    File instrumentationApk
-
-    /** Application APK. */
-    @InputFile
-    File applicationApk
-
     /** Output directory. */
     @OutputDirectory
     File output
+
+    String applicationPackage
+
+    String instrumentationPackage
 
     String title
 
     String subtitle
 
     String testPackage
+
+    String testRunnerClass
 
     boolean isCoverageEnabled
 
@@ -79,18 +79,20 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
 
     @TaskAction
     void runTongs() {
-        LOG.info("Run instrumentation tests $instrumentationApk for app $applicationApk")
         LOG.debug("Output: $output")
         LOG.debug("Ignore failures: $ignoreFailures")
 
         Configuration configuration = configuration()
                 .withAndroidSdk(project.android.sdkDirectory)
-                .withApplicationApk(applicationApk)
-                .withInstrumentationApk(instrumentationApk)
+                .withApplicationApk(null)
+                .withApplicationPackage(applicationPackage)
+                .withInstrumentationApk(null)
+                .withInstrumentationPackage(instrumentationPackage)
                 .withOutput(output)
                 .withTitle(title)
                 .withSubtitle(subtitle)
                 .withTestPackage(testPackage)
+                .withTestRunnerClass(testRunnerClass)
                 .withTestOutputTimeout(testOutputTimeout)
                 .withTestSize(testSize)
                 .withExcludedSerials(excludedSerials)
@@ -106,7 +108,7 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
 
         boolean success = new Tongs(configuration).run()
         if (!success && !ignoreFailures) {
-            throw new GradleException("Tests failed! See ${output}/html/index.html")
+            throw new GradleException("Tests failed! See ${Paths.get(output.absolutePath, 'html', 'index.html')}")
         }
     }
 }

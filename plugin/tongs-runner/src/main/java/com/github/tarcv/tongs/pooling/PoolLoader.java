@@ -13,17 +13,17 @@ package com.github.tarcv.tongs.pooling;
 
 import com.github.tarcv.tongs.Configuration;
 import com.github.tarcv.tongs.PoolingStrategy;
-import com.github.tarcv.tongs.device.DeviceLoader;
 import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Devices;
 import com.github.tarcv.tongs.model.DisplayGeometry;
 import com.github.tarcv.tongs.model.Pool;
-
+import com.github.tarcv.tongs.system.adb.ConnectedDeviceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN;
 import static com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory.functionalTestTestcaseDuration;
@@ -31,10 +31,10 @@ import static java.lang.String.format;
 
 public class PoolLoader {
     private static final Logger logger = LoggerFactory.getLogger(PoolLoader.class);
-    private final DeviceLoader deviceLoader;
+    private final ConnectedDeviceProvider deviceLoader;
     private final Configuration configuration;
 
-    public PoolLoader(DeviceLoader deviceLoader, Configuration configuration) {
+    public PoolLoader(ConnectedDeviceProvider deviceLoader, Configuration configuration) {
         this.deviceLoader = deviceLoader;
         this.configuration = configuration;
     }
@@ -42,7 +42,7 @@ public class PoolLoader {
     public Collection<Pool> loadPools() throws NoDevicesForPoolException, NoPoolLoaderConfiguredException {
         if (configuration.getTongsIntegrationTestRunType() == STUB_PARALLEL_TESTRUN) {
             Device device1 = createStubDevice("tongs-5554", 25);
-            Device device2 = createStubDevice("tongs-5556", 25);
+            Device device2 = createStubDevice("tongs-5556", 22);
 
             Pool pool = new Pool.Builder()
                     .withName("Stub 2 device pool")
@@ -52,8 +52,14 @@ public class PoolLoader {
 
             return Collections.singletonList(pool);
         } else {
-            Devices devices = deviceLoader.loadDevices();
-            if (devices.getDevices().isEmpty()) {
+            List<Device> devices;
+
+            deviceLoader.init();
+            devices = deviceLoader.getDevices().stream()
+                    .filter(d -> !configuration.getExcludedSerials().contains(d.getSerial()))
+                    .collect(Collectors.toList());
+
+            if (devices.isEmpty()) {
                 throw new NoDevicesForPoolException("No devices found.");
             }
 

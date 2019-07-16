@@ -16,12 +16,13 @@ import com.github.tarcv.tongs.suite.TestSuiteLoader;
 
 import static com.github.tarcv.tongs.injector.pooling.PoolLoaderInjector.poolLoader;
 import static com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory;
+import static com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector.testRunFactory;
 
 public class TestSuiteLoaderInjector {
 
     private TestSuiteLoaderInjector() {}
 
     public static TestSuiteLoader testSuiteLoader() {
-        return new JUnitTestSuiteLoader(poolLoader(), remoteAndroidTestRunnerFactory());
+        return new JUnitTestSuiteLoader(poolLoader(), testRunFactory(), remoteAndroidTestRunnerFactory());
     }
 }

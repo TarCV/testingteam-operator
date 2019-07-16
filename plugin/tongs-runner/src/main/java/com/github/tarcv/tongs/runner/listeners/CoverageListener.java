@@ -11,9 +11,9 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.system.io.FileManager;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 
@@ -25,7 +25,7 @@ import java.util.Map;
 
 import static com.github.tarcv.tongs.system.io.FileType.COVERAGE;
 
-public class CoverageListener implements ITestRunListener {
+public class CoverageListener extends BaseListener {
 
     private final Device device;
     private final FileManager fileManager;
@@ -33,7 +33,8 @@ public class CoverageListener implements ITestRunListener {
     private final Logger logger = LoggerFactory.getLogger(CoverageListener.class);
     private final TestCaseEvent testCase;
 
-    public CoverageListener(Device device, FileManager fileManager, Pool pool, TestCaseEvent testCase) {
+    public CoverageListener(Device device, FileManager fileManager, Pool pool, TestCaseEvent testCase, PreregisteringLatch latch) {
+        super(latch);
         this.device = device;
         this.fileManager = fileManager;
         this.pool = pool;
@@ -74,13 +75,17 @@ public class CoverageListener implements ITestRunListener {
 
     @Override
     public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
-        TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
-        final String remoteFile = RemoteFileManager.getCoverageFileName(testIdentifier);
-        final File file = fileManager.createFile(COVERAGE, pool, device, testIdentifier);
         try {
-            device.getDeviceInterface().pullFile(remoteFile, file.getAbsolutePath());
-        } catch (Exception e) {
-            logger.error("Something went wrong while pulling coverage file", e);
+            TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
+            final String remoteFile = RemoteFileManager.getCoverageFileName(testIdentifier);
+            final File file = fileManager.createFile(COVERAGE, pool, device, testIdentifier);
+            try {
+                device.getDeviceInterface().pullFile(remoteFile, file.getAbsolutePath());
+            } catch (Exception e) {
+                logger.error("Something went wrong while pulling coverage file", e);
+            }
+        } finally {
+            onWorkFinished();
         }
     }
 }

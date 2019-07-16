@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -17,6 +17,7 @@ import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 
+import com.github.tarcv.tongs.model.TestCaseEventQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +32,13 @@ public class PoolTestRunner implements Runnable {
     public static final String DROPPED_BY = "DroppedBy-";
 
     private final Pool pool;
-    private final Queue<TestCaseEvent> testCases;
+    private final TestCaseEventQueue testCases;
     private final CountDownLatch poolCountDownLatch;
     private final DeviceTestRunnerFactory deviceTestRunnerFactory;
     private final ProgressReporter progressReporter;
 
     public PoolTestRunner(DeviceTestRunnerFactory deviceTestRunnerFactory, Pool pool,
-                          Queue<TestCaseEvent> testCases,
+                          TestCaseEventQueue testCases,
                           CountDownLatch poolCountDownLatch,
                           ProgressReporter progressReporter) {
         this.pool = pool;

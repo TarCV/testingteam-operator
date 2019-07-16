@@ -94,7 +94,7 @@ public class SummaryCompilerTest {
             newTestCase(new TestIdentifier("com.example.CompletedClassTest", "doesJobProperly")),
             newTestCase(new TestIdentifier("com.example.CompletedClassTest2", "doesJobProperly")),
             newTestCase("doesJobProperly", "com.example.FailedClassTest", false,
-                    emptyList(), testMetricsForFailedTest, new JsonObject()),
+                    emptyList(), testMetricsForFailedTest, new JsonObject(), emptyList()),
             newTestCase(new TestIdentifier("com.example.IgnoredClassTest", "doesJobProperly"), true),
             newTestCase(new TestIdentifier("com.example.SkippedClassTest", "doesJobProperly"))
     );

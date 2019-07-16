@@ -11,15 +11,15 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.system.io.FileManager;
 
 import java.util.Map;
 
-class ScreenCaptureTestRunListener implements ITestRunListener {
+class ScreenCaptureTestRunListener extends BaseListener {
     private final FileManager fileManager;
     private final IDevice deviceInterface;
     private final Pool pool;
@@ -28,7 +28,8 @@ class ScreenCaptureTestRunListener implements ITestRunListener {
     private ScreenCapturer screenCapturer;
     private boolean hasFailed;
 
-    public ScreenCaptureTestRunListener(FileManager fileManager, Pool pool, Device device) {
+    public ScreenCaptureTestRunListener(FileManager fileManager, Pool pool, Device device, PreregisteringLatch latch) {
+        super(latch);
         this.fileManager = fileManager;
         this.deviceInterface = device.getDeviceInterface();
         this.pool = pool;
@@ -72,9 +73,5 @@ class ScreenCaptureTestRunListener implements ITestRunListener {
 
     @Override
     public void testRunStopped(long elapsedTime) {
-    }
-
-    @Override
-    public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
     }
 }

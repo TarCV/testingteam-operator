@@ -15,12 +15,17 @@ import com.android.ddmlib.IDevice.Feature.SCREEN_RECORD
 import com.android.ddmlib.log.LogReceiver
 import com.android.sdklib.AndroidVersion
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.lang.Thread.sleep
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import javax.annotation.concurrent.GuardedBy
 
 class StubDevice(
         private val serial: String,
@@ -31,7 +36,13 @@ class StubDevice(
         private val characteristics: String,
         private val testCommandDelay: Long
 ) : IDevice {
+    companion object {
+        private val logger = LoggerFactory.getLogger(StubDevice::class.java)
+    }
+
     private val deviceLogFile = File("${serial}_adb.log")
+
+    @GuardedBy("this")
     private var logcatReceiver: IShellOutputReceiver? = null
 
     override fun startScreenRecorder(remoteFilePath: String, options: ScreenRecorderOptions, receiver: IShellOutputReceiver) {
@@ -50,41 +61,79 @@ class StubDevice(
     override fun getName(): String = name
 
     override fun executeShellCommand(command: String, receiver: IShellOutputReceiver) {
-        synchronized(this) {
-            val outputBytes = "<stub> <stub> <stub> <stub> <stub>".toByteArray()
+        @Suppress("DEPRECATION")
+        executeShellCommand(command, receiver, DdmPreferences.getTimeOut())
+    }
 
-            if (command.contains("am instrument")) {
-                if (command.contains("-e log true")) {
-                    logcatReceiver?.run {
-                        TestAndroidTestRunnerFactory.logcatLines.forEach {
-                            val bytes = ("$it\r\n").toByteArray()
-                            addOutput(bytes, 0, bytes.size)
-                        }
-                    }
-                }
+    override fun executeShellCommand(command: String, receiver: IShellOutputReceiver, maxTimeToOutputResponse: Int) {
+        executeShellCommand(command, receiver, maxTimeToOutputResponse.toLong(), TimeUnit.MILLISECONDS)
+    }
+
+    override fun executeShellCommand(command: String, receiver: IShellOutputReceiver, maxTimeToOutputResponse: Long, maxTimeUnits: TimeUnit) {
+        FileWriter(deviceLogFile, true).apply {
+            write("${System.currentTimeMillis()}\t$command${System.lineSeparator()}")
+            close()
+        }
+
+        val maxTimeToOutputResponseMillis = maxTimeUnits.toMillis(maxTimeToOutputResponse)
+
+        if (command.contains("am instrument")) {
+            if (command.contains("-e log true")) {
+                executeCollectingRun()
+            } else {
                 sleep(testCommandDelay)
             }
+        } else if (command.contains("logcat") && !command.contains("-c")) {
+            executeLogcatCollectionLoop(command, receiver, maxTimeToOutputResponseMillis)
+        } else {
+            val outputBytes = "<stub> <stub> <stub> <stub> <stub>".toByteArray()
+            receiver.addOutput(outputBytes, 0, outputBytes.size)
+            receiver.flush()
+        }
+    }
 
-            FileWriter(deviceLogFile, true).apply {
-                write("${System.currentTimeMillis()}\t$command${System.lineSeparator()}")
-                close()
-            }
+    private fun executeLogcatCollectionLoop(command: String, receiver: IShellOutputReceiver, maxTimeToOutputResponseMillis: Long) {
+        if (maxTimeToOutputResponseMillis != 0L) {
+            throw AssertionError("maxTimeToOutputResponse should be 0 for listen logcat command")
+        }
 
-            if (command.contains("logcat")) {
-                logcatReceiver = receiver
-            } else {
-                receiver.addOutput(outputBytes, 0, outputBytes.size)
-                receiver.flush()
+        synchronized(this) {
+            logcatReceiver = receiver
+        }
+
+        var lastWarningTime = System.currentTimeMillis()
+        while (!receiver.isCancelled) {
+            sleep(300L) // 'logcat' only stops on Ctrl+C or when device is disconnected
+            if (!receiver.isCancelled && System.currentTimeMillis() - lastWarningTime > 10_000L) {
+                logger.error("Logcat reader thread is still alive [command: $command]")
+                lastWarningTime = System.currentTimeMillis()
             }
         }
     }
 
-    override fun executeShellCommand(command: String, receiver: IShellOutputReceiver, maxTimeToOutputResponse: Int) {
-        executeShellCommand(command, receiver)
-    }
-
-    override fun executeShellCommand(command: String, receiver: IShellOutputReceiver, maxTimeToOutputResponse: Long, maxTimeUnits: TimeUnit?) {
-        executeShellCommand(command, receiver)
+    private fun executeCollectingRun() {
+        synchronized(this) {
+            logcatReceiver?.run {
+                val timePrefix = DateTimeFormatter.ofPattern("MM-dd hh:mm:ss")
+                        .format(OffsetDateTime.now(ZoneOffset.UTC)) + "."
+                TestAndroidTestRunnerFactory.logcatLines
+                        .asSequence()
+                        .chunked(3)
+                        .mapIndexed { index, item ->
+                            item.map {
+                                it
+                                        .replace("LOGCAT_TIME", timePrefix + String.format("%03d", index))
+                                        .replace("LOGCAT_INDEX", String.format("%08x", index))
+                            }
+                        }
+                        .flatMap { it.asSequence() }
+                        .forEach {
+                            val bytes = ("$it\r\n").toByteArray()
+                            addOutput(bytes, 0, bytes.size)
+                        }
+            }
+        }
+        sleep(TestAndroidTestRunnerFactory.logcatLines.size.toLong())
     }
 
     override fun getProperty(name: String): String {
