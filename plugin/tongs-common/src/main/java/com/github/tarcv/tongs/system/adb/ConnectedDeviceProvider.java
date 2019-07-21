@@ -56,9 +56,6 @@ public class ConnectedDeviceProvider {
 
     private final List<Device> localDevices = Lists.newArrayList();
 
-    @Nullable
-    private LogAdapter logAdapter;
-
     public ConnectedDeviceProvider(DeviceGeometryRetriever deviceGeometryRetriever, File adbLocation) {
         this.adbLocation = adbLocation;
         this.deviceGeometryRetriever = deviceGeometryRetriever;
@@ -72,12 +69,12 @@ public class ConnectedDeviceProvider {
         int timeOut = 30000;
         DdmPreferences.setTimeOut(timeOut);
 
-        logAdapter = new LogAdapter(logger);
+        LogAdapter logAdapter = new LogAdapter(logger);
         Log.addLogger(logAdapter);
-        DdmPreferences.setLogLevel(Log.LogLevel.VERBOSE.getStringValue());
-        AndroidDebugBridge.initIfNeeded(false /*clientSupport*/);
 
+        DdmPreferences.setLogLevel(LogAdapter.translateLogLevel(logger));
         try {
+            AndroidDebugBridge.initIfNeeded(false /*clientSupport*/);
 
             AndroidDebugBridge bridge =
                     AndroidDebugBridge.createBridge(
@@ -167,7 +164,7 @@ public class ConnectedDeviceProvider {
             // ensure device names are unique since many reports are keyed off of names.
             makeDeviceNamesUnique();
         } finally {
-            terminateLogger();
+            Log.removeLogger(logAdapter);
         }
     }
 
@@ -198,13 +195,6 @@ public class ConnectedDeviceProvider {
 
     }
 
-    private void terminateLogger() {
-        if (logAdapter != null) {
-            Log.removeLogger(logAdapter);
-            logAdapter = null;
-        }
-    }
-
     private static final class LogAdapter implements Log.ILogOutput {
 
         private final Logger logger;
@@ -213,11 +203,26 @@ public class ConnectedDeviceProvider {
             this.logger = logger;
         }
 
+        static String translateLogLevel(Logger logger) {
+            if (logger.isTraceEnabled() || logger.isDebugEnabled()) {
+                return Log.LogLevel.VERBOSE.getStringValue();
+            } else if (logger.isInfoEnabled()) {
+                return Log.LogLevel.INFO.getStringValue();
+            } else if (logger.isWarnEnabled()) {
+                return Log.LogLevel.WARN.getStringValue();
+            } else if (logger.isErrorEnabled()) {
+                return Log.LogLevel.ERROR.getStringValue();
+            } else {
+                throw new IllegalArgumentException("Unknown log level set for " + logger);
+            }
+        }
+
         @Override
         public void printLog(Log.LogLevel logLevel, String tag, String message) {
             switch (logLevel) {
                 case VERBOSE:
                 case DEBUG:
+                    logger.debug("[{}]: {}", tag, message);
                     break;
                 case INFO:
                     logger.info("[{}]: {}", tag, message);
