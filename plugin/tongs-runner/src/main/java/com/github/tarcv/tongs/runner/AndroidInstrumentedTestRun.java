@@ -26,6 +26,7 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +35,9 @@ import static java.lang.String.format;
 
 public class AndroidInstrumentedTestRun {
 	private static final Logger logger = LoggerFactory.getLogger(AndroidInstrumentedTestRun.class);
-    private final String poolName;
+	private static final String TESTCASE_FILTER = "com.github.tarcv.tongs.ondevice.ClassMethodFilter";
+	public static final String COLLECTING_RUN_FILTER = "com.github.tarcv.tongs.ondevice.AnnontationReadingFilter";
+	private final String poolName;
 	private final TestRunParameters testRunParameters;
 	private final List<BaseListener> testRunListeners;
 	private final List<TestRule> testRules;
@@ -77,9 +80,11 @@ public class AndroidInstrumentedTestRun {
 		if (test != null) {
 			testClassName = test.getTestClass();
 			testMethodName = test.getTestMethod();
-			runner.addInstrumentationArg("filter", "com.github.tarcv.tongs.ondevice.ClassMethodFilter");
-			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "filterClass", testClassName);
-			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "filterMethod", testMethodName);
+
+			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", testClassName);
+			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", testMethodName);
+
+			addFilterAndCustomArgs(runner, TESTCASE_FILTER);
 
 			if (testRunParameters.isCoverageEnabled()) {
 				runner.setCoverage(true);
@@ -88,8 +93,9 @@ public class AndroidInstrumentedTestRun {
 		} else {
 			testClassName = "Test case collection";
 			testMethodName = "";
+
 			runner.addBooleanArg("log", true);
-			runner.addInstrumentationArg("filter", "com.github.tarcv.tongs.ondevice.AnnontationReadingFilter");
+			addFilterAndCustomArgs(runner, COLLECTING_RUN_FILTER);
 		}
 
 		String excludedAnnotation = testRunParameters.getExcludedAnnotation();
@@ -128,4 +134,24 @@ public class AndroidInstrumentedTestRun {
 		}
 
     }
+
+	private void addFilterAndCustomArgs(RemoteAndroidTestRunner runner, String collectingRunFilter) {
+		testRunParameters.getTestRunnerArguments().entrySet().stream()
+				.filter(nameValue -> !nameValue.getKey().equals("filter"))
+				.filter(nameValue -> !nameValue.getKey().startsWith("tongs_"))
+				.forEach(nameValue -> {
+					remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner,
+							nameValue.getKey(), nameValue.getValue());
+				});
+
+		@Nullable String customFilters = testRunParameters.getTestRunnerArguments().get("filter");
+		String filters;
+		if (customFilters != null) {
+			filters = customFilters + "," + collectingRunFilter;
+		} else {
+			filters = collectingRunFilter;
+		}
+
+		runner.addInstrumentationArg("filter", filters);
+	}
 }

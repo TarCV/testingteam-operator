@@ -112,6 +112,7 @@ public class TestRunFactory {
                 .withTestPackage(configuration.getInstrumentationPackage())
                 .withApplicationPackage(configuration.getApplicationPackage())
                 .withTestRunner(configuration.getTestRunnerClass())
+                .withTestRunnerArguments(configuration.getTestRunnerArguments())
                 .withTestSize(configuration.getTestSize())
                 .withTestOutputTimeout((int) configuration.getTestOutputTimeout())
                 .withCoverageEnabled(configuration.isCoverageEnabled())

@@ -18,11 +18,13 @@ import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 
 public class TestRunParameters {
 	private final TestCaseEvent test;
 	private final String testPackage;
 	private final String testRunner;
+	private final Map<String, String> testRunnerArguments;
 	private final boolean isCoverageEnabled;
 	private final IRemoteAndroidTestRunner.TestSize testSize;
 	private final int testOutputTimeout;
@@ -40,6 +42,10 @@ public class TestRunParameters {
 
 	public String getTestRunner() {
 		return testRunner;
+	}
+
+	public Map<String, String> getTestRunnerArguments() {
+		return testRunnerArguments;
 	}
 
 	@Nullable
@@ -71,6 +77,7 @@ public class TestRunParameters {
 		private TestCaseEvent test;
 		private String testPackage;
 		private String testRunner;
+		private Map<String, String> testRunnerArguments;
 		private boolean isCoverageEnabled;
 		private IRemoteAndroidTestRunner.TestSize testSize;
 		private IDevice deviceInterface;
@@ -127,6 +134,11 @@ public class TestRunParameters {
 			return this;
 		}
 
+		public Builder withTestRunnerArguments(Map<String, String> testRunnerArguments) {
+			this.testRunnerArguments = testRunnerArguments;
+			return this;
+		}
+
 		public TestRunParameters build() {
 			return new TestRunParameters(this);
 		}
@@ -136,6 +148,7 @@ public class TestRunParameters {
 		test = builder.test;
 		testPackage = builder.testPackage;
 		testRunner = builder.testRunner;
+		testRunnerArguments = builder.testRunnerArguments;
 		testSize = builder.testSize;
 		testOutputTimeout = builder.testOutputTimeout;
 		deviceInterface = builder.deviceInterface;

@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,6 +42,7 @@ public class Configuration implements TongsConfiguration {
     private final String applicationPackage;
     private final String instrumentationPackage;
     private final String testRunnerClass;
+    private final Map<String, String> testRunnerArguments;
     private final File output;
     private final String title;
     private final String subtitle;
@@ -64,6 +66,7 @@ public class Configuration implements TongsConfiguration {
         applicationPackage = builder.applicationPackage;
         instrumentationPackage = builder.instrumentationPackage;
         testRunnerClass = builder.testRunnerClass;
+        testRunnerArguments = builder.testRunnerArguments;
         output = builder.output;
         title = builder.title;
         subtitle = builder.subtitle;
@@ -115,6 +118,12 @@ public class Configuration implements TongsConfiguration {
     @Nonnull
     public String getTestRunnerClass() {
         return testRunnerClass;
+    }
+
+    @Override
+    @Nonnull
+    public Map<String, String> getTestRunnerArguments() {
+        return testRunnerArguments;
     }
 
     @Override
@@ -205,6 +214,7 @@ public class Configuration implements TongsConfiguration {
         private String applicationPackage;
         private String instrumentationPackage;
         private String testRunnerClass;
+        private Map<String, String> testRunnerArguments;
         private File output;
         private String title;
         private String subtitle;
@@ -272,6 +282,11 @@ public class Configuration implements TongsConfiguration {
 
         public Builder withTestRunnerClass(String testRunnerClass) {
             this.testRunnerClass = testRunnerClass;
+            return this;
+        }
+
+        public Builder withTestRunnerArguments(Map<String, String> testRunnerArguments) {
+            this.testRunnerArguments = testRunnerArguments;
             return this;
         }
 
@@ -360,6 +375,7 @@ public class Configuration implements TongsConfiguration {
 
             title = assignValueOrDefaultIfNull(title, Defaults.TITLE);
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);
+            testRunnerArguments = assignValueOrDefaultIfNull(testRunnerArguments, Defaults.TEST_RUNNER_ARGUMENTS);
             testOutputTimeout = assignValueOrDefaultIfZero(testOutputTimeout, Defaults.TEST_OUTPUT_TIMEOUT_MILLIS);
             excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.<String>emptyList());
             checkArgument(totalAllowedRetryQuota >= 0, "Total allowed retry quota should not be negative.");
