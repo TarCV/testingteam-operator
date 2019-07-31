@@ -53,8 +53,7 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                 val listeners = BroadcastingListener(listenersCollection)
 
                 operator fun Regex.contains(other: String): Boolean = this.matches(other)
-                val command = amInstrumentCommand
-                when (command) {
+                when (val command = withSortedInstrumentedArguments(amInstrumentCommand)) {
                     in logOnlyCommandPattern -> {
                         val testCount: Int
                         val filteredTestCases: List<String>
@@ -72,7 +71,7 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                         listeners.testRunEnded(100, emptyMap())
                     }
                     in testCaseCommandPattern -> {
-                        val (testMethod, testClass) =
+                        val (testClass, testMethod) =
                                 testCaseCommandPattern.matchEntire(command)
                                         ?.groupValues
                                         ?.drop(1) // group 0 is the entire match
@@ -82,8 +81,24 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                         listeners.fireTest("$testClass#$testMethod", functionalTestTestcaseDuration)
                         listeners.testRunEnded(functionalTestTestcaseDuration, emptyMap())
                     }
-                    else -> throw IllegalStateException("Unexpected command: $command")
+                    else -> throw IllegalStateException(
+                            "Unexpected command (sorted): $command. R1='$logOnlyCommandPattern', R2='$testCaseCommandPattern'")
                 }
+            }
+
+            private fun withSortedInstrumentedArguments(command: String): String {
+                var matched = false
+                return command
+                        .replace(Regex("(?:\\s+-e\\s\\S+\\s.+?(?=\\s+-e|\\s+com))+")) { match ->
+                            if (matched) throw IllegalStateException("Unexpected command: $command")
+                            matched = true
+                            match.groupValues[0]
+                                    .split(Regex("-e\\s+")).asSequence()
+                                    .map { it.trim() }
+                                    .filter { it.isNotEmpty() }
+                                    .sorted()
+                                    .joinToString("") { " -e $it" }
+                        }
             }
         }
     }
@@ -109,18 +124,20 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
         private const val expectedTestPackage = "com.github.tarcv.tongstestapp.f[12].test"
         private const val expectedTestRunner = "(?:android.support.test.runner.AndroidJUnitRunner|com.github.tarcv.test.f2.TestRunner)"
         val logOnlyCommandPattern =
-                ("am\\s+instrument\\s+-w\\s+-r\\s+" +
+                ("am\\s+instrument\\s+-w\\s+-r" +
                         " -e filter com.github.tarcv.tongs.ondevice.AnnontationReadingFilter" +
                         " -e log true" +
+                        " -e test_argument \\S+" +
                         """\s+$expectedTestPackage\/$expectedTestRunner""")
                         .replace(".", "\\.")
                         .replace(" -", "\\s+-")
                         .toRegex()
         val testCaseCommandPattern =
-                ("am\\s+instrument\\s+-w\\s+-r\\s+" +
-                        " -e filterMethod ()" +
+                ("am\\s+instrument\\s+-w\\s+-r" +
                         " -e filter com.github.tarcv.tongs.ondevice.ClassMethodFilter" +
-                        " -e filterClass ()" +
+                        " -e test_argument \\S+" +
+                        " -e tongs_filterClass ()" +
+                        " -e tongs_filterMethod ()" +
                         """\s+$expectedTestPackage\/$expectedTestRunner""")
                         .replace(".", "\\.")
                         .replace(" -", "\\s+-")

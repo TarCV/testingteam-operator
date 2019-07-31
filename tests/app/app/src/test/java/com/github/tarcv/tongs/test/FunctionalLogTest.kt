@@ -36,6 +36,24 @@ class FunctionalLogTest {
     }
 
     @Test
+    fun testCustomArgumentIsCorrect() {
+        (getTestLineGroups(0) + getTestLineGroups(1)).entries
+                .filter { entry -> entry.key.isNotEmpty() }
+                .map { entry -> entry.value }
+                .map { it.last() }
+                .forEach { runCommand ->
+                    val expectedArg = when (FLAVOR) {
+                        "f1" ->"default"
+                        "f2" ->"args\"ForF2" // should contain dangerous character
+                        else -> throw AssertionError("Got an unexpected build flavor")
+                    }
+                    assert(runCommand.contains(Regex("\\s-e\\s+test_argument\\s+$expectedArg\\s"))) {
+                        "Command to run a test should contain custom argument with '$expectedArg' value. Actual: $runCommand"
+                    }
+                }
+    }
+
+    @Test
     fun testClearBeforeTests() {
         (getTestLineGroups(0) + getTestLineGroups(1)).entries
                 .filter { entry -> entry.key.isNotEmpty() }
