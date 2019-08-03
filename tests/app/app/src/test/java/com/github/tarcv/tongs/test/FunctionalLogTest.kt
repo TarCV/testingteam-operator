@@ -36,6 +36,24 @@ class FunctionalLogTest {
     }
 
     @Test
+    fun testFilterIsCorrect() {
+        (getTestLineGroups(0) + getTestLineGroups(1)).entries
+                .filter { entry -> entry.key.isNotEmpty() }
+                .map { entry -> entry.value }
+                .map { it.last() }
+                .forEach { runCommand ->
+                    val expectedFilter = when (FLAVOR) {
+                        "f1" ->"com.github.tarcv.tongs.ondevice.ClassMethodFilter"
+                        "f2" ->"com.github.tarcv.tongs.ondevice.ClassMethodFilter,com.github.tarcv.test.F2Filter"
+                        else -> throw AssertionError("Got an unexpected build flavor")
+                    }
+                    assert(runCommand.contains("-e filter $expectedFilter")) {
+                        "Command to run a test should contain $expectedFilter. Actual: $runCommand"
+                    }
+                }
+    }
+
+    @Test
     fun testCustomArgumentIsCorrect() {
         (getTestLineGroups(0) + getTestLineGroups(1)).entries
                 .filter { entry -> entry.key.isNotEmpty() }

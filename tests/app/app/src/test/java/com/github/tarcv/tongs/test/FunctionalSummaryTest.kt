@@ -10,7 +10,7 @@
 
 package com.github.tarcv.tongs.test
 
-import com.github.tarcv.test.BuildConfig
+import com.github.tarcv.test.BuildConfig.FLAVOR
 import com.github.tarcv.test.Config.PACKAGE
 import org.apache.commons.exec.CommandLine
 import org.apache.commons.exec.DefaultExecutor
@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.asserter
 
 class FunctionalSummaryTest {
     private val packageForRegex = PACKAGE.replace(".", """\.""")
@@ -36,8 +37,13 @@ class FunctionalSummaryTest {
             acc
         }
 
+        val filteredNum = if (FLAVOR == "f2") {
+            1 * 4
+        } else {
+            2 * 4
+        }
         // Numbers are test case counts per classes in alphabetical order
-        assert(simplifiedResults.size == 11+4+2+2+2+2+1+8+8+2+4) { "All tests should be executed" }
+        asserter.assertEquals("All tests should be executed", 11+filteredNum+2+2+2+2+1+8+8+2+4, simplifiedResults.size)
     }
 
     @Test
@@ -74,6 +80,20 @@ class FunctionalSummaryTest {
         assert(testsPerDevice.isNotEmpty()) { "API 20 only tests should be executed" }
         assert(testsPerDevice.size == 1) { "API 20 only should be executed on exactly 1 device (got ${testsPerDevice.size})" }
         assert(testsPerDevice[0].value.get() == 4) { "Exactly 4 API 20 only test cases should be executed on ${testsPerDevice[0].key} device" }
+    }
+
+    @Test
+    fun testFilteredByF2FilterIsExecutedForF1() {
+        Assume.assumeTrue(FLAVOR != "f2")
+        doAssertionsForParameterizedTests(
+                """$packageForRegex\.FilteredTest#filteredByF2Filter\[\d+]""".toRegex(), 4)
+    }
+
+    @Test
+    fun testFilteredByF2FilterAreNotExecutedForF2() {
+        Assume.assumeTrue(FLAVOR == "f2")
+        doAssertionsForParameterizedTests(
+                """$packageForRegex\.FilteredTest#filteredByF2Filter\[\d+]""".toRegex(), 0)
     }
 
     @Test
@@ -234,13 +254,19 @@ private fun doAssertionsForParameterizedTests(pattern: Regex, expectedCount: Int
             }
             .entries
             .toList()
-    assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
-    assert(testsPerDevice.size == 2) { "Variants should be executed on exactly 2 devices (got ${testsPerDevice.size})" }
-    assert(testsPerDevice[0].value.get() > 0) { "At least one parameterized test should be executed on ${testsPerDevice[0].key} device" }
-    assert(testsPerDevice[1].value.get() > 0) { "At least one parameterized test should be executed on ${testsPerDevice[1].key} device" }
-    assert(testsPerDevice[0].value.get() + testsPerDevice[1].value.get() == expectedCount) {
-        "Exactly $expectedCount parameterized tests should be executed" +
-                " (device1=${testsPerDevice[0].value.get()}, device2=${testsPerDevice[1].value.get()})"
+    if (expectedCount > 0) {
+        assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
+        if (expectedCount >= 8) {
+            assert(testsPerDevice.size == 2) { "Variants should be executed on exactly 2 devices (got ${testsPerDevice.size})" }
+            assert(testsPerDevice[0].value.get() > 0) { "At least one parameterized test should be executed on ${testsPerDevice[0].key} device" }
+            assert(testsPerDevice[1].value.get() > 0) { "At least one parameterized test should be executed on ${testsPerDevice[1].key} device" }
+        }
+        assert(testsPerDevice[0].value.get() + testsPerDevice[1].value.get() == expectedCount) {
+            "Exactly $expectedCount parameterized tests should be executed" +
+                    " (device1=${testsPerDevice[0].value.get()}, device2=${testsPerDevice[1].value.get()})"
+        }
+    } else {
+        assert(testsPerDevice.isEmpty()) { "The parameterized tests should not be executed" }
     }
 }
 
@@ -268,7 +294,7 @@ private fun getSummaryData(): JSONObject {
 }
 
 private fun getSummaryJsonFile(): File {
-    val summaryDir = File("build/reports/tongs/${BuildConfig.FLAVOR}DebugAndroidTest/summary")
+    val summaryDir = File("build/reports/tongs/${FLAVOR}DebugAndroidTest/summary")
     val jsons = summaryDir.listFiles { file, s ->
         summaryDir == file && s.toLowerCase().endsWith(".json")
     }

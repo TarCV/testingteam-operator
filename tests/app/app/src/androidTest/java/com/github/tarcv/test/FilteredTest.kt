@@ -1,9 +1,7 @@
 package com.github.tarcv.test
 
-import android.os.Build
 import android.support.test.filters.SdkSuppress
 import android.support.test.rule.ActivityTestRule
-import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,6 +18,12 @@ class FilteredTest(param: Int) {
     fun api22Only() {
         TestHelpers.basicTestSteps()
     }
+
+    @Test
+    fun filteredByF2Filter() {
+        TestHelpers.basicTestSteps()
+    }
+
 /*
     @Test
     @SdkSuppress(minSdkVersion = 18, maxSdkVersion = 18)
