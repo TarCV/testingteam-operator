@@ -13,6 +13,7 @@
  */
 package com.github.tarcv.tongs;
 
+import com.android.ddmlib.AndroidDebugBridge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +31,11 @@ public final class Tongs {
 
     private final TongsRunner tongsRunner;
     private final File output;
+    private final boolean terminateDdm;
 
     public Tongs(Configuration configuration) {
         this.output = configuration.getOutput();
+        this.terminateDdm = configuration.shouldTerminateDdm();
         setConfiguration(configuration);
         this.tongsRunner = tongsRunner();
     }
@@ -50,6 +53,9 @@ public final class Tongs {
 		} finally {
             long duration = millisSinceNanoTime(startOfTestsMs);
             logger.info(formatPeriod(0, duration, "'Total time taken:' H 'hours' m 'minutes' s 'seconds'"));
+            if (terminateDdm) {
+                AndroidDebugBridge.terminate();
+            }
 		}
 	}
 }
