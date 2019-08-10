@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.runner.TestRetryer;
 import com.github.tarcv.tongs.util.TestPipelineEmulator;
 import org.jmock.Expectations;
@@ -48,6 +49,7 @@ public class RetryListenerTest {
 
     @Test
     public void reschedulesTestIfTestRunFailedAndDeleteTraceFiles() {
+        PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         RetryListener retryListener =
                 new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
 
@@ -66,6 +68,7 @@ public class RetryListenerTest {
 
     @Test
     public void doesNotDeleteTraceFilesIfCannotRescheduleTestAfterTestRunFailed() {
+        PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         RetryListener retryListener =
                 new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
 
