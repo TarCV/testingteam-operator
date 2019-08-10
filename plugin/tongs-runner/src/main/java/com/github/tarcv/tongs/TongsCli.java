@@ -97,6 +97,7 @@ public class TongsCli {
                     .withSubtitle(tongsConfiguration.subtitle)
                     .withTestPackage(tongsConfiguration.testPackage)
                     .withTestOutputTimeout(tongsConfiguration.testOutputTimeout)
+                    .withTestRunnerArguments(tongsConfiguration.android.instrumentationArguments)
                     .withTestSize(tongsConfiguration.testSize)
                     .withExcludedSerials(tongsConfiguration.excludedSerials)
                     .withFallbackToScreenshots(tongsConfiguration.fallbackToScreenshots)
@@ -105,6 +106,7 @@ public class TongsCli {
                     .withCoverageEnabled(tongsConfiguration.isCoverageEnabled)
                     .withPoolingStrategy(tongsConfiguration.poolingStrategy)
                     .withExcludedAnnotation(tongsConfiguration.excludedAnnotation)
+                    .withTongsIntegrationTestRunType(tongsConfiguration.tongsIntegrationTestRunType)
                     .build();
 
             Tongs tongs = new Tongs(configuration);

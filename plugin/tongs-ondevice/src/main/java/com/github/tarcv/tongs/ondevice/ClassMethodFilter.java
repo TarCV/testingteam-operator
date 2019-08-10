@@ -23,8 +23,8 @@ public class ClassMethodFilter extends Filter {
     private final String expectedMethodName;
 
     public ClassMethodFilter(Bundle bundle) {
-        this.expectedClassName = bundle.getString("filterClass");
-        this.expectedMethodName = bundle.getString("filterMethod");
+        this.expectedClassName = bundle.getString("tongs_filterClass");
+        this.expectedMethodName = bundle.getString("tongs_filterMethod");
     }
 
     @Override

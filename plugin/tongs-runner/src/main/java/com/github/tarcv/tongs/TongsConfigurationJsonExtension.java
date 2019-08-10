@@ -16,4 +16,9 @@ public class TongsConfigurationJsonExtension extends TongsConfigurationExtension
      * The strategy that will be used to calculate the grouping of devices to pools.
      */
     public PoolingStrategy poolingStrategy;
+
+    /**
+     * Android specific options
+     */
+    public AndroidConfiguration android = new AndroidConfiguration();
 }

@@ -11,6 +11,8 @@
 
 package com.github.tarcv.tongs;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 class Defaults {
@@ -18,6 +20,7 @@ class Defaults {
     private Defaults() {
     }
 
+    static final Map<String, String> TEST_RUNNER_ARGUMENTS = Collections.emptyMap();
     static final long TEST_OUTPUT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(1);
     static final String TONGS_OUTPUT = "tongs-output";
     static final int STRATEGY_LIMIT = 1;

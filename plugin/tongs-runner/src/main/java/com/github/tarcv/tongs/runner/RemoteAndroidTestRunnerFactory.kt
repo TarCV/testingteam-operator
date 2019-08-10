@@ -53,18 +53,17 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                 val listeners = BroadcastingListener(listenersCollection)
 
                 operator fun Regex.contains(other: String): Boolean = this.matches(other)
-                val command = amInstrumentCommand
-                when (command) {
+                when (val command = withSortedInstrumentedArguments(amInstrumentCommand)) {
                     in logOnlyCommandPattern -> {
+                        val filters = logOnlyCommandPattern.matchEntire(command)!!.groupValues[1]
+                        val withF2Filter = filters.split(",").contains("com.github.tarcv.test.F2Filter")
+
                         val testCount: Int
-                        val filteredTestCases: List<String>
-                        if (shouldIncludeApi22Only) {
-                            testCount = testCases.size
-                            filteredTestCases = testCases
-                        } else {
-                            testCount = testCases.size - 4
-                            filteredTestCases = testCases.filter { !it.contains("#api22Only") }
-                        }
+                        val filteredTestCases: List<String> = testCases.asSequence()
+                                .filter { shouldIncludeApi22Only || !it.contains("#api22Only") }
+                                .filter { !withF2Filter || !it.contains("#filteredByF2Filter")}
+                                .toList()
+                        testCount = filteredTestCases.size
                         listeners.testRunStarted("emulators", testCount)
                         filteredTestCases.forEach {
                             listeners.fireTest(it)
@@ -72,7 +71,7 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                         listeners.testRunEnded(100, emptyMap())
                     }
                     in testCaseCommandPattern -> {
-                        val (testMethod, testClass) =
+                        val (filter, testClass, testMethod) =
                                 testCaseCommandPattern.matchEntire(command)
                                         ?.groupValues
                                         ?.drop(1) // group 0 is the entire match
@@ -82,8 +81,24 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                         listeners.fireTest("$testClass#$testMethod", functionalTestTestcaseDuration)
                         listeners.testRunEnded(functionalTestTestcaseDuration, emptyMap())
                     }
-                    else -> throw IllegalStateException("Unexpected command: $command")
+                    else -> throw IllegalStateException(
+                            "Unexpected command (sorted): $command. R1='$logOnlyCommandPattern', R2='$testCaseCommandPattern'")
                 }
+            }
+
+            private fun withSortedInstrumentedArguments(command: String): String {
+                var matched = false
+                return command
+                        .replace(Regex("(?:\\s+-e\\s\\S+\\s.+?(?=\\s+-e|\\s+com))+")) { match ->
+                            if (matched) throw IllegalStateException("Unexpected command: $command")
+                            matched = true
+                            match.groupValues[0]
+                                    .split(Regex("-e\\s+")).asSequence()
+                                    .map { it.trim() }
+                                    .filter { it.isNotEmpty() }
+                                    .sorted()
+                                    .joinToString("") { " -e $it" }
+                        }
             }
         }
     }
@@ -109,18 +124,20 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
         private const val expectedTestPackage = "com.github.tarcv.tongstestapp.f[12].test"
         private const val expectedTestRunner = "(?:android.support.test.runner.AndroidJUnitRunner|com.github.tarcv.test.f2.TestRunner)"
         val logOnlyCommandPattern =
-                ("am\\s+instrument\\s+-w\\s+-r\\s+" +
-                        " -e filter com.github.tarcv.tongs.ondevice.AnnontationReadingFilter" +
+                ("am\\s+instrument\\s+-w\\s+-r" +
+                        " -e filter ((?:\\S+,)?com.github.tarcv.tongs.ondevice.AnnontationReadingFilter(,?:\\S+)?)" +
                         " -e log true" +
+                        " -e test_argument \\S+" +
                         """\s+$expectedTestPackage\/$expectedTestRunner""")
                         .replace(".", "\\.")
                         .replace(" -", "\\s+-")
                         .toRegex()
         val testCaseCommandPattern =
-                ("am\\s+instrument\\s+-w\\s+-r\\s+" +
-                        " -e filterMethod ()" +
-                        " -e filter com.github.tarcv.tongs.ondevice.ClassMethodFilter" +
-                        " -e filterClass ()" +
+                ("am\\s+instrument\\s+-w\\s+-r" +
+                        " -e filter ()" +
+                        " -e test_argument \\S+" +
+                        " -e tongs_filterClass ()" +
+                        " -e tongs_filterMethod ()" +
                         """\s+$expectedTestPackage\/$expectedTestRunner""")
                         .replace(".", "\\.")
                         .replace(" -", "\\s+-")
@@ -141,6 +158,10 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                 """com.github.tarcv.test.FilteredTest#api22Only[2]""",
                 """com.github.tarcv.test.FilteredTest#api22Only[3]""",
                 """com.github.tarcv.test.FilteredTest#api22Only[4]""",
+                """com.github.tarcv.test.FilteredTest#filteredByF2Filter[1]""",
+                """com.github.tarcv.test.FilteredTest#filteredByF2Filter[2]""",
+                """com.github.tarcv.test.FilteredTest#filteredByF2Filter[3]""",
+                """com.github.tarcv.test.FilteredTest#filteredByF2Filter[4]""",
                 """com.github.tarcv.test.GrantPermissionsForClassTest#testPermissionGranted1""",
                 """com.github.tarcv.test.GrantPermissionsForClassTest#testPermissionGranted2""",
                 """com.github.tarcv.test.GrantPermissionsForInheritedClassTest#testPermissionGranted1""",

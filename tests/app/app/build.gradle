@@ -15,6 +15,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments test_argument: 'default'
     }
     buildTypes {
         release {
@@ -33,6 +34,7 @@ android {
             dimension "flavor"
             applicationIdSuffix ".f2"
             testInstrumentationRunner "com.github.tarcv.test.f2.TestRunner"
+            testInstrumentationRunnerArguments test_argument: 'args\"ForF2', filter: 'com.github.tarcv.test.F2Filter'
         }
     }
 

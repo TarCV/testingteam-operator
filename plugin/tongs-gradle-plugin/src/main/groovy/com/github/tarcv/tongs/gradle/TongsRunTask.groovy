@@ -57,6 +57,8 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
 
     String testRunnerClass
 
+    Map<String, String> testRunnerArguments
+
     boolean isCoverageEnabled
 
     int testOutputTimeout
@@ -93,6 +95,7 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
                 .withSubtitle(subtitle)
                 .withTestPackage(testPackage)
                 .withTestRunnerClass(testRunnerClass)
+                .withTestRunnerArguments(testRunnerArguments)
                 .withTestOutputTimeout(testOutputTimeout)
                 .withTestSize(testSize)
                 .withExcludedSerials(excludedSerials)
