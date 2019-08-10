@@ -1,0 +1,24 @@
+{
+  "title": "Acceptance tests",
+  "testPackage": "com.github.tarcv.test",
+  "baseOutputDir": "TEST_ROOT/app/build/reports/tongs/f2DebugAndroidTest",
+  "android": {
+    "instrumentationArguments": {
+      "test_argument": "args\"ForF2",
+      "filter": "com.github.tarcv.test.F2Filter"
+    }
+  },
+  "totalAllowedRetryQuota": 4,
+  "retryPerTestCaseQuota": 2,
+  "tongsIntegrationTestRunType": "TEST_RUN_TYPE",
+  "poolingStrategy": {
+    "manual": {
+      "groupings": {
+        "emulators": [
+          "DEVICE1",
+          "DEVICE2"
+        ]
+      }
+    }
+  }
+}

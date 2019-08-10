@@ -77,6 +77,9 @@ run {
     if(project.hasProperty('args')) {
         args project.args.split('\\s+')
     }
+    if (project.hasProperty('workingDir')) {
+        workingDir file(project.workingDir)
+    }
 }
 
 compileKotlin {
