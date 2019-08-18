@@ -96,6 +96,7 @@ public class TongsCli {
                     .withTitle(tongsConfiguration.title)
                     .withSubtitle(tongsConfiguration.subtitle)
                     .withTestPackage(tongsConfiguration.testPackage)
+                    .withPlugins(tongsConfiguration.plugins)
                     .withTestOutputTimeout(tongsConfiguration.testOutputTimeout)
                     .withTestRunnerArguments(tongsConfiguration.android.instrumentationArguments)
                     .withTestSize(tongsConfiguration.testSize)

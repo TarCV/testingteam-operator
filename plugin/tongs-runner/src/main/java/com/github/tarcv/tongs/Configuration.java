@@ -42,6 +42,7 @@ public class Configuration implements TongsConfiguration {
     private final String applicationPackage;
     private final String instrumentationPackage;
     private final String testRunnerClass;
+    private final Plugins plugins;
     private final Map<String, String> testRunnerArguments;
     private final File output;
     private final String title;
@@ -67,6 +68,7 @@ public class Configuration implements TongsConfiguration {
         instrumentationPackage = builder.instrumentationPackage;
         testRunnerClass = builder.testRunnerClass;
         testRunnerArguments = builder.testRunnerArguments;
+        plugins = builder.plugins;
         output = builder.output;
         title = builder.title;
         subtitle = builder.subtitle;
@@ -207,6 +209,11 @@ public class Configuration implements TongsConfiguration {
         return tongsIntegrationTestRunType;
     }
 
+    @Override
+    public Plugins getPlugins() {
+        return plugins;
+    }
+
     public static class Builder {
         private File androidSdk;
         private File applicationApk;
@@ -215,6 +222,7 @@ public class Configuration implements TongsConfiguration {
         private String instrumentationPackage;
         private String testRunnerClass;
         private Map<String, String> testRunnerArguments;
+        private Plugins plugins;
         private File output;
         private String title;
         private String subtitle;
@@ -287,6 +295,11 @@ public class Configuration implements TongsConfiguration {
 
         public Builder withTestRunnerArguments(Map<String, String> testRunnerArguments) {
             this.testRunnerArguments = testRunnerArguments;
+            return this;
+        }
+
+        public Builder withPlugins(Plugins plugins) {
+            this.plugins = plugins;
             return this;
         }
 
@@ -372,6 +385,8 @@ public class Configuration implements TongsConfiguration {
             testPackage = assignValueOrDefaultIfNull(testPackage, applicationPackage);
 
             checkNotNull(output, "Output path is required.");
+
+            plugins = assignValueOrDefaultIfNull(plugins, Defaults.PLUGINS);
 
             title = assignValueOrDefaultIfNull(title, Defaults.TITLE);
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);

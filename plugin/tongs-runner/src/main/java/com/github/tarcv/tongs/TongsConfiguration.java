@@ -78,6 +78,8 @@ public interface TongsConfiguration {
 
     boolean shouldTerminateDdm();
 
+    Plugins getPlugins();
+
     enum TongsIntegrationTestRunType {
         NONE,
         STUB_PARALLEL_TESTRUN,

@@ -12,10 +12,11 @@
 package com.github.tarcv.tongs.injector.pooling;
 
 import com.github.tarcv.tongs.Configuration;
-import com.github.tarcv.tongs.injector.device.ConnectedDeviceProviderInjector;
+import com.github.tarcv.tongs.plugin.DeviceProvider;
 import com.github.tarcv.tongs.pooling.PoolLoader;
 
-import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN;
+import java.util.List;
+
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
 
 public class PoolLoaderInjector {
@@ -24,10 +25,10 @@ public class PoolLoaderInjector {
 
     public static PoolLoader poolLoader() {
         Configuration configuration = configuration();
-        if (configuration.getTongsIntegrationTestRunType() == STUB_PARALLEL_TESTRUN) {
-            return new PoolLoader(null, configuration); // TODO: replace null with stub ConnectedDeviceProvider
-        } else {
-            return new PoolLoader(ConnectedDeviceProviderInjector.INSTANCE.connectedDeviceProvider(), configuration);
-        }
+
+        DeviceProviderProvider deviceProviderProvider = new DeviceProviderProvider(configuration);
+        List<DeviceProvider> loaders = deviceProviderProvider.createProviders();
+
+        return new PoolLoader(configuration, loaders); // TODO: replace null with stub ConnectedDeviceProvider
     }
 }

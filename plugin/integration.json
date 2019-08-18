@@ -1,0 +1,29 @@
+{
+  "title": "Acceptance tests",
+  "testPackage": "com.github.tarcv.test",
+  "plugins": {
+	"includeDefaultPlugins": false,
+	"deviceProviders": [
+		"com.github.tarcv.tongs.plugin.android.StubDeviceProvider"
+	]
+  },
+  "android": {
+    "instrumentationArguments": {
+      "test_argument": "args\"ForF2",
+      "filter": "com.github.tarcv.test.F2Filter"
+    }
+  },
+  "totalAllowedRetryQuota": 4,
+  "retryPerTestCaseQuota": 2,
+  "tongsIntegrationTestRunType": "STUB_PARALLEL_TESTRUN",
+  "poolingStrategy": {
+    "manual": {
+      "groupings": {
+        "emulators": [
+          "tongs-5554",
+          "tongs-5556"
+        ]
+      }
+    }
+  }
+}

@@ -106,7 +106,8 @@ public class ConnectedDeviceProvider {
             IDevice[] devices = bridge.getDevices();
 
             if (devices.length == 0) {
-                throw new RuntimeException("No connected devices!");
+                localDevices.clear();
+                return;
             }
 
             final String androidSerialsEnv = System.getenv("ANDROID_SERIAL");

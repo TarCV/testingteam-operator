@@ -76,6 +76,7 @@ class TongsPlugin implements Plugin<Project> {
                 testOutputTimeout = config.testOutputTimeout
                 testRunnerClass = variant.mergedFlavor.testInstrumentationRunner
                 testRunnerArguments = variant.mergedFlavor.testInstrumentationRunnerArguments
+                plugins = config.plugins
                 excludedSerials = config.excludedSerials
                 fallbackToScreenshots = config.fallbackToScreenshots
                 totalAllowedRetryQuota = config.totalAllowedRetryQuota

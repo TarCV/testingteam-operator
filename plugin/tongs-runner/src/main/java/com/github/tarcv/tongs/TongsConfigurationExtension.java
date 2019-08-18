@@ -85,6 +85,11 @@ public abstract class TongsConfigurationExtension {
     public String excludedAnnotation;
 
     /**
+     * Plugins to load
+     */
+    public Plugins plugins = new Plugins();
+
+    /**
      * Specifies that Tongs should run using one of "under integration test" modes
      */
     public TongsConfiguration.TongsIntegrationTestRunType tongsIntegrationTestRunType = NONE;
