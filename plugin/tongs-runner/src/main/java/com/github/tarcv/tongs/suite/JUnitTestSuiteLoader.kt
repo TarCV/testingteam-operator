@@ -12,18 +12,20 @@ package com.github.tarcv.tongs.suite
  */
 
 import com.android.ddmlib.DdmPreferences
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.Utils.namedExecutor
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
+import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.pooling.NoDevicesForPoolException
 import com.github.tarcv.tongs.pooling.NoPoolLoaderConfiguredException
 import com.github.tarcv.tongs.pooling.PoolLoader
 import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
-import com.github.tarcv.tongs.runner.TestRunFactory
+import com.github.tarcv.tongs.runner.AndroidTestRunFactory
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
@@ -42,7 +44,7 @@ import java.util.stream.Collectors
 
 class JUnitTestSuiteLoader(
         private val poolLoader: PoolLoader,
-        private val testRunFactory: TestRunFactory,
+        private val testRunFactory: AndroidTestRunFactory,
         private val remoteAndroidTestRunnerFactory: IRemoteAndroidTestRunnerFactory) : TestSuiteLoader {
     private val logger = LoggerFactory.getLogger(JUnitTestSuiteLoader::class.java)
 
@@ -87,12 +89,12 @@ class JUnitTestSuiteLoader(
                                 val deviceInterface = device.deviceInterface
                                 try {
                                     DdmPreferences.setTimeOut(30000)
-                                    installer.prepareInstallation(deviceInterface)
+                                    installer.prepareInstallation(deviceInterface as IDevice)
 
                                     val collectionLatch = CountDownLatch(1)
 
                                     val collectingTestRun = testRunFactory.createCollectingRun(
-                                            device, pool, testCollector, collectionLatch)
+                                            device as AndroidDevice, pool, testCollector, collectionLatch)
                                     collectingTestRun.execute()
 
                                     collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)

@@ -13,7 +13,7 @@ package com.github.tarcv.tongs.device;
 import com.android.ddmlib.IDevice;
 import com.github.tarcv.tongs.model.Device;
 
-import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
+import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 
 /**
  * Turns a serial number or an IDevice reference to a Device.

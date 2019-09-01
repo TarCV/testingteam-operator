@@ -16,171 +16,54 @@ package com.github.tarcv.tongs.model;
 import com.android.ddmlib.IDevice;
 
 import javax.annotation.Nullable;
-
 import java.util.Objects;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
+public abstract class Device {
+    private String nameSuffix;
 
-/**
- * Representation of a device and its details.
- */
-public class Device {
-	private final String serial;
-	private final String manufacturer;
-	private final String model;
-	private final String apiLevel;
-	private final transient IDevice deviceInterface;
-	private final boolean isTablet;
-	private final DisplayGeometry geometry;
-    private final Diagnostics diagnostics;
-	private String nameSuffix;
+    public abstract String getSerial();
 
-	public String getSerial() {
-		return serial;
-	}
-
-	public String getSafeSerial() {
-		return serial.replaceAll(":", "-");
-	}
-
-	public String getManufacturer() {
-		return manufacturer;
-	}
-
-	public String getModelName() {
-		return model;
-	}
-
-	public String getApiLevel() {
-		return apiLevel;
-	}
-
-	public String getLongName() {
-		return serial + " (" + model + ")";
-	}
-
-	public IDevice getDeviceInterface() {
-		return deviceInterface;
-	}
-
-	public boolean isTablet() {
-		return isTablet;
-	}
-
-	@Nullable
-    public DisplayGeometry getGeometry() {
-        return geometry;
+    public String getSafeSerial() {
+        return getSerial().replaceAll(":", "-");
     }
 
-    public Diagnostics getSupportedDiagnostics() {
-        return diagnostics;
+    public abstract String getManufacturer();
+
+    public abstract String getModelName();
+
+    public abstract int getOsApiLevel();
+
+    public abstract String getLongName();
+
+    public abstract Object getDeviceInterface();
+
+    public abstract boolean isTablet();
+
+    @Nullable
+public abstract DisplayGeometry getGeometry();
+
+    public abstract Diagnostics getSupportedVisualDiagnostics();
+
+    public String getName() {
+        return getModelName() + nameSuffix;
     }
 
-	public String getName() {
-		return model + nameSuffix;
-	}
+    public void setNameSuffix(String suffix) {
+        nameSuffix = suffix;
+    }
 
-	public void setNameSuffix(String suffix) {
-		nameSuffix = suffix;
-	}
+    protected abstract Object getUniqueIdentifier();
 
-	/**
-	 * Returns an object that uniquely identify underlying device and which has equals and hashCode implementations
-	 *  that are reproducible when a new instance of Device is created from the same device
-	 *
-	 * @return object uniquely identifying underlying device
-	 */
-	private Object getUniqueIdentifier() {
-		return serial;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Device)) return false;
+        Device device = (Device) o;
+        return getUniqueIdentifier().equals(device.getUniqueIdentifier());
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof Device)) return false;
-		Device device = (Device) o;
-		return getUniqueIdentifier().equals(device.getUniqueIdentifier());
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(getUniqueIdentifier());
-	}
-
-	public static class Builder {
-        private String serial = "Unspecified serial";
-        private String manufacturer = "Unspecified manufacturer";
-        private String model = "Unspecified model";
-        private String apiLevel;
-		private IDevice deviceInterface;
-		private boolean isTablet = false;
-		private DisplayGeometry geometry;
-
-        public static Builder aDevice() {
-			return new Builder();
-		}
-
-		public Builder withSerial(String serial) {
-			this.serial = serial;
-			return this;
-		}
-
-		public Builder withManufacturer(String manufacturer) {
-			if (!isNullOrEmpty(manufacturer)) {
-				this.manufacturer = manufacturer;
-			}
-			return this;
-		}
-
-		public Builder withModel(String model) {
-			if (!isNullOrEmpty(model)) {
-				this.model = model;
-			}
-			return this;
-		}
-
-		public Builder withApiLevel(String apiLevel) {
-			if (!isNullOrEmpty(apiLevel)) {
-				this.apiLevel = apiLevel;
-			}
-			return this;
-		}
-
-		public Builder withDeviceInterface(IDevice deviceInterface) {
-			this.deviceInterface = deviceInterface;
-			return this;
-		}
-
-        /**
-         * Tablets seem to have property [ro.build.characteristics = tablet], but not all tablets respect that.
-         * @param characteristics the characteristics field as reported by the device
-         * @return this builder
-         */
-		public Builder withTabletCharacteristic(String characteristics) {
-			if (!isNullOrEmpty(characteristics) && characteristics.contains("tablet")) {
-				isTablet = true;
-			}
-			return this;
-		}
-
-		public Builder withDisplayGeometry(@Nullable DisplayGeometry geometry) {
-			this.geometry = geometry;
-			return this;
-		}
-
-		public Device build() {
-			return new Device(this);
-		}
-	}
-
-	private Device(Builder builder) {
-		serial = builder.serial;
-		manufacturer = builder.manufacturer;
-		model = builder.model;
-		apiLevel = builder.apiLevel;
-		deviceInterface = builder.deviceInterface;
-		isTablet = builder.isTablet;
-		geometry = builder.geometry;
-        diagnostics = Diagnostics.computeDiagnostics(deviceInterface, apiLevel);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUniqueIdentifier());
+    }
 }

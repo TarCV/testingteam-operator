@@ -3,6 +3,7 @@ package com.github.tarcv.tongs.runner
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.device.clearLogcat
+import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
@@ -12,11 +13,15 @@ import com.google.gson.JsonObject
 import java.lang.Thread.sleep
 import java.util.concurrent.CountDownLatch
 
-internal class AndroidCollectingTestRule(private val device: Device, private val testCollectingListener: TestCollectingListener, private val latch: CountDownLatch) : TestRule {
+internal class AndroidCollectingTestRule(
+        private val device: Device,
+        private val testCollectingListener: TestCollectingListener,
+        private val latch: CountDownLatch
+): TestRule<AndroidDevice> {
     var logCatCollector: LogcatReceiver = LogcatReceiver(device)
 
     override fun before() {
-        clearLogcat(device.deviceInterface)
+        clearLogcat((device as AndroidDevice).deviceInterface)
         logCatCollector.start("TestSuiteLoader")
     }
 

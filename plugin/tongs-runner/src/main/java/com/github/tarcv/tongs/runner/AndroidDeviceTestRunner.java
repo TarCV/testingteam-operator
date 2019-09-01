@@ -15,6 +15,7 @@ package com.github.tarcv.tongs.runner;
 
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
+import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;
@@ -28,38 +29,37 @@ import java.util.concurrent.TimeUnit;
 import static com.github.tarcv.tongs.device.DeviceUtilsKt.clearLogcat;
 import static com.github.tarcv.tongs.system.io.RemoteFileManager.*;
 
-public class DeviceTestRunner implements Runnable {
-    private static final Logger logger = LoggerFactory.getLogger(DeviceTestRunner.class);
+public class AndroidDeviceTestRunner implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(AndroidDeviceTestRunner.class);
 
     private final Installer installer;
     private final Pool pool;
-    private final Device device;
+    private final AndroidDevice device;
     private final TestCaseEventQueue queueOfTestsInPool;
     private final CountDownLatch deviceCountDownLatch;
     private final ProgressReporter progressReporter;
-    private final TestRunFactory testRunFactory;
+    private final AndroidTestRunFactory androidTestRunFactory;
 
-    public DeviceTestRunner(Installer installer,
-                            Pool pool,
-                            Device device,
-                            TestCaseEventQueue queueOfTestsInPool,
-                            CountDownLatch deviceCountDownLatch,
-                            ProgressReporter progressReporter,
-                            TestRunFactory testRunFactory) {
+    public AndroidDeviceTestRunner(Installer installer,
+                                   Pool pool,
+                                   Device device,
+                                   TestCaseEventQueue queueOfTestsInPool,
+                                   CountDownLatch deviceCountDownLatch,
+                                   ProgressReporter progressReporter,
+                                   AndroidTestRunFactory androidTestRunFactory) {
         this.installer = installer;
         this.pool = pool;
-        this.device = device;
+        this.device = (AndroidDevice) device;
         this.queueOfTestsInPool = queueOfTestsInPool;
         this.deviceCountDownLatch = deviceCountDownLatch;
         this.progressReporter = progressReporter;
-        this.testRunFactory = testRunFactory;
+        this.androidTestRunFactory = androidTestRunFactory;
     }
 
     @Override
     public void run() {
         IDevice deviceInterface = device.getDeviceInterface();
         try {
-            // TODO: Move all set up work outside of this class
             DdmPreferences.setTimeOut(30000);
             installer.prepareInstallation(deviceInterface);
             // For when previous run crashed/disconnected and left files behind
@@ -74,7 +74,7 @@ public class DeviceTestRunner implements Runnable {
                 if (testCaseTask != null) {
                     testCaseTask.doWork(testCaseEvent -> {
                         try {
-                            AndroidInstrumentedTestRun testRun = testRunFactory.createTestRun(testCaseEvent,
+                            AndroidInstrumentedTestRun testRun = androidTestRunFactory.createTestRun(testCaseEvent,
                                     device,
                                     pool,
                                     progressReporter,

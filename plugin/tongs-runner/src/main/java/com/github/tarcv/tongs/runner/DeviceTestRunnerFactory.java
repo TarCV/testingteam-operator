@@ -14,17 +14,16 @@ package com.github.tarcv.tongs.runner;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.system.adb.Installer;
 
-import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 
 public class DeviceTestRunnerFactory {
 
     private final Installer installer;
-    private final TestRunFactory testRunFactory;
+    private final AndroidTestRunFactory androidTestRunFactory;
 
-    public DeviceTestRunnerFactory(Installer installer, TestRunFactory testRunFactory) {
+    public DeviceTestRunnerFactory(Installer installer, AndroidTestRunFactory androidTestRunFactory) {
         this.installer = installer;
-        this.testRunFactory = testRunFactory;
+        this.androidTestRunFactory = androidTestRunFactory;
     }
 
     public Runnable createDeviceTestRunner(Pool pool,
@@ -33,13 +32,13 @@ public class DeviceTestRunnerFactory {
                                            Device device,
                                            ProgressReporter progressReporter
                                            ) {
-        return new DeviceTestRunner(
+        return new AndroidDeviceTestRunner(
                 installer,
                 pool,
                 device,
                 testClassQueue,
                 deviceInPoolCountDownLatch,
                 progressReporter,
-                testRunFactory);
+                androidTestRunFactory);
     }
 }

@@ -12,6 +12,7 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
@@ -25,13 +26,13 @@ import static com.github.tarcv.tongs.system.io.FileType.SCREENRECORD;
 class ScreenRecorderTestRunListener extends BaseListener {
     private final FileManager fileManager;
     private final Pool pool;
-    private final Device device;
+    private final AndroidDevice device;
     private final IDevice deviceInterface;
 
     private boolean hasFailed;
     private ScreenRecorderStopper screenRecorderStopper;
 
-    public ScreenRecorderTestRunListener(FileManager fileManager, Pool pool, Device device, PreregisteringLatch latch) {
+    public ScreenRecorderTestRunListener(FileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
         super(latch);
         this.fileManager = fileManager;
         this.pool = pool;

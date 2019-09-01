@@ -5,18 +5,18 @@ import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEvent
 
-class TongsTestCaseContext(
+class TongsTestCaseContext<T: Device>(
         val configuration: TongsConfiguration,
         val pool: Pool,
-        val device: Device,
+        val device: T,
         val testCaseEvent: TestCaseEvent
 )
 
-interface TestRuleFactory<T : TestRule> {
-    fun create(context: TongsTestCaseContext): T
+interface TestRuleFactory<D: Device, T: TestRule<D>> {
+    fun create(context: TongsTestCaseContext<D>): T
 }
 
-interface TestRule {
+interface TestRule<D: Device> {
     fun before()
     fun after()
 }

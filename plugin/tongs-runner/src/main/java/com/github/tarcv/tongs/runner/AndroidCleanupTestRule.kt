@@ -1,13 +1,14 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.*
+import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.Device
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.String.format
 
-class AndroidCleanupTestRuleFactory : TestRuleFactory<AndroidCleanupTestRule> {
-    override fun create(context: TongsTestCaseContext): AndroidCleanupTestRule {
+class AndroidCleanupTestRuleFactory : TestRuleFactory<AndroidDevice, AndroidCleanupTestRule> {
+    override fun create(context: TongsTestCaseContext<AndroidDevice>): AndroidCleanupTestRule {
         return AndroidCleanupTestRule(
                 context.device,
                 context.configuration.applicationPackage,
@@ -17,10 +18,10 @@ class AndroidCleanupTestRuleFactory : TestRuleFactory<AndroidCleanupTestRule> {
 }
 
 class AndroidCleanupTestRule(
-        device: Device,
+        device: AndroidDevice,
         private val applicationPackage: String,
         private val testPackage: String
-) : TestRule {
+) : TestRule<AndroidDevice> {
     private val logger = LoggerFactory.getLogger(AndroidInstrumentedTestRun::class.java)
     private val device: IDevice = device.deviceInterface
 

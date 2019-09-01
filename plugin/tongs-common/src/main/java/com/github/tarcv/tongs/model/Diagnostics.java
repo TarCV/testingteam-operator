@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ public enum Diagnostics {
     SCREENSHOTS,
     NONE;
 
-    public static Diagnostics computeDiagnostics(IDevice deviceInterface, String apiLevel) {
-        if (deviceInterface == null || apiLevel == null) {
+    public static Diagnostics computeDiagnostics(IDevice deviceInterface, int apiLevel) {
+        if (deviceInterface == null) {
             return NONE;
         }
 
@@ -31,8 +31,7 @@ public enum Diagnostics {
             return VIDEO;
         }
 
-        int apiLevelInt = Integer.parseInt(apiLevel);
-        if (apiLevelInt >= 16) {
+        if (apiLevel >= 16) {
             return SCREENSHOTS;
         }
 

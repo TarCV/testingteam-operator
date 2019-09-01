@@ -11,15 +11,12 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.github.tarcv.tongs.model.TestCaseEventQueue;
+import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.google.gson.Gson;
 import com.github.tarcv.tongs.Configuration;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.device.DeviceTestFilesCleanerImpl;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 import com.github.tarcv.tongs.runner.TestRetryerImpl;
 import com.github.tarcv.tongs.system.io.FileManager;
@@ -48,7 +45,7 @@ public class TestRunListenersFactory {
     }
 
     public List<BaseListener> createTestListeners(TestCaseEvent testCase,
-                                                  Device device,
+                                                  AndroidDevice device,
                                                   Pool pool,
                                                   ProgressReporter progressReporter,
                                                   TestCaseEventQueue testCaseEventQueue,
@@ -97,7 +94,7 @@ public class TestRunListenersFactory {
     }
 
     private BaseListener getCoverageTestRunListener(Configuration configuration,
-                                                    Device device,
+                                                    AndroidDevice device,
                                                     FileManager fileManager,
                                                     Pool pool,
                                                     TestCaseEvent testCase,
@@ -108,12 +105,12 @@ public class TestRunListenersFactory {
         return new BaseListenerWrapper(null, new NoOpITestRunListener());
     }
 
-    private BaseListener getScreenTraceTestRunListener(FileManager fileManager, Pool pool, Device device, PreregisteringLatch latch) {
-        if (VIDEO.equals(device.getSupportedDiagnostics())) {
+    private BaseListener getScreenTraceTestRunListener(FileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
+        if (VIDEO.equals(device.getSupportedVisualDiagnostics())) {
             return new ScreenRecorderTestRunListener(fileManager, pool, device, latch);
         }
 
-        if (SCREENSHOTS.equals(device.getSupportedDiagnostics()) && configuration.canFallbackToScreenshots()) {
+        if (SCREENSHOTS.equals(device.getSupportedVisualDiagnostics()) && configuration.canFallbackToScreenshots()) {
             return new ScreenCaptureTestRunListener(fileManager, pool, device, latch);
         }
 

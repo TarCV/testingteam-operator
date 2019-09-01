@@ -14,6 +14,7 @@
 package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.model.AndroidDevice;
 import com.google.common.collect.Sets;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.Device;
@@ -24,7 +25,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
 import static com.github.tarcv.tongs.runner.PoolTestRunner.DROPPED_BY;
 import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
 import static com.github.tarcv.tongs.summary.ResultStatus.ERROR;
@@ -120,7 +120,7 @@ public class SummaryCompiler {
     }
 
     private static Device getPoolWatchdog(String poolName) {
-        return aDevice()
+        return AndroidDevice.Builder.aDevice()
                 .withSerial(DROPPED_BY + poolName)
                 .withManufacturer("Clumsy-" + poolName)
                 .withModel("Clumsy=" + poolName)

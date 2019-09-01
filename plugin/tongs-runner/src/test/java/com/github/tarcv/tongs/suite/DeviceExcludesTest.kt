@@ -1,8 +1,8 @@
 package com.github.tarcv.tongs.suite
 
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.model.Device.Builder.aDevice
+import com.github.tarcv.tongs.model.AndroidDevice
+import com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice
 import org.junit.Assert
 import org.junit.Test
 
@@ -26,7 +26,7 @@ class DeviceExcludesTest {
                 input
         )
         Assert.assertEquals(
-                emptyMap<TestIdentifier, Collection<Device>>(),
+                emptyMap<TestIdentifier, Collection<AndroidDevice>>(),
                 excludes
         )
     }

@@ -92,7 +92,7 @@ class HtmlConverters {
 				htmlTestResult.deviceSerial = device.getSerial();
 				htmlTestResult.deviceSafeSerial = device.getSafeSerial();
 				htmlTestResult.deviceModelDespaced = device.getModelName().replace(" ", "_");
-                Diagnostics supportedDiagnostics = device.getSupportedDiagnostics();
+                Diagnostics supportedDiagnostics = device.getSupportedVisualDiagnostics();
                 htmlTestResult.diagnosticVideo = VIDEO.equals(supportedDiagnostics);
                 htmlTestResult.diagnosticScreenshots = SCREENSHOTS.equals(supportedDiagnostics);
 				return htmlTestResult;

@@ -27,13 +27,13 @@ import static com.github.tarcv.tongs.system.io.FileType.COVERAGE;
 
 public class CoverageListener extends BaseListener {
 
-    private final Device device;
+    private final AndroidDevice device;
     private final FileManager fileManager;
     private final Pool pool;
     private final Logger logger = LoggerFactory.getLogger(CoverageListener.class);
     private final TestCaseEvent testCase;
 
-    public CoverageListener(Device device, FileManager fileManager, Pool pool, TestCaseEvent testCase, PreregisteringLatch latch) {
+    public CoverageListener(AndroidDevice device, FileManager fileManager, Pool pool, TestCaseEvent testCase, PreregisteringLatch latch) {
         super(latch);
         this.device = device;
         this.fileManager = fileManager;

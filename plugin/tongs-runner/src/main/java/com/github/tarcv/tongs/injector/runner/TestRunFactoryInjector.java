@@ -11,7 +11,7 @@
 
 package com.github.tarcv.tongs.injector.runner;
 
-import com.github.tarcv.tongs.runner.TestRunFactory;
+import com.github.tarcv.tongs.runner.AndroidTestRunFactory;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
 import static com.github.tarcv.tongs.injector.listeners.TestRunListenersFactoryInjector.testRunListenersFactory;
@@ -20,7 +20,7 @@ public class TestRunFactoryInjector {
 
     private TestRunFactoryInjector() {}
 
-    public static TestRunFactory testRunFactory() {
-        return new TestRunFactory(configuration(), testRunListenersFactory());
+    public static AndroidTestRunFactory testRunFactory() {
+        return new AndroidTestRunFactory(configuration(), testRunListenersFactory());
     }
 }

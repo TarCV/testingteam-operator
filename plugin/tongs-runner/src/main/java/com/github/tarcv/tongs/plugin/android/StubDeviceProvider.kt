@@ -10,6 +10,7 @@
 
 package com.github.tarcv.tongs.plugin.android
 
+import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.DisplayGeometry
 import com.github.tarcv.tongs.plugin.DeviceProvider
@@ -30,7 +31,7 @@ private fun createStubDevice(serial: String, api: Int): Device {
     val model = "Emu-$api"
     val stubDevice = StubDevice(serial, manufacturer, model, serial, api, "",
             functionalTestTestcaseDuration)
-    return Device.Builder()
+    return AndroidDevice.Builder()
             .withApiLevel(api.toString())
             .withDisplayGeometry(DisplayGeometry(640))
             .withManufacturer(manufacturer)

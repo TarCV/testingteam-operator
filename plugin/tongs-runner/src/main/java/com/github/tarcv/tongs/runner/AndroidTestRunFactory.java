@@ -13,10 +13,7 @@ package com.github.tarcv.tongs.runner;
 
 import com.github.tarcv.tongs.Configuration;
 import com.github.tarcv.tongs.TongsConfiguration;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.model.TestCaseEventQueue;
+import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.RecordingTestRunListener;
 import com.github.tarcv.tongs.runner.listeners.TestRunListenersFactory;
@@ -32,17 +29,17 @@ import static com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFact
 import static com.github.tarcv.tongs.runner.TestRunParameters.Builder.testRunParameters;
 import static com.github.tarcv.tongs.system.PermissionGrantingManager.permissionGrantingManager;
 
-public class TestRunFactory {
+public class AndroidTestRunFactory {
 
     private final Configuration configuration;
     private final TestRunListenersFactory testRunListenersFactory;
-    public TestRunFactory(Configuration configuration, TestRunListenersFactory testRunListenersFactory) {
+    public AndroidTestRunFactory(Configuration configuration, TestRunListenersFactory testRunListenersFactory) {
         this.configuration = configuration;
         this.testRunListenersFactory = testRunListenersFactory;
     }
 
     public AndroidInstrumentedTestRun createTestRun(TestCaseEvent testCase,
-                                                    Device device,
+                                                    AndroidDevice device,
                                                     Pool pool,
                                                     ProgressReporter progressReporter,
                                                     TestCaseEventQueue queueOfTestsInPool,
@@ -80,8 +77,7 @@ public class TestRunFactory {
         );
     }
 
-    public AndroidInstrumentedTestRun createCollectingRun(
-                                                          Device device,
+    public AndroidInstrumentedTestRun createCollectingRun(AndroidDevice device,
                                                           Pool pool,
                                                           TestCollectingListener testCollectingListener,
                                                           CountDownLatch latch) {
@@ -105,7 +101,7 @@ public class TestRunFactory {
         );
     }
 
-    private static TestRunParameters createTestParameters(TestCaseEvent testCase, Device device, Configuration configuration) {
+    private static TestRunParameters createTestParameters(TestCaseEvent testCase, AndroidDevice device, Configuration configuration) {
         return testRunParameters()
                 .withDeviceInterface(device.getDeviceInterface())
                 .withTest(testCase)

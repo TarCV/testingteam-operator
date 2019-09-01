@@ -40,7 +40,7 @@ public class ComputedPooling {
 
             @Override
             public int getParameter(Device device) {
-                return Integer.parseInt(device.getApiLevel());
+                return device.getOsApiLevel();
             }
 
             @Override
