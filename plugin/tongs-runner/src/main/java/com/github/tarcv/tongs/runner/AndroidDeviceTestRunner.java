@@ -15,11 +15,10 @@ package com.github.tarcv.tongs.runner;
 
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
-import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEventQueue;
+import com.github.tarcv.tongs.TongsConfiguration;
+import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.system.adb.Installer;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.tarcv.tongs.device.DeviceUtilsKt.clearLogcat;
+import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
+import static com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector.testRunFactory;
 import static com.github.tarcv.tongs.system.io.RemoteFileManager.*;
 
 public class AndroidDeviceTestRunner implements Runnable {
@@ -38,22 +39,19 @@ public class AndroidDeviceTestRunner implements Runnable {
     private final TestCaseEventQueue queueOfTestsInPool;
     private final CountDownLatch deviceCountDownLatch;
     private final ProgressReporter progressReporter;
-    private final AndroidTestRunFactory androidTestRunFactory;
 
     public AndroidDeviceTestRunner(Installer installer,
                                    Pool pool,
                                    Device device,
                                    TestCaseEventQueue queueOfTestsInPool,
                                    CountDownLatch deviceCountDownLatch,
-                                   ProgressReporter progressReporter,
-                                   AndroidTestRunFactory androidTestRunFactory) {
+                                   ProgressReporter progressReporter) {
         this.installer = installer;
         this.pool = pool;
         this.device = (AndroidDevice) device;
         this.queueOfTestsInPool = queueOfTestsInPool;
         this.deviceCountDownLatch = deviceCountDownLatch;
         this.progressReporter = progressReporter;
-        this.androidTestRunFactory = androidTestRunFactory;
     }
 
     @Override
@@ -70,21 +68,10 @@ public class AndroidDeviceTestRunner implements Runnable {
 
             while (true) {
                 TestCaseEventQueue.TestCaseTask testCaseTask = queueOfTestsInPool.pollForDevice(device, 10);
-                PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
                 if (testCaseTask != null) {
                     testCaseTask.doWork(testCaseEvent -> {
-                        try {
-                            AndroidInstrumentedTestRun testRun = androidTestRunFactory.createTestRun(testCaseEvent,
-                                    device,
-                                    pool,
-                                    progressReporter,
-                                    queueOfTestsInPool,
-                                    workCountdownLatch);
-                            workCountdownLatch.finalizeRegistering();
-                            testRun.execute();
-                        } finally {
-                            workCountdownLatch.await(15, TimeUnit.SECONDS);
-                        }
+                        TestCaseRunContext context = new TestCaseRunContext(configuration(), pool, device, testCaseEvent);
+                        executeTestCase(context);
                         return null;
                     });
                 } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
@@ -94,6 +81,39 @@ public class AndroidDeviceTestRunner implements Runnable {
         } finally {
             logger.info("Device {} from pool {} finished", device.getSerial(), pool.getName());
             deviceCountDownLatch.countDown();
+        }
+    }
+
+    static class TestCaseRunContext {
+        private final TongsConfiguration configuration;
+        private final Pool pool;
+        private final Device device;
+        private final TestCaseEvent testCaseEvent;
+
+        TestCaseRunContext(TongsConfiguration configuration, Pool pool, Device device, TestCaseEvent testCaseEvent) {
+            this.configuration = configuration;
+            this.pool = pool;
+            this.device = device;
+            this.testCaseEvent = testCaseEvent;
+        }
+    }
+
+    private static AndroidTestRunFactory androidTestRunFactory = testRunFactory();
+
+    @Nullable
+    private static void executeTestCase(TestCaseRunContext context) {
+        PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
+        try {
+            AndroidInstrumentedTestRun testRun = androidTestRunFactory.createTestRun(context.testCaseEvent,
+                    (AndroidDevice)context.device,
+                    context.pool,
+                    progressReporter,
+                    queueOfTestsInPool,
+                    workCountdownLatch);
+            workCountdownLatch.finalizeRegistering();
+            testRun.execute();
+        } finally {
+            workCountdownLatch.await(15, TimeUnit.SECONDS);
         }
     }
 

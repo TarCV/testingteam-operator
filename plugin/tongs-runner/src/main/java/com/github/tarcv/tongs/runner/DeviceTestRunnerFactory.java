@@ -19,11 +19,9 @@ import java.util.concurrent.CountDownLatch;
 public class DeviceTestRunnerFactory {
 
     private final Installer installer;
-    private final AndroidTestRunFactory androidTestRunFactory;
 
-    public DeviceTestRunnerFactory(Installer installer, AndroidTestRunFactory androidTestRunFactory) {
+    public DeviceTestRunnerFactory(Installer installer) {
         this.installer = installer;
-        this.androidTestRunFactory = androidTestRunFactory;
     }
 
     public Runnable createDeviceTestRunner(Pool pool,
@@ -38,7 +36,7 @@ public class DeviceTestRunnerFactory {
                 device,
                 testClassQueue,
                 deviceInPoolCountDownLatch,
-                progressReporter,
-                androidTestRunFactory);
+                progressReporter
+        );
     }
 }

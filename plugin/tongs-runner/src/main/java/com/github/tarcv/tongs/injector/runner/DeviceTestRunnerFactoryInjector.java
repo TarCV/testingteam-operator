@@ -14,12 +14,11 @@ package com.github.tarcv.tongs.injector.runner;
 import com.github.tarcv.tongs.runner.DeviceTestRunnerFactory;
 
 import static com.github.tarcv.tongs.injector.system.InstallerInjector.installer;
-import static com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector.testRunFactory;
 
 public class DeviceTestRunnerFactoryInjector {
     private DeviceTestRunnerFactoryInjector() {}
 
     public static DeviceTestRunnerFactory deviceTestRunnerFactory() {
-        return new DeviceTestRunnerFactory(installer(), testRunFactory());
+        return new DeviceTestRunnerFactory(installer());
     }
 }

@@ -44,8 +44,8 @@ public class TestRunListenersFactory {
         this.gson = gson;
     }
 
-    public List<BaseListener> createTestListeners(TestCaseEvent testCase,
-                                                  AndroidDevice device,
+    public List<BaseListener> createTongsListners(TestCaseEvent testCase,
+                                                  Device device,
                                                   Pool pool,
                                                   ProgressReporter progressReporter,
                                                   TestCaseEventQueue testCaseEventQueue,
@@ -56,11 +56,9 @@ public class TestRunListenersFactory {
                 getTongsXmlTestRunListener(fileManager, configuration.getOutput(), pool, device, testCase, progressReporter, latch),
                 new ConsoleLoggingTestRunListener(configuration.getTestPackage(), device.getSerial(),
                         device.getModelName(), progressReporter),
-                new LogCatTestRunListener(gson, fileManager, pool, device, latch),
                 new SlowWarningTestRunListener(),
-                getScreenTraceTestRunListener(fileManager, pool, device, latch),
-                buildRetryListener(testCase, device, pool, progressReporter, testCaseEventQueue, latch),
-                getCoverageTestRunListener(configuration, device, fileManager, pool, testCase, latch));
+                buildRetryListener(testCase, device, pool, progressReporter, testCaseEventQueue, latch)
+        );
         if (tongsIntegrationTestRunType == TongsConfiguration.TongsIntegrationTestRunType.RECORD_LISTENER_EVENTS) {
             ArrayList<BaseListener> testListeners = new ArrayList<>(normalListeners);
             testListeners.add(new RecordingTestRunListener(device, false, latch));
@@ -68,6 +66,16 @@ public class TestRunListenersFactory {
         } else {
             return normalListeners;
         }
+    }
+
+    public List<BaseListener> createAndroidListeners(TestCaseEvent testCase,
+                                                     AndroidDevice device,
+                                                     Pool pool,
+                                                     PreregisteringLatch latch) {
+        return asList(
+                new LogCatTestRunListener(gson, fileManager, pool, device, latch),
+                getScreenTraceTestRunListener(fileManager, pool, device, latch),
+                getCoverageTestRunListener(configuration, device, fileManager, pool, testCase, latch));
     }
 
     private RetryListener buildRetryListener(TestCaseEvent testCase,

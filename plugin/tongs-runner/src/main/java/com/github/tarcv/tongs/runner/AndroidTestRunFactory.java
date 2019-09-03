@@ -46,14 +46,21 @@ public class AndroidTestRunFactory {
                                                     PreregisteringLatch workCountdownLatch) {
         TestRunParameters testRunParameters = createTestParameters(testCase, device, configuration);
 
-        List<BaseListener> testRunListeners = testRunListenersFactory.createTestListeners(
+        List<BaseListener> testRunListeners = new ArrayList<>();
+        testRunListeners.addAll(testRunListenersFactory.createTongsListners(
                 testCase,
                 device,
                 pool,
                 progressReporter,
                 queueOfTestsInPool,
                 workCountdownLatch,
-                configuration.getTongsIntegrationTestRunType());
+                configuration.getTongsIntegrationTestRunType()));
+        testRunListeners.addAll(testRunListenersFactory.createAndroidListeners(
+                testCase,
+                device,
+                pool,
+                workCountdownLatch
+        ));
 
         TongsTestCaseContext testRunContext = new TongsTestCaseContext(
                 configuration,
