@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import static com.github.tarcv.tongs.injector.pooling.PoolLoaderInjector.poolLoader;
 import static com.github.tarcv.tongs.injector.runner.PoolTestRunnerFactoryInjector.poolTestRunnerFactory;
 import static com.github.tarcv.tongs.injector.runner.ProgressReporterInjector.progressReporter;
-import static com.github.tarcv.tongs.injector.suite.TestSuiteLoaderInjector.testSuiteLoader;
 import static com.github.tarcv.tongs.injector.summary.SummaryGeneratorHookInjector.summaryGeneratorHook;
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
@@ -37,7 +36,6 @@ public class TongsRunnerInjector {
 
         TongsRunner tongsRunner = new TongsRunner(
                 poolLoader(),
-                testSuiteLoader(),
                 poolTestRunnerFactory(),
                 progressReporter(),
                 summaryGeneratorHook());

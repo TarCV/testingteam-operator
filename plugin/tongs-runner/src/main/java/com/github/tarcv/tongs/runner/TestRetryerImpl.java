@@ -16,8 +16,6 @@ import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;
 
-import java.util.Queue;
-
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
 
 public class TestRetryerImpl implements TestRetryer {
@@ -32,9 +30,9 @@ public class TestRetryerImpl implements TestRetryer {
     }
 
     @Override
-    public boolean rescheduleTestExecution(TestIdentifier testIdentifier, TestCaseEvent testCaseEvent) {
-        progressReporter.recordFailedTestCase(pool, newTestCase(testIdentifier));
-        if (progressReporter.requestRetry(pool, newTestCase(testIdentifier))) {
+    public boolean rescheduleTestExecution(TestCaseEvent testCaseEvent) {
+        progressReporter.recordFailedTestCase(pool, testCaseEvent);
+        if (progressReporter.requestRetry(pool, testCaseEvent)) {
             queueOfTestsInPool.offer(testCaseEvent);
             return true;
         }

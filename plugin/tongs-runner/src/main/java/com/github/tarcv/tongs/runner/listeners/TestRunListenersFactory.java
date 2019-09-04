@@ -11,20 +11,22 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
+import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.*;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
+import com.github.tarcv.tongs.runner.*;
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import com.google.gson.Gson;
 import com.github.tarcv.tongs.Configuration;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.device.DeviceTestFilesCleanerImpl;
-import com.github.tarcv.tongs.runner.ProgressReporter;
-import com.github.tarcv.tongs.runner.TestRetryerImpl;
 import com.github.tarcv.tongs.system.io.FileManager;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.tarcv.tongs.model.Diagnostics.SCREENSHOTS;
 import static com.github.tarcv.tongs.model.Diagnostics.VIDEO;
@@ -44,66 +46,73 @@ public class TestRunListenersFactory {
         this.gson = gson;
     }
 
-    public List<BaseListener> createTongsListners(TestCaseEvent testCase,
-                                                  Device device,
-                                                  Pool pool,
-                                                  ProgressReporter progressReporter,
-                                                  TestCaseEventQueue testCaseEventQueue,
-                                                  PreregisteringLatch latch,
-                                                  TongsConfiguration.TongsIntegrationTestRunType tongsIntegrationTestRunType) {
-        final List<BaseListener> normalListeners = asList(
+    public List<TongsTestListener> createTongsListners(TestCaseEvent testCase,
+                                                       Device device,
+                                                       Pool pool,
+                                                       ProgressReporter progressReporter,
+                                                       TestCaseEventQueue testCaseEventQueue,
+                                                       TongsConfiguration.TongsIntegrationTestRunType tongsIntegrationTestRunType) {
+        TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
+        final List<TongsTestListener> normalListeners = asList(
                 new ProgressTestRunListener(pool, progressReporter),
-                getTongsXmlTestRunListener(fileManager, configuration.getOutput(), pool, device, testCase, progressReporter, latch),
-                new ConsoleLoggingTestRunListener(configuration.getTestPackage(), device.getSerial(),
+                new ConsoleLoggingTestRunListener(configuration.getTestPackage(), testIdentifier, device.getSerial(),
                         device.getModelName(), progressReporter),
-                new SlowWarningTestRunListener(),
-                buildRetryListener(testCase, device, pool, progressReporter, testCaseEventQueue, latch)
+                new SlowWarningTestRunListener(testIdentifier),
+                getTongsAdditionalXmlTestRunListener(fileManager, configuration.getOutput(), pool, device, testCase, progressReporter),
+                buildRetryListener(testCase, device, pool, progressReporter, testCaseEventQueue)
         );
         if (tongsIntegrationTestRunType == TongsConfiguration.TongsIntegrationTestRunType.RECORD_LISTENER_EVENTS) {
-            ArrayList<BaseListener> testListeners = new ArrayList<>(normalListeners);
-            testListeners.add(new RecordingTestRunListener(device, false, latch));
+            ArrayList<TongsTestListener> testListeners = new ArrayList<>(normalListeners);
+            testListeners.add(new RecordingTestRunListener(device, testIdentifier.toString(), false));
             return Collections.unmodifiableList(testListeners);
         } else {
             return normalListeners;
         }
     }
 
-    public List<BaseListener> createAndroidListeners(TestCaseEvent testCase,
-                                                     AndroidDevice device,
-                                                     Pool pool,
+    public List<BaseListener> createAndroidListeners(TongsTestCaseContext context,
+                                                     AtomicReference<ResultListener.Status> testStatus,
                                                      PreregisteringLatch latch) {
+        TestCaseEvent testCase = context.getTestCaseEvent();
+        AndroidDevice device = (AndroidDevice) context.getDevice();
+        Pool pool = context.getPool();
+        TestCaseFileManager fileManager = context.getFileManager();
         return asList(
+                new ResultListener(testCase, testStatus, latch),
+                getAndroidXmlTestRunListener(fileManager, latch),
                 new LogCatTestRunListener(gson, fileManager, pool, device, latch),
                 getScreenTraceTestRunListener(fileManager, pool, device, latch),
                 getCoverageTestRunListener(configuration, device, fileManager, pool, testCase, latch));
     }
 
-    private RetryListener buildRetryListener(TestCaseEvent testCase,
-                                             Device device,
-                                             Pool pool,
-                                             ProgressReporter progressReporter,
-                                             TestCaseEventQueue testCaseEventQueue,
-                                             PreregisteringLatch workCountdownLatch) {
+    private TongsTestListener buildRetryListener(TestCaseEvent testCase,
+                                                 Device device,
+                                                 Pool pool,
+                                                 ProgressReporter progressReporter,
+                                                 TestCaseEventQueue testCaseEventQueue) {
         TestRetryerImpl testRetryer = new TestRetryerImpl(progressReporter, pool, testCaseEventQueue);
         DeviceTestFilesCleanerImpl deviceTestFilesCleaner = new DeviceTestFilesCleanerImpl(fileManager, pool, device);
-        return new RetryListener(pool, device, testCase, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
+        return new RetryListener(pool, device, testCase, testRetryer, deviceTestFilesCleaner);
     }
 
-    private BaseListener getTongsXmlTestRunListener(FileManager fileManager,
-                                                    File output,
-                                                    Pool pool,
-                                                    Device device,
-                                                    TestCaseEvent testCase,
-                                                    ProgressReporter progressReporter,
-                                                    PreregisteringLatch latch) {
-        TongsXmlTestRunListener xmlTestRunListener = new TongsXmlTestRunListener(fileManager, pool, device, testCase, progressReporter);
-        xmlTestRunListener.setReportDir(output);
+    private BaseListener getAndroidXmlTestRunListener(TestCaseFileManager fileManager,
+                                                      PreregisteringLatch latch) {
+        AndroidXmlTestRunListener xmlTestRunListener = new AndroidXmlTestRunListener(fileManager);
         return new BaseListenerWrapper(latch, xmlTestRunListener);
+    }
+
+    private TongsTestListener getTongsAdditionalXmlTestRunListener(FileManager fileManager,
+                                                                   File output,
+                                                                   Pool pool,
+                                                                   Device device,
+                                                                   TestCaseEvent testCase,
+                                                                   ProgressReporter progressReporter) {
+        return new TongsXmlTestRunListener(); // TODO: move removed parts from TestCaseFileManager to this listener
     }
 
     private BaseListener getCoverageTestRunListener(Configuration configuration,
                                                     AndroidDevice device,
-                                                    FileManager fileManager,
+                                                    TestCaseFileManager fileManager,
                                                     Pool pool,
                                                     TestCaseEvent testCase,
                                                     PreregisteringLatch latch) {
@@ -113,7 +122,7 @@ public class TestRunListenersFactory {
         return new BaseListenerWrapper(null, new NoOpITestRunListener());
     }
 
-    private BaseListener getScreenTraceTestRunListener(FileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
+    private BaseListener getScreenTraceTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
         if (VIDEO.equals(device.getSupportedVisualDiagnostics())) {
             return new ScreenRecorderTestRunListener(fileManager, pool, device, latch);
         }
@@ -123,5 +132,4 @@ public class TestRunListenersFactory {
         }
 
         return new BaseListenerWrapper(null, new NoOpITestRunListener());
-    }
-}
+    }}

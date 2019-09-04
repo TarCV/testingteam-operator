@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -37,7 +37,7 @@ class LogCatSerializer {
 
 	public void serializeLogs(List<LogCatMessage> logCatMessages) {
 		List<LogCatMessage> filterLogCatMessages = filterLogCatMessages(logCatMessages);
-		logCatWriter.writeLogs(test, filterLogCatMessages);
+		logCatWriter.writeLogs(filterLogCatMessages);
 	}
 
     //TODO No need to start and stop writing, we could just get index for start & stop and get inline sublist (no new list)

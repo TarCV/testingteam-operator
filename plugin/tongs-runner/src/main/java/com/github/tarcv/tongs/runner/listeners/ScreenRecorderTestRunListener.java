@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.system.io.FileManager;
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 
 import java.io.File;
 import java.util.Map;
@@ -24,7 +25,7 @@ import java.util.Map;
 import static com.github.tarcv.tongs.system.io.FileType.SCREENRECORD;
 
 class ScreenRecorderTestRunListener extends BaseListener {
-    private final FileManager fileManager;
+    private final TestCaseFileManager fileManager;
     private final Pool pool;
     private final AndroidDevice device;
     private final IDevice deviceInterface;
@@ -32,7 +33,7 @@ class ScreenRecorderTestRunListener extends BaseListener {
     private boolean hasFailed;
     private ScreenRecorderStopper screenRecorderStopper;
 
-    public ScreenRecorderTestRunListener(FileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
+    public ScreenRecorderTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
         super(latch);
         this.fileManager = fileManager;
         this.pool = pool;
@@ -47,7 +48,7 @@ class ScreenRecorderTestRunListener extends BaseListener {
     @Override
     public void testStarted(TestIdentifier test) {
         hasFailed = false;
-        File localVideoFile = fileManager.createFile(SCREENRECORD, pool, device, test);
+        File localVideoFile = fileManager.createFile(SCREENRECORD);
         screenRecorderStopper = new ScreenRecorderStopper(deviceInterface);
         ScreenRecorder screenRecorder = new ScreenRecorder(test, screenRecorderStopper, localVideoFile, deviceInterface);
         new Thread(screenRecorder, "ScreenRecorder").start();

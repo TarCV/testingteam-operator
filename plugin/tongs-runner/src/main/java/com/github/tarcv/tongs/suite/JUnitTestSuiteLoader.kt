@@ -15,15 +15,16 @@ import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.testrunner.TestIdentifier
+import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.Utils.namedExecutor
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.Device
+import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.pooling.NoDevicesForPoolException
 import com.github.tarcv.tongs.pooling.NoPoolLoaderConfiguredException
-import com.github.tarcv.tongs.pooling.PoolLoader
 import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
 import com.github.tarcv.tongs.runner.AndroidTestRunFactory
 import com.google.gson.JsonArray
@@ -42,8 +43,8 @@ import java.util.function.Supplier
 import java.util.stream.Collector
 import java.util.stream.Collectors
 
-class JUnitTestSuiteLoader(
-        private val poolLoader: PoolLoader,
+public class JUnitTestSuiteLoader(
+        private val context: TestSuiteLoaderContext,
         private val testRunFactory: AndroidTestRunFactory,
         private val remoteAndroidTestRunnerFactory: IRemoteAndroidTestRunnerFactory) : TestSuiteLoader {
     private val logger = LoggerFactory.getLogger(JUnitTestSuiteLoader::class.java)
@@ -60,70 +61,59 @@ class JUnitTestSuiteLoader(
     }
 
     private fun askDevicesForTests(): Collection<TestCaseEvent> {
-        // Ask instrumentation runner to provide list of testcases for us
-        var poolExecutor: ExecutorService? = null
         try {
             val testInfoMessages = Collections.synchronizedList(ArrayList<Map.Entry<TestIdentifier, JsonObject>>())
-            val pools = poolLoader.loadPools()
-            val numberOfPools = pools.size
+            val numberOfPools = 1
             val poolCountDownLatch = CountDownLatch(numberOfPools)
-            poolExecutor = namedExecutor(numberOfPools, "PoolSuiteLoader-%d")
             val poolTests = Collections.synchronizedList(ArrayList<Pair<Device, Set<TestIdentifier>>>())
+            var concurrentDeviceExecutor: ExecutorService? = null
+            val poolName = context.pool.name
+            val deviceTestCollectors = Collections.synchronizedList(ArrayList<Pair<Device, TestCollectingListener>>())
+            try {
+                val devicesInPool = context.pool.size()
+                concurrentDeviceExecutor = namedExecutor(devicesInPool, "DeviceExecutor-%d")
+                val deviceCountDownLatch = CountDownLatch(devicesInPool)
+                logger.info("Pool {} started", poolName)
+                val installer = installer()
+                val configuration = configuration()
+                for (device in context.pool.devices) {
+                    val testCollector = TestCollectingListener()
+                    deviceTestCollectors.add(Pair(device, testCollector))
+                    val deviceTestRunner = Runnable {
+                        val deviceInterface = device.deviceInterface
+                        try {
+                            DdmPreferences.setTimeOut(30000)
+                            installer.prepareInstallation(deviceInterface as IDevice)
 
-            for (pool in pools) {
-                val poolTestRunner = Runnable {
-                    var concurrentDeviceExecutor: ExecutorService? = null
-                    val poolName = pool.name
-                    val deviceTestCollectors = Collections.synchronizedList(ArrayList<Pair<Device, TestCollectingListener>>())
-                    try {
-                        val devicesInPool = pool.size()
-                        concurrentDeviceExecutor = namedExecutor(devicesInPool, "DeviceExecutor-%d")
-                        val deviceCountDownLatch = CountDownLatch(devicesInPool)
-                        logger.info("Pool {} started", poolName)
-                        val installer = installer()
-                        val configuration = configuration()
-                        for (device in pool.devices) {
-                            val testCollector = TestCollectingListener()
-                            deviceTestCollectors.add(Pair(device, testCollector))
-                            val deviceTestRunner = Runnable {
-                                val deviceInterface = device.deviceInterface
-                                try {
-                                    DdmPreferences.setTimeOut(30000)
-                                    installer.prepareInstallation(deviceInterface as IDevice)
+                            val collectionLatch = CountDownLatch(1)
 
-                                    val collectionLatch = CountDownLatch(1)
+                            val collectingTestRun = testRunFactory.createCollectingRun(
+                                    device as AndroidDevice, context.pool, testCollector, collectionLatch)
+                            collectingTestRun.execute()
 
-                                    val collectingTestRun = testRunFactory.createCollectingRun(
-                                            device as AndroidDevice, pool, testCollector, collectionLatch)
-                                    collectingTestRun.execute()
-
-                                    collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)
-                                    testInfoMessages.addAll(testCollector.infos)
-                                } finally {
-                                    logger.info("Device {} from pool {} finished", device.serial, pool.name)
-                                    deviceCountDownLatch.countDown()
-                                }
-                            }
-                            concurrentDeviceExecutor!!.execute(deviceTestRunner)
+                            collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)
+                            testInfoMessages.addAll(testCollector.infos)
+                        } finally {
+                            logger.info("Device {} from pool {} finished", device.serial, context.pool.name)
+                            deviceCountDownLatch.countDown()
                         }
-                        deviceCountDownLatch.await()
-                    } catch (e: InterruptedException) {
-                        logger.warn("Pool {} was interrupted while running", poolName)
-                    } finally {
-                        concurrentDeviceExecutor?.shutdown()
-                        logger.info("Pool {} finished", poolName)
-                        synchronized(deviceTestCollectors) {
-                            synchronized(poolTests) {
-                                deviceTestCollectors.forEach { (first, second) -> poolTests.add(Pair(first, second.tests)) }
-                            }
-                        }
-                        poolCountDownLatch.countDown()
-                        logger.info("Pools remaining: {}", poolCountDownLatch.count)
+                    }
+                    concurrentDeviceExecutor!!.execute(deviceTestRunner)
+                }
+                deviceCountDownLatch.await()
+            } catch (e: InterruptedException) {
+                logger.warn("Pool {} was interrupted while running", poolName)
+            } finally {
+                concurrentDeviceExecutor?.shutdown()
+                logger.info("Pool {} finished", poolName)
+                synchronized(deviceTestCollectors) {
+                    synchronized(poolTests) {
+                        deviceTestCollectors.forEach { (first, second) -> poolTests.add(Pair(first, second.tests)) }
                     }
                 }
-                poolExecutor!!.execute(poolTestRunner)
+                poolCountDownLatch.countDown()
+                logger.info("Pools remaining: {}", poolCountDownLatch.count)
             }
-            poolCountDownLatch.await()
             logger.info("Successfully loaded test cases")
 
             val allTestsSet: HashSet<TestIdentifier>
@@ -142,8 +132,6 @@ class JUnitTestSuiteLoader(
         } catch (e: InterruptedException) {
             // TODO: replace with concrete exception
             throw RuntimeException("Reading suites were interrupted")
-        } finally {
-            poolExecutor?.shutdown()
         }
     }
 

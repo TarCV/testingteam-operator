@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,7 +14,6 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.testrunner.TestIdentifier;
 
 import java.util.List;
 
@@ -27,9 +26,9 @@ class CompositeLogCatWriter implements LogCatWriter {
 	}
 
 	@Override
-	public void writeLogs(TestIdentifier test, List<LogCatMessage> logCatMessages) {
+	public void writeLogs(List<LogCatMessage> logCatMessages) {
 		for (LogCatWriter logCatWriter : logCatWriters) {
-			logCatWriter.writeLogs(test, logCatMessages);
+			logCatWriter.writeLogs(logCatMessages);
 		}
 	}
 

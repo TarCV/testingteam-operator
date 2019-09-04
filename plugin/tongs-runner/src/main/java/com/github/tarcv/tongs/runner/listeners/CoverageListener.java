@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.system.io.FileManager;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,12 +29,12 @@ import static com.github.tarcv.tongs.system.io.FileType.COVERAGE;
 public class CoverageListener extends BaseListener {
 
     private final AndroidDevice device;
-    private final FileManager fileManager;
+    private final TestCaseFileManager fileManager;
     private final Pool pool;
     private final Logger logger = LoggerFactory.getLogger(CoverageListener.class);
     private final TestCaseEvent testCase;
 
-    public CoverageListener(AndroidDevice device, FileManager fileManager, Pool pool, TestCaseEvent testCase, PreregisteringLatch latch) {
+    public CoverageListener(AndroidDevice device, TestCaseFileManager fileManager, Pool pool, TestCaseEvent testCase, PreregisteringLatch latch) {
         super(latch);
         this.device = device;
         this.fileManager = fileManager;
@@ -78,7 +79,7 @@ public class CoverageListener extends BaseListener {
         try {
             TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
             final String remoteFile = RemoteFileManager.getCoverageFileName(testIdentifier);
-            final File file = fileManager.createFile(COVERAGE, pool, device, testIdentifier);
+            final File file = fileManager.createFile(COVERAGE);
             try {
                 device.getDeviceInterface().pullFile(remoteFile, file.getAbsolutePath());
             } catch (Exception e) {

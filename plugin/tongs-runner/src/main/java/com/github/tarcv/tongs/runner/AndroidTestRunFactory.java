@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.RecordingTestRunListener;
+import com.github.tarcv.tongs.runner.listeners.ResultListener;
 import com.github.tarcv.tongs.runner.listeners.TestRunListenersFactory;
 import com.github.tarcv.tongs.suite.TestCollectingListener;
 
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory;
@@ -38,36 +40,15 @@ public class AndroidTestRunFactory {
         this.testRunListenersFactory = testRunListenersFactory;
     }
 
-    public AndroidInstrumentedTestRun createTestRun(TestCaseEvent testCase,
+    public AndroidInstrumentedTestRun createTestRun(TongsTestCaseContext testRunContext, TestCaseEvent testCase,
                                                     AndroidDevice device,
                                                     Pool pool,
-                                                    ProgressReporter progressReporter,
-                                                    TestCaseEventQueue queueOfTestsInPool,
+                                                    AtomicReference<ResultListener.Status> testStatus,
                                                     PreregisteringLatch workCountdownLatch) {
         TestRunParameters testRunParameters = createTestParameters(testCase, device, configuration);
 
         List<BaseListener> testRunListeners = new ArrayList<>();
-        testRunListeners.addAll(testRunListenersFactory.createTongsListners(
-                testCase,
-                device,
-                pool,
-                progressReporter,
-                queueOfTestsInPool,
-                workCountdownLatch,
-                configuration.getTongsIntegrationTestRunType()));
-        testRunListeners.addAll(testRunListenersFactory.createAndroidListeners(
-                testCase,
-                device,
-                pool,
-                workCountdownLatch
-        ));
-
-        TongsTestCaseContext testRunContext = new TongsTestCaseContext(
-                configuration,
-                pool,
-                device,
-                testCase
-        );
+        testRunListeners.addAll(testRunListenersFactory.createAndroidListeners(testRunContext, testStatus, workCountdownLatch));
 
         List<TestRuleFactory> testRuleFactories = Collections.singletonList(new AndroidCleanupTestRuleFactory());
         List<TestRule> testRules = testRuleFactories.stream()
@@ -92,9 +73,6 @@ public class AndroidTestRunFactory {
 
         List<BaseListener> testRunListeners = new ArrayList<>();
         testRunListeners.add(testCollectingListener);
-        if (configuration.getTongsIntegrationTestRunType() == TongsConfiguration.TongsIntegrationTestRunType.RECORD_LISTENER_EVENTS) {
-            testRunListeners.add(new RecordingTestRunListener(device, true, null));
-        }
 
         TestRule collectingTestRule = new AndroidCollectingTestRule(device, testCollectingListener, latch);
 

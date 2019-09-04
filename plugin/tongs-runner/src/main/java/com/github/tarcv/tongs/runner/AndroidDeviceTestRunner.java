@@ -15,19 +15,33 @@ package com.github.tarcv.tongs.runner;
 
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.runner.listeners.ResultListener.Status;
+import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
 import com.github.tarcv.tongs.system.adb.Installer;
+import com.github.tarcv.tongs.system.io.FileManager;
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.tarcv.tongs.device.DeviceUtilsKt.clearLogcat;
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
+import static com.github.tarcv.tongs.injector.listeners.TestRunListenersFactoryInjector.testRunListenersFactory;
 import static com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector.testRunFactory;
+import static com.github.tarcv.tongs.injector.system.FileManagerInjector.fileManager;
+import static com.github.tarcv.tongs.runner.listeners.ResultListener.Status.*;
 import static com.github.tarcv.tongs.system.io.RemoteFileManager.*;
 
 public class AndroidDeviceTestRunner implements Runnable {
@@ -70,8 +84,43 @@ public class AndroidDeviceTestRunner implements Runnable {
                 TestCaseEventQueue.TestCaseTask testCaseTask = queueOfTestsInPool.pollForDevice(device, 10);
                 if (testCaseTask != null) {
                     testCaseTask.doWork(testCaseEvent -> {
-                        TestCaseRunContext context = new TestCaseRunContext(configuration(), pool, device, testCaseEvent);
-                        executeTestCase(context);
+                        TestCaseFileManager testCaseFileManager = new TestCaseFileManager(fileManager(), pool, device, testCaseEvent);
+                        TongsTestCaseContext context = new TongsTestCaseContext<AndroidDevice>(
+                                configuration(), testCaseFileManager,
+                                pool, device, testCaseEvent);
+
+                        List<TongsTestListener> testRunListeners = new ArrayList<>();
+                        testRunListeners.addAll(testRunListenersFactory().createTongsListners(
+                                testCaseEvent,
+                                device,
+                                pool,
+                                progressReporter,
+                                queueOfTestsInPool,
+                                configuration().getTongsIntegrationTestRunType()));
+
+                        TestIdentifier identifier = new TestIdentifier(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod());
+
+                        // TODO: Add some defensive code
+                        testRunListeners.forEach(baseListener -> {
+                            baseListener.onTestStarted();
+                        });
+                        TestCaseRunResult result = executeTestCase(context);
+                        testRunListeners.forEach(baseListener -> {
+                            if (result instanceof TestCaseSuccessful) {
+                                // no op
+                            } else if (result instanceof TestCaseSkipped) {
+                                // TODO: support assumption failed
+                                baseListener.onTestSkipped((TestCaseSkipped) result);
+                            } else {
+                                TestCaseFailed failureResult;
+                                if (result instanceof TestCaseFailed) {
+                                    failureResult = (TestCaseFailed) result;
+                                } else {
+                                    failureResult = new TestCaseFailed();
+                                }
+                                baseListener.onTestFailed(failureResult);
+                            }
+                        });
                         return null;
                     });
                 } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
@@ -84,36 +133,89 @@ public class AndroidDeviceTestRunner implements Runnable {
         }
     }
 
-    static class TestCaseRunContext {
-        private final TongsConfiguration configuration;
-        private final Pool pool;
-        private final Device device;
-        private final TestCaseEvent testCaseEvent;
+    interface TestCaseRunResult {}
+    public static class TestCaseSuccessful implements TestCaseRunResult {
 
-        TestCaseRunContext(TongsConfiguration configuration, Pool pool, Device device, TestCaseEvent testCaseEvent) {
-            this.configuration = configuration;
-            this.pool = pool;
-            this.device = device;
-            this.testCaseEvent = testCaseEvent;
+    }
+    public static class TestCaseSkipped implements TestCaseRunResult {
+        private final String stackTrace;
+
+        public TestCaseSkipped() {
+            this("");
+        }
+
+        public TestCaseSkipped(String stackTrace) {
+            this.stackTrace = stackTrace;
+        }
+
+        public String getStackTrace() {
+            return stackTrace;
+        }
+    }
+    public static class TestCaseFailed implements TestCaseRunResult {
+        private final String stackTrace;
+
+        public TestCaseFailed() {
+            this("");
+        }
+
+        public TestCaseFailed(String stackTrace) {
+            this.stackTrace = stackTrace;
+        }
+
+        public String getStackTrace() {
+            return stackTrace;
         }
     }
 
     private static AndroidTestRunFactory androidTestRunFactory = testRunFactory();
 
     @Nullable
-    private static void executeTestCase(TestCaseRunContext context) {
+    private static TestCaseRunResult executeTestCase(TongsTestCaseContext context) {
         PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         try {
-            AndroidInstrumentedTestRun testRun = androidTestRunFactory.createTestRun(context.testCaseEvent,
-                    (AndroidDevice)context.device,
-                    context.pool,
-                    progressReporter,
-                    queueOfTestsInPool,
-                    workCountdownLatch);
-            workCountdownLatch.finalizeRegistering();
-            testRun.execute();
-        } finally {
-            workCountdownLatch.await(15, TimeUnit.SECONDS);
+            AtomicReference<Status> testStatus = new AtomicReference<>(UNKNOWN);
+            try {
+                AndroidInstrumentedTestRun testRun = androidTestRunFactory.createTestRun(context, context.getTestCaseEvent(),
+                        (AndroidDevice) context.getDevice(),
+                        context.getPool(),
+                        testStatus,
+                        workCountdownLatch);
+                workCountdownLatch.finalizeRegistering();
+                testRun.execute();
+            } finally {
+                workCountdownLatch.await(15, TimeUnit.SECONDS);
+            }
+            return statusToResultObject(testStatus.get());
+        } catch (Throwable e) {
+            logger.error("Exception during test case execution", e);
+
+            String stackTrace = traceAsStream(e);
+            return new TestCaseFailed(stackTrace);
+        }
+    }
+
+    private static String traceAsStream(Throwable e) {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(new BufferedOutputStream(byteStream));
+        e.printStackTrace(printStream);
+
+        return byteStream.toString();
+    }
+
+    private static TestCaseRunResult statusToResultObject(Status status) {
+        // TODO: remove, TestCaseRunResult should be created by actual test runners
+        switch (status) {
+            case UNKNOWN:
+            case FAILED:
+                return new TestCaseFailed();
+            case SUCCESSFUL:
+                return new TestCaseSuccessful();
+            case SKIPPED:
+            case ASSUMPTION_FAILED:
+                return new TestCaseSkipped();
+            default:
+                throw new IllegalArgumentException("Unexpected test run state: " + status);
         }
     }
 

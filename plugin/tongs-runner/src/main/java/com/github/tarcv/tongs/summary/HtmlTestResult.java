@@ -14,6 +14,7 @@
 package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.model.TestCaseEvent;
 
 import java.util.Collection;
 
@@ -27,7 +28,7 @@ public class HtmlTestResult {
 	public String deviceSerial;
 	public String deviceSafeSerial;
 	public String deviceModelDespaced;
-	public TestIdentifier testIdentifier;
+	public TestCaseEvent testIdentifier;
 	public String fileNameForTest;
 	public String poolName;
 	public Collection<HtmlLogCatMessage> logcatMessages;

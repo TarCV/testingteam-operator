@@ -13,11 +13,24 @@
  */
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.ddmlib.testrunner.XmlTestRunListener;
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.github.tarcv.tongs.system.io.FileType;
 
-import java.util.List;
+import java.io.File;
 
-interface LogCatWriter {
+import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
 
-	void writeLogs(List<LogCatMessage> logCatMessages);
+public class AndroidXmlTestRunListener extends XmlTestRunListener {
+
+    private final TestCaseFileManager fileManager;
+
+    public AndroidXmlTestRunListener(TestCaseFileManager fileManager) {
+        this.fileManager = fileManager;
+    }
+
+    @Override
+    protected File getResultFile(File reportDir) {
+        return fileManager.createFile(FileType.TEST);
+    }
 }

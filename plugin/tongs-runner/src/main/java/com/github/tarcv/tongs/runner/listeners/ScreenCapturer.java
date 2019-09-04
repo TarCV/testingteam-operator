@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.*;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.system.io.FileManager;
@@ -24,6 +25,8 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -38,15 +41,17 @@ import static java.util.Arrays.asList;
 class ScreenCapturer implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ScreenCapturer.class);
     private final IDevice deviceInterface;
-    private final FileManager fileManager;
+    private final TestCaseFileManager fileManager;
     private final Pool pool;
     private final Device device;
     private final TestIdentifier test;
 
+    private final Object lock = new Object();
+    private final List<File> files = new ArrayList<>();
     private boolean capturing;
     private boolean hasFailed;
 
-    ScreenCapturer(IDevice deviceInterface, FileManager fileManager, Pool pool, Device device, TestIdentifier test) {
+    ScreenCapturer(IDevice deviceInterface, TestCaseFileManager fileManager, Pool pool, Device device, TestIdentifier test) {
         this.deviceInterface = deviceInterface;
         this.fileManager = fileManager;
         this.pool = pool;
@@ -56,20 +61,21 @@ class ScreenCapturer implements Runnable {
 
     @Override
     public void run() {
-        int count = 0;
-        capturing = true;
-        while (capturing) {
-            getScreenshot(test, count++);
-            pauseTillNextScreenCapture();
-        }
+        synchronized (lock) {
+            int count = 0;
+            capturing = true;
+            while (capturing) {
+                getScreenshot(test, count++);
+                pauseTillNextScreenCapture();
+            }
 
-        List<File> files = asList(fileManager.getFiles(SCREENSHOT, pool, device, test));
-        if (hasFailed) {
-            File file = fileManager.createFile(ANIMATION, pool, device, test);
-            createGif(files, file);
+            if (hasFailed) {
+                File file = fileManager.createFile(ANIMATION);
+                createGif(files, file);
+            }
+            deleteFiles(files);
+            files.clear();
         }
-        deleteFiles(files);
-
     }
 
     private void pauseTillNextScreenCapture() {
@@ -84,7 +90,8 @@ class ScreenCapturer implements Runnable {
             logger.trace("Started getting screenshot");
             long startNanos = nanoTime();
             RawImage screenshot = deviceInterface.getScreenshot();
-            File file = fileManager.createFile(SCREENSHOT, pool, device, test, sequenceNumber);
+            File file = fileManager.createFile(SCREENSHOT);
+            files.add(file);
             ImageIO.write(bufferedImageFrom(screenshot), SCREENSHOT.getSuffix(), file);
             logger.trace("Finished writing screenshot in {}ms to: {}", millisSinceNanoTime(startNanos), file);
         } catch (TimeoutException | AdbCommandRejectedException | IOException e) {
@@ -93,8 +100,10 @@ class ScreenCapturer implements Runnable {
     }
 
     public void stopCapturing(boolean hasFailed) {
-        this.hasFailed = hasFailed;
-        capturing = false;
+        synchronized (lock) {
+            this.hasFailed = hasFailed;
+            capturing = false;
+        }
     }
 
     private BufferedImage bufferedImageFrom(RawImage rawImage) {

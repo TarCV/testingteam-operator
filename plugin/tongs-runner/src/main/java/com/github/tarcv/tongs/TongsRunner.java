@@ -18,35 +18,42 @@ import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.pooling.*;
 import com.github.tarcv.tongs.runner.PoolTestRunnerFactory;
 import com.github.tarcv.tongs.runner.ProgressReporter;
+import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader;
 import com.github.tarcv.tongs.suite.NoTestCasesFoundException;
 import com.github.tarcv.tongs.suite.TestSuiteLoader;
+import com.github.tarcv.tongs.suite.TestSuiteLoaderContext;
 import com.github.tarcv.tongs.summary.SummaryGeneratorHook;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.Utils.namedExecutor;
+import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
+import static com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory;
+import static com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector.testRunFactory;
 
 public class TongsRunner {
     private static final Logger logger = LoggerFactory.getLogger(TongsRunner.class);
 
     private final PoolLoader poolLoader;
-    private final TestSuiteLoader testClassLoader;
     private final PoolTestRunnerFactory poolTestRunnerFactory;
     private final ProgressReporter progressReporter;
     private final SummaryGeneratorHook summaryGeneratorHook;
 
     public TongsRunner(PoolLoader poolLoader,
-                      TestSuiteLoader testClassLoader,
-                      PoolTestRunnerFactory poolTestRunnerFactory,
-                      ProgressReporter progressReporter,
-                      SummaryGeneratorHook summaryGeneratorHook) {
+                       PoolTestRunnerFactory poolTestRunnerFactory,
+                       ProgressReporter progressReporter,
+                       SummaryGeneratorHook summaryGeneratorHook) {
         this.poolLoader = poolLoader;
-        this.testClassLoader = testClassLoader;
         this.poolTestRunnerFactory = poolTestRunnerFactory;
         this.progressReporter = progressReporter;
         this.summaryGeneratorHook = summaryGeneratorHook;
@@ -60,12 +67,22 @@ public class TongsRunner {
             CountDownLatch poolCountDownLatch = new CountDownLatch(numberOfPools);
             poolExecutor = namedExecutor(numberOfPools, "PoolExecutor-%d");
 
-            Collection<TestCaseEvent> testCases = testClassLoader.loadTestSuite();
-            summaryGeneratorHook.registerHook(pools, testCases);
+            Map<Pool, Collection<TestCaseEvent>> poolTestCasesMap = new HashMap<>();
+            for (Pool pool : pools) {
+                Collection<TestCaseEvent> testCases = createTestSuiteLoaderForPool(pool);
+                poolTestCasesMap.put(pool, testCases);
+            }
+
+            // TODO: check that different sets of test cases in different pools doesn't fail run
+            Collection<TestCaseEvent> allTestCases = poolTestCasesMap.values().stream()
+                    .flatMap(poolEvents -> poolEvents.stream())
+                    .collect(Collectors.toSet());
+            summaryGeneratorHook.registerHook(pools, allTestCases);
 
             progressReporter.start();
             for (Pool pool : pools) {
-                Runnable poolTestRunner = poolTestRunnerFactory.createPoolTestRunner(pool, testCases,
+                Collection<TestCaseEvent> poolTestCases = poolTestCasesMap.get(pool);
+                Runnable poolTestRunner = poolTestRunnerFactory.createPoolTestRunner(pool, poolTestCases,
                         poolCountDownLatch, progressReporter);
                 poolExecutor.execute(poolTestRunner);
             }
@@ -90,5 +107,12 @@ public class TongsRunner {
                 poolExecutor.shutdown();
             }
         }
+    }
+
+    // TODO: move to a separate file
+    private static Collection<TestCaseEvent> createTestSuiteLoaderForPool(Pool pool) throws NoTestCasesFoundException {
+        TestSuiteLoaderContext testSuiteLoaderContext = new TestSuiteLoaderContext(configuration(), pool);
+        return new JUnitTestSuiteLoader(testSuiteLoaderContext, testRunFactory(), remoteAndroidTestRunnerFactory())
+                .loadTestSuite();
     }
 }

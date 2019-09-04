@@ -13,49 +13,30 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
 
+import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
 
-class SlowWarningTestRunListener extends BaseListener {
+class SlowWarningTestRunListener implements TongsTestListener {
     private static final Logger logger = LoggerFactory.getLogger(SlowWarningTestRunListener.class);
     private static final long TEST_LENGTH_THRESHOLD_MILLIS = 30 * 1000;
     private long startTime;
+    private final TestIdentifier test;
 
-    public SlowWarningTestRunListener() {
-        super(null);
+    public SlowWarningTestRunListener(TestIdentifier test) {
+        this.test = test;
     }
 
     @Override
-    public void testRunStarted(String runName, int testCount) {
-    }
-
-    @Override
-    public void testStarted(TestIdentifier test) {
+    public void onTestStarted() {
         startTime = nanoTime();
     }
 
-    @Override
-    public void testFailed(TestIdentifier test, String trace) {
-
-    }
-
-    @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
-
-    }
-
-    @Override
-    public void testIgnored(TestIdentifier test) {
-
-    }
-
-    @Override
-    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
+    public void onTestEnded() {
         long testDuration = millisSinceNanoTime(startTime);
         if (testDuration > TEST_LENGTH_THRESHOLD_MILLIS) {
             logger.warn("Slow test ({}ms): {} {}" , testDuration, test.getClassName(), test.getTestName());
@@ -64,12 +45,22 @@ class SlowWarningTestRunListener extends BaseListener {
     }
 
     @Override
-    public void testRunFailed(String errorMessage) {
-
+    public void onTestSuccessful() {
+        onTestEnded();
     }
 
     @Override
-    public void testRunStopped(long elapsedTime) {
+    public void onTestFailed(AndroidDeviceTestRunner.TestCaseFailed failureResult) {
+        onTestEnded();
+    }
 
+    @Override
+    public void onTestSkipped(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+        onTestEnded();
+    }
+
+    @Override
+    public void onTestAssumptionFailure(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+        onTestEnded();
     }
 }

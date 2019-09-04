@@ -25,15 +25,15 @@ public interface FileManager {
 
     File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent);
 
-    File createFile(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier, int sequenceNumber);
+    File createFile(FileType fileType, Pool pool, Device device,  TestCaseEvent testCaseEvent, int sequenceNumber);
 
-    File createFile(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier);
+    File createFile(FileType fileType, Pool pool, Device device,  TestCaseEvent testCaseEvent, String suffix);
 
     File createSummaryFile();
 
     File[] getFiles(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier);
 
-    File getFile(FileType fileType, String pool, String safeSerial, TestIdentifier testIdentifier);
+    File getFile(FileType fileType, String pool, String safeSerial, TestCaseEvent testIdentifier);
 
     String createFilenameForTest(TestIdentifier testIdentifier, FileType fileType);
 }

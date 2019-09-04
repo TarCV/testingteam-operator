@@ -50,14 +50,9 @@ public class TongsFileManager implements FileManager {
 
     @Override
     public File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent) {
-        return createFile(fileType, pool, device, new TestIdentifier(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()));
-    }
-
-    @Override
-    public File createFile(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier, int sequenceNumber) {
         try {
             Path directory = createDirectory(fileType, pool, device);
-            String filename = createFilenameForTest(testIdentifier, fileType, sequenceNumber);
+            String filename = createFilenameForTest(new TestIdentifier(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()), fileType);
             return createFile(directory, filename);
         } catch (IOException e) {
             throw new CouldNotCreateDirectoryException(e);
@@ -65,10 +60,17 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public File createFile(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier) {
+    public File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent, int sequenceNumber) {
+        String sequenceSuffix = String.format("%02d", sequenceNumber);
+        return createFile(fileType, pool, device, testCaseEvent, sequenceSuffix);
+    }
+
+    @Override
+    public File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent, String suffix) {
         try {
+            TestIdentifier testIdentifier = new TestIdentifier(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod());
             Path directory = createDirectory(fileType, pool, device);
-            String filename = createFilenameForTest(testIdentifier, fileType);
+            String filename = createFilenameForTest(testIdentifier, fileType, suffix);
             return createFile(directory, filename);
         } catch (IOException e) {
             throw new CouldNotCreateDirectoryException(e);
@@ -97,8 +99,8 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public File getFile(FileType fileType, String pool, String safeSerial, TestIdentifier testIdentifier) {
-        String filenameForTest = createFilenameForTest(testIdentifier, fileType);
+    public File getFile(FileType fileType, String pool, String safeSerial, TestCaseEvent testIdentifier) {
+        String filenameForTest = createFilenameForTest(testIdentifier.toString(), fileType);
         Path path = get(output.getAbsolutePath(), fileType.getDirectory(), pool, safeSerial, filenameForTest);
         return path.toFile();
     }
@@ -118,7 +120,10 @@ public class TongsFileManager implements FileManager {
     @Override
     public String createFilenameForTest(TestIdentifier testIdentifier, FileType fileType) {
         String testName = testIdentifier.toString();
+        return createFilenameForTest(testName, fileType);
+    }
 
+    private static String createFilenameForTest(String testName, FileType fileType) {
         // Test identifier can contain absolutely any characters, so generate safe name out of it
         // Dots are not safe because of '.', '..' and extensions
         String safeChars = testName.replaceAll("[^A-Za-z0-9_]", "_");
@@ -146,7 +151,7 @@ public class TongsFileManager implements FileManager {
         return String.format("%s-%s.%s", safeChars, hash, fileType.getSuffix());
     }
 
-    private String createFilenameForTest(TestIdentifier testIdentifier, FileType fileType, int sequenceNumber) {
-        return String.format("%s-%02d.%s", testIdentifier.toString(), sequenceNumber, fileType.getSuffix());
+    private static String createFilenameForTest(TestIdentifier testIdentifier, FileType fileType, String suffix) {
+        return String.format("%s-%s.%s", testIdentifier.toString(), suffix, fileType.getSuffix());
     }
 }

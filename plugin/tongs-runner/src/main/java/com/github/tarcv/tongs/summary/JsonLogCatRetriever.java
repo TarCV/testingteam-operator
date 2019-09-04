@@ -14,7 +14,7 @@
 package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.github.tarcv.tongs.system.io.FileManager;
@@ -33,7 +33,7 @@ public class JsonLogCatRetriever implements LogCatRetriever {
     }
 
     @Override
-    public List<LogCatMessage> retrieveLogCat(String poolName, String safeSerial, TestIdentifier testIdentifier) {
+    public List<LogCatMessage> retrieveLogCat(String poolName, String safeSerial, TestCaseEvent testIdentifier) {
         File logcatJsonFile = fileManager.getFile(FileType.JSON_LOG, poolName, safeSerial, testIdentifier);
         try {
             FileReader fileReader = new FileReader(logcatJsonFile);

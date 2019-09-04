@@ -14,11 +14,11 @@
 package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.model.TestCaseEvent;
 
 import java.util.List;
 
 public interface LogCatRetriever {
 
-    List<LogCatMessage> retrieveLogCat(String poolName, String serial, TestIdentifier testIdentifier);
+    List<LogCatMessage> retrieveLogCat(String poolName, String serial, TestCaseEvent testIdentifier);
 }

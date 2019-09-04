@@ -10,13 +10,12 @@
 
 package com.github.tarcv.tongs.runner.listeners
 
-import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.runner.PreregisteringLatch
+import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner
 import java.io.File
 import java.io.FileWriter
 
-class RecordingTestRunListener(device: Device, isLogOnly: Boolean, latch: PreregisteringLatch?) : BaseListener(latch) {
+class RecordingTestRunListener(device: Device, val runName: String, isLogOnly: Boolean) : TongsTestListener {
     private val deviceSerial = device.serial
     private val writer: FileWriter by lazy {
         val filename = if (isLogOnly) {
@@ -29,54 +28,23 @@ class RecordingTestRunListener(device: Device, isLogOnly: Boolean, latch: Prereg
     }
     private val separator = System.lineSeparator()
 
-    override fun testRunStarted(runName: String?, testCount: Int) {
-        writer.append("$deviceSerial testRunStarted $runName,$testCount$separator")
+    override fun onTestStarted() {
+        writer.append("$deviceSerial testRunStarted $runName$separator")
     }
 
-    override fun testStarted(test: TestIdentifier?) {
-        writer.append("$deviceSerial testStarted $test$separator")
+    override fun onTestSuccessful() {
+        writer.append("$deviceSerial onTestSuccessful $runName$separator")
     }
 
-    override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) {
-        writer.append("$deviceSerial testAssumptionFailure $test,$trace$separator")
+    override fun onTestSkipped(skipResult: AndroidDeviceTestRunner.TestCaseSkipped) {
+        writer.append("$deviceSerial onTestIgnored $runName {$skipResult}$separator")
     }
 
-    override fun testRunStopped(elapsedTime: Long) {
-        writer.append("$deviceSerial testRunStopped $elapsedTime$separator")
+    override fun onTestAssumptionFailure(skipResult: AndroidDeviceTestRunner.TestCaseSkipped) {
+        writer.append("$deviceSerial onTestAssumptionFailure $runName {$skipResult}$separator")
     }
 
-    override fun testFailed(test: TestIdentifier?, trace: String?) {
-        writer.append("$deviceSerial testFailed $test,$trace$separator")
-    }
-
-    override fun testEnded(test: TestIdentifier?, testMetrics: Map<String, String>?) {
-        val metricsString = testMetrics
-                ?.entries
-                ?.toList()
-                ?.sortedBy { it.key }
-                ?.joinToString(";") { "${it.key} -> ${it.value}" }
-        writer.append("$deviceSerial testEnded $test,{$metricsString}$separator")
-    }
-
-    override fun testIgnored(test: TestIdentifier?) {
-        writer.append("$deviceSerial testIgnored $test$separator")
-    }
-
-    override fun testRunFailed(errorMessage: String?) {
-        writer.append("$deviceSerial testRunFailed $errorMessage$separator")
-    }
-
-    override fun testRunEnded(elapsedTime: Long, runMetrics: Map<String, String>?) {
-        try {
-            val metricsString = runMetrics
-                    ?.entries
-                    ?.toList()
-                    ?.sortedBy { it.key }
-                    ?.joinToString(";") { "${it.key} -> ${it.value}" }
-            writer.append("$deviceSerial testRunEnded $elapsedTime,{$metricsString}$separator")
-            writer.close()
-        } finally {
-            onWorkFinished()
-        }
+    override fun onTestFailed(failureResult: AndroidDeviceTestRunner.TestCaseFailed) {
+        writer.append("$deviceSerial onTestFailed $runName {$failureResult}$separator")
     }
 }

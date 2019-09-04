@@ -51,10 +51,10 @@ public class RetryListenerTest {
     public void reschedulesTestIfTestRunFailedAndDeleteTraceFiles() {
         PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         RetryListener retryListener =
-                new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
+                new RetryListener(pool, device, startedTest, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
 
         mockery.checking(new Expectations() {{
-            oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTest, fatalCrashedTestCaseEvent);
+            oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTestCaseEvent);
             will(returnValue(true));
 
             oneOf(deviceTestFilesCleaner).deleteTraceFiles(fatalCrashedTest);
@@ -70,10 +70,10 @@ public class RetryListenerTest {
     public void doesNotDeleteTraceFilesIfCannotRescheduleTestAfterTestRunFailed() {
         PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         RetryListener retryListener =
-                new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
+                new RetryListener(pool, device, startedTest, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
 
         mockery.checking(new Expectations() {{
-            oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTest, fatalCrashedTestCaseEvent);
+            oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTestCaseEvent);
             will(returnValue(false));
 
             never(deviceTestFilesCleaner).deleteTraceFiles(fatalCrashedTest);

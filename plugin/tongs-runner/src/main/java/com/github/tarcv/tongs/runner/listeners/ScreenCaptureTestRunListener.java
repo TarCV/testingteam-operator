@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@ import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.system.io.FileManager;
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 
 import java.util.Map;
 
 class ScreenCaptureTestRunListener extends BaseListener {
-    private final FileManager fileManager;
+    private final TestCaseFileManager fileManager;
     private final IDevice deviceInterface;
     private final Pool pool;
     private final AndroidDevice device;
@@ -29,7 +30,7 @@ class ScreenCaptureTestRunListener extends BaseListener {
     private ScreenCapturer screenCapturer;
     private boolean hasFailed;
 
-    public ScreenCaptureTestRunListener(FileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
+    public ScreenCaptureTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
         super(latch);
         this.fileManager = fileManager;
         this.deviceInterface = device.getDeviceInterface();

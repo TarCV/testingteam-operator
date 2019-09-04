@@ -11,7 +11,6 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 
 public class FakeTestRetryer implements TestRetryer {
@@ -30,7 +29,7 @@ public class FakeTestRetryer implements TestRetryer {
     }
 
     @Override
-    public boolean rescheduleTestExecution(TestIdentifier testIdentifier, TestCaseEvent testCaseEvent) {
+    public boolean rescheduleTestExecution(TestCaseEvent testCaseEvent) {
         return result;
     }
 }

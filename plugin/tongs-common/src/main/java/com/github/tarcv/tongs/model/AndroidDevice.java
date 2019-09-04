@@ -159,7 +159,11 @@ public class AndroidDevice extends Device {
 		serial = builder.serial;
 		manufacturer = builder.manufacturer;
 		model = builder.model;
-		apiLevel = Integer.parseInt(builder.apiLevel, 10);
+		if (builder.apiLevel != null) {
+			apiLevel = Integer.parseInt(builder.apiLevel, 10);
+		} else {
+			apiLevel = -1;
+		}
 		deviceInterface = builder.deviceInterface;
 		isTablet = builder.isTablet;
 		geometry = builder.geometry;

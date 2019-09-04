@@ -102,6 +102,6 @@ public class TestCaseEvent {
 
     @Override
     public String toString() {
-        return reflectionToString(this, SIMPLE_STYLE);
+        return this.testClass + "#" + this.testMethod;
     }
 }

@@ -1,6 +1,5 @@
 /*
- * Copyright 2018 TarCV
- * Copyright 2014 Shazam Entertainment Limited
+ * Copyright 2019 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -15,69 +14,50 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.android.ddmlib.testrunner.XmlTestRunListener;
-import com.google.common.collect.ImmutableMap;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 import com.github.tarcv.tongs.system.io.FileManager;
 import com.github.tarcv.tongs.system.io.FileType;
-
-import java.io.File;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.io.File;
+import java.util.Map;
 
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
 import static com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT;
 
-public class TongsXmlTestRunListener extends XmlTestRunListener {
-
-    private final FileManager fileManager;
-    private final Pool pool;
-    private final Device device;
-    private final TestCaseEvent testCase;
-
-    @Nonnull
-    private final ProgressReporter progressReporter;
-    private TestIdentifier test;
-
-    public TongsXmlTestRunListener(FileManager fileManager,
-                                  Pool pool,
-                                  Device device,
-                                  TestCaseEvent testCase,
-                                  @Nonnull ProgressReporter progressReporter) {
-        this.fileManager = fileManager;
-        this.pool = pool;
-        this.device = device;
-        this.testCase = testCase;
-        this.progressReporter = progressReporter;
+public class TongsXmlTestRunListener implements TongsTestListener {
+    @Override
+    public void onTestStarted() {
+        // no op
     }
 
     @Override
-    protected File getResultFile(File reportDir) {
-        return fileManager.createFile(FileType.TEST, pool, device, testCase);
+    public void onTestSuccessful() {
+        // no op
     }
 
     @Override
-    public void testStarted(TestIdentifier test) {
-        this.test = test;
-        super.testStarted(test);
+    public void onTestSkipped(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+        onTestFinished();
     }
 
     @Override
-    protected Map<String, String> getPropertiesAttributes() {
-        ImmutableMap.Builder<String, String> mapBuilder = ImmutableMap.<String, String>builder()
-                .putAll(super.getPropertiesAttributes());
-        if (test != null) {
-            int testFailuresCount = progressReporter.getTestFailuresCount(pool, newTestCase(test));
-            if (testFailuresCount > 0) {
-                mapBuilder.put(SUMMARY_KEY_TOTAL_FAILURE_COUNT, Integer.toString(testFailuresCount));
-            }
-        }
-        if (testCase != null) {
-            mapBuilder.putAll(testCase.getProperties());
-        }
-        return mapBuilder.build();
+    public void onTestFailed(@NotNull AndroidDeviceTestRunner.TestCaseFailed failureResult) {
+        onTestFinished();
+    }
+
+    @Override
+    public void onTestAssumptionFailure(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+        onTestFinished();
+    }
+
+    public void onTestFinished() {
+        // TODO:
     }
 }

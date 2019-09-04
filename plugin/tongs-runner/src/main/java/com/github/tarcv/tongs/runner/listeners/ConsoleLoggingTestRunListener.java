@@ -14,6 +14,7 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ import java.util.Map;
 import static java.lang.String.format;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-class ConsoleLoggingTestRunListener extends BaseListener {
+class ConsoleLoggingTestRunListener implements TongsTestListener {
     private static final Logger logger = LoggerFactory.getLogger(ConsoleLoggingTestRunListener.class);
     private static final SimpleDateFormat TEST_TIME = new SimpleDateFormat("mm.ss");
     private static final String PERCENT = "%02d%%";
@@ -34,13 +35,13 @@ class ConsoleLoggingTestRunListener extends BaseListener {
     private final String modelName;
     private final ProgressReporter progressReporter;
     private final String testPackage;
-    private TestIdentifier startedTest;
+    private final TestIdentifier test;
 
     ConsoleLoggingTestRunListener(String testPackage,
-                                  String serial,
+                                  TestIdentifier startedTest, String serial,
                                   String modelName,
                                   ProgressReporter progressReporter) {
-        super(null);
+        this.test = startedTest;
         this.serial = serial;
         this.modelName = modelName;
         this.progressReporter = progressReporter;
@@ -48,49 +49,32 @@ class ConsoleLoggingTestRunListener extends BaseListener {
     }
 
     @Override
-    public void testRunStarted(String runName, int testCount) {
-
-    }
-
-    @Override
-    public void testStarted(TestIdentifier test) {
-        startedTest = test;
+    public void onTestStarted() {
         System.out.println(format("%s %s %s %s [%s] %s", runningTime(), progress(), failures(), modelName,
                 serial, testCase(test)));
     }
 
     @Override
-    public void testFailed(TestIdentifier test, String trace) {
+    public void onTestFailed(AndroidDeviceTestRunner.TestCaseFailed failureResult) {
         System.out.println(format("%s %s %s %s [%s] Failed %s\n %s", runningTime(), progress(), failures(), modelName,
-                serial, testCase(test), trace));
+                serial, testCase(test), failureResult.getStackTrace()));
     }
 
     @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
+    public void onTestAssumptionFailure(AndroidDeviceTestRunner.TestCaseSkipped skipped) {
         logger.debug("test={}", testCase(test));
-        logger.debug("assumption failure {}", trace);
+        logger.debug("assumption failure {}", skipped.getStackTrace());
     }
 
     @Override
-    public void testIgnored(TestIdentifier test) {
-        logger.debug("ignored test {}", testCase(test));
+    public void onTestSkipped(AndroidDeviceTestRunner.TestCaseSkipped skipped) {
+        logger.debug("ignored test {} {}", testCase(test), skipped.getStackTrace());
     }
 
-    @Override
-    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-
-    }
 
     @Override
-    public void testRunFailed(String errorMessage) {
-        System.out.println(format("%s %s %s %s [%s] Test run failed: %s %s", runningTime(), progress(), failures(),
-                modelName, serial, testCase(startedTest), errorMessage));
-    }
+    public void onTestSuccessful() {
 
-    @Override
-    public void testRunStopped(long elapsedTime) {
-        System.out.println(format("%s %s %s %s [%s] Test run stopped after %s ms", runningTime(), progress(),
-                failures(), modelName, serial, elapsedTime));
     }
 
     private String runningTime() {

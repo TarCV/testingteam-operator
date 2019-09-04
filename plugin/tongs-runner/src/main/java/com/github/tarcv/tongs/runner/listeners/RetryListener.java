@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,41 +11,37 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
+import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
 import com.github.tarcv.tongs.runner.TestRetryer;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class RetryListener extends BaseListener {
+public class RetryListener implements TongsTestListener {
     private static final Logger logger = LoggerFactory.getLogger(RetryListener.class);
     private final Device device;
     private final TestCaseEvent currentTestCaseEvent;
     private final TestRetryer testRetryer;
     private final Pool pool;
     private final DeviceTestFilesCleaner deviceTestFilesCleaner;
-    private TestIdentifier startedTest;
-    private TestIdentifier failedTest;
+    private final AtomicBoolean failedTest = new AtomicBoolean();
 
     public RetryListener(Pool pool,
                          Device device,
                          TestCaseEvent currentTestCaseEvent,
                          TestRetryer testRetryer,
-                         DeviceTestFilesCleaner deviceTestFilesCleaner,
-                         PreregisteringLatch latch) {
-        super(latch);
+                         DeviceTestFilesCleaner deviceTestFilesCleaner) {
         checkNotNull(device);
         checkNotNull(currentTestCaseEvent);
         checkNotNull(pool);
-        checkNotNull(latch);
         this.testRetryer = testRetryer;
         this.device = device;
         this.currentTestCaseEvent = currentTestCaseEvent;
@@ -54,76 +50,38 @@ public class RetryListener extends BaseListener {
     }
 
     @Override
-    public void testRunStarted(String runName, int testCount) {
+    public void onTestStarted() {
 
     }
 
     @Override
-    public void testStarted(TestIdentifier test) {
-        startedTest = test;
-    }
-
-    @Override
-    public void testFailed(TestIdentifier test, String trace) {
-        failedTest = test;
-    }
-
-    @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
+    public void onTestSuccessful() {
 
     }
 
     @Override
-    public void testIgnored(TestIdentifier test) {
+    public void onTestSkipped(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
 
     }
 
     @Override
-    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
+    public void onTestAssumptionFailure(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
 
     }
 
     @Override
-    public void testRunFailed(String errorMessage) {
-        try {
-            logger.info("Test run failed due to a fatal error: " + errorMessage);
-            if (failedTest == null) {
-                logger.info("Reschedule all started tests by this test run");
-                rescheduleTestExecution(startedTest);
-            }
-        } finally {
-            onWorkFinished();
-        }
-    }
-
-    @Override
-    public void testRunStopped(long elapsedTime) {
-
-    }
-
-    @Override
-    public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
-        try {
-            if (failedTest != null) {
-                rescheduleTestExecution(failedTest);
-            }
-        } finally {
-            onWorkFinished();
-        }
-    }
-
-    private void rescheduleTestExecution(TestIdentifier test) {
-        if (testRetryer.rescheduleTestExecution(test, currentTestCaseEvent)) {
-            logger.info("Test " + test.toString() + " enqueued again into pool:" + pool.getName());
-            removeFailureTraceFiles(test);
+    public void onTestFailed(@NotNull AndroidDeviceTestRunner.TestCaseFailed failureResult) {
+        if (testRetryer.rescheduleTestExecution(currentTestCaseEvent)) {
+            logger.info("Test " + currentTestCaseEvent.toString() + " enqueued again into pool:" + pool.getName());
+            removeFailureTraceFiles();
         } else {
-            logger.info("Test " + test.toString() + " failed on device " + device.getSafeSerial()
+            logger.info("Test " + currentTestCaseEvent.toString() + " failed on device " + device.getSafeSerial()
                     + " but retry is not allowed.");
         }
     }
 
-    private void removeFailureTraceFiles(TestIdentifier test) {
-        boolean isDeleted = deviceTestFilesCleaner.deleteTraceFiles(test);
+    private void removeFailureTraceFiles() {
+        boolean isDeleted = deviceTestFilesCleaner.deleteTraceFiles(currentTestCaseEvent);
         if (!isDeleted) {
             logger.warn("Failed to remove a trace filed for a failed but enqueued again test");
         }

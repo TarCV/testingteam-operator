@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,10 +14,9 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.system.io.FileManager;
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 
 import java.io.*;
 import java.util.List;
@@ -27,19 +26,19 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.write;
 
 class RawLogCatWriter implements LogCatWriter {
-    private final FileManager fileManager;
+    private final TestCaseFileManager fileManager;
 	private final Pool pool;
 	private final Device device;
 
-	RawLogCatWriter(FileManager fileManager, Pool pool, Device device) {
+	RawLogCatWriter(TestCaseFileManager fileManager, Pool pool, Device device) {
         this.fileManager = fileManager;
 		this.pool = pool;
 		this.device = device;
 	}
 
 	@Override
-	public void writeLogs(TestIdentifier test, List<LogCatMessage> logCatMessages) {
-        File file = fileManager.createFile(RAW_LOG, pool, device, test);
+	public void writeLogs(List<LogCatMessage> logCatMessages) {
+        File file = fileManager.createFile(RAW_LOG);
         FileWriter fileWriter = null;
 		try {
 			fileWriter = new FileWriter(file);
