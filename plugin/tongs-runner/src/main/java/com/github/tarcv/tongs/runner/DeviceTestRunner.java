@@ -13,17 +13,15 @@
  */
 package com.github.tarcv.tongs.runner;
 
-import com.android.ddmlib.DdmPreferences;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.injector.listeners.TestRunListenersFactoryInjector;
+import com.github.tarcv.tongs.Configuration;
+import com.github.tarcv.tongs.injector.ConfigurationInjector;
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector;
+import com.github.tarcv.tongs.injector.system.FileManagerInjector;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.listeners.ResultListener.Status;
 import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
-import com.github.tarcv.tongs.system.adb.Installer;
-import com.github.tarcv.tongs.system.io.RemoteFileManager;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,29 +35,25 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.tarcv.tongs.device.DeviceUtilsKt.clearLogcat;
-import static com.github.tarcv.tongs.injector.system.FileManagerInjector.fileManager;
+import static com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector.testRunListenersTongsFactory;
 import static com.github.tarcv.tongs.runner.listeners.ResultListener.Status.*;
 
-public class AndroidDeviceTestRunner implements Runnable {
-    private static final Logger logger = LoggerFactory.getLogger(AndroidDeviceTestRunner.class);
+public class DeviceTestRunner implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceTestRunner.class);
 
-    private final Installer installer;
     private final Pool pool;
-    private final AndroidDevice device;
+    private final Device device;
     private final TestCaseEventQueue queueOfTestsInPool;
     private final CountDownLatch deviceCountDownLatch;
     private final ProgressReporter progressReporter;
 
-    public AndroidDeviceTestRunner(Installer installer,
-                                   Pool pool,
-                                   Device device,
-                                   TestCaseEventQueue queueOfTestsInPool,
-                                   CountDownLatch deviceCountDownLatch,
-                                   ProgressReporter progressReporter) {
-        this.installer = installer;
+    public DeviceTestRunner(Pool pool,
+                            Device device,
+                            TestCaseEventQueue queueOfTestsInPool,
+                            CountDownLatch deviceCountDownLatch,
+                            ProgressReporter progressReporter) {
         this.pool = pool;
-        this.device = (AndroidDevice) device;
+        this.device = device;
         this.queueOfTestsInPool = queueOfTestsInPool;
         this.deviceCountDownLatch = deviceCountDownLatch;
         this.progressReporter = progressReporter;
@@ -67,35 +61,29 @@ public class AndroidDeviceTestRunner implements Runnable {
 
     @Override
     public void run() {
-        IDevice deviceInterface = device.getDeviceInterface();
         try {
-            DdmPreferences.setTimeOut(30000);
-            installer.prepareInstallation(deviceInterface);
-            // For when previous run crashed/disconnected and left files behind
-            RemoteFileManager.removeRemoteDirectory(deviceInterface);
-            RemoteFileManager.createRemoteDirectory(deviceInterface);
-            RemoteFileManager.createCoverageDirectory(deviceInterface);
-            clearLogcat(deviceInterface);
+            // TODO: call DeviceRule incl. AndroidSetupDeviceRule
 
             while (true) {
                 TestCaseEventQueue.TestCaseTask testCaseTask = queueOfTestsInPool.pollForDevice(device, 10);
                 if (testCaseTask != null) {
                     testCaseTask.doWork(testCaseEvent -> {
-                        TestCaseFileManager testCaseFileManager = new TestCaseFileManager(FileManagerInjector.fileManager(), pool, device, testCaseEvent);
-                        TongsTestCaseContext context = new TongsTestCaseContext<AndroidDevice>(
-                                ConfigurationInjector.configuration(), testCaseFileManager,
+                        TestCaseFileManager testCaseFileManager = new TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent);
+                        Configuration configuration = ConfigurationInjector.configuration();
+                        TongsTestCaseContext context = new TongsTestCaseContext(
+                                configuration, testCaseFileManager,
                                 pool, device, testCaseEvent);
 
                         List<TongsTestListener> testRunListeners = new ArrayList<>();
-                        testRunListeners.addAll(TestRunListenersFactoryInjector.testRunListenersFactory().createTongsListners(
+                        testRunListeners.addAll(testRunListenersTongsFactory(configuration).createTongsListners(
                                 testCaseEvent,
                                 device,
                                 pool,
                                 progressReporter,
                                 queueOfTestsInPool,
-                                ConfigurationInjector.configuration().getTongsIntegrationTestRunType()));
+                                configuration.getTongsIntegrationTestRunType()));
 
-                        TestIdentifier identifier = new TestIdentifier(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod());
+                        TestCase identifier = new TestCase(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod());
 
                         // TODO: Add some defensive code
                         testRunListeners.forEach(baseListener -> {

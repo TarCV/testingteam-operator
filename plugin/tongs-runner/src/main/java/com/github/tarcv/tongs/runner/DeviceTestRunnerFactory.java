@@ -30,8 +30,7 @@ public class DeviceTestRunnerFactory {
                                            Device device,
                                            ProgressReporter progressReporter
                                            ) {
-        return new AndroidDeviceTestRunner(
-                installer,
+        return new DeviceTestRunner(
                 pool,
                 device,
                 testClassQueue,

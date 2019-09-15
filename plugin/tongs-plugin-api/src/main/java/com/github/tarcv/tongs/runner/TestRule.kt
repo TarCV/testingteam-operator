@@ -16,6 +16,13 @@ import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
+class TongsDeviceContext<T: Device>(
+        val configuration: TongsConfiguration,
+        val fileManager: TestCaseFileManager,
+        val pool: Pool,
+        val device: T
+)
+
 class TongsTestCaseContext<T: Device>(
         val configuration: TongsConfiguration,
         val fileManager: TestCaseFileManager,
@@ -23,6 +30,15 @@ class TongsTestCaseContext<T: Device>(
         val device: T,
         val testCaseEvent: TestCaseEvent
 )
+
+interface DeviceRuleFactory<D: Device, T: DeviceRule<D>> {
+    fun create(context: TongsDeviceContext<D>): T
+}
+
+interface DeviceRule<D: Device> {
+    fun before()
+    fun after()
+}
 
 interface TestRuleFactory<D: Device, T: TestRule<D>> {
     fun create(context: TongsTestCaseContext<D>): T

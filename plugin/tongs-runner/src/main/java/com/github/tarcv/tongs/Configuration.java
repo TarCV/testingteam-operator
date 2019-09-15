@@ -13,7 +13,6 @@
  */
 package com.github.tarcv.tongs;
 
-import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
 
 import org.slf4j.Logger;
@@ -49,7 +48,6 @@ public class Configuration implements TongsConfiguration {
     private final String subtitle;
     private final String testPackage;
     private final long testOutputTimeout;
-    private final IRemoteAndroidTestRunner.TestSize testSize;
     private final Collection<String> excludedSerials;
     private final boolean fallbackToScreenshots;
     private final int totalAllowedRetryQuota;
@@ -74,7 +72,6 @@ public class Configuration implements TongsConfiguration {
         subtitle = builder.subtitle;
         testPackage = builder.testPackage;
         testOutputTimeout = builder.testOutputTimeout;
-        testSize = builder.testSize;
         excludedSerials = builder.excludedSerials;
         fallbackToScreenshots = builder.fallbackToScreenshots;
         totalAllowedRetryQuota = builder.totalAllowedRetryQuota;
@@ -158,12 +155,6 @@ public class Configuration implements TongsConfiguration {
     }
 
     @Override
-    @Nullable
-    public IRemoteAndroidTestRunner.TestSize getTestSize() {
-        return testSize;
-    }
-
-    @Override
     @Nonnull
     public Collection<String> getExcludedSerials() {
         return excludedSerials;
@@ -228,7 +219,6 @@ public class Configuration implements TongsConfiguration {
         private String subtitle;
         private String testPackage;
         private long testOutputTimeout;
-        private IRemoteAndroidTestRunner.TestSize testSize;
         private Collection<String> excludedSerials;
         private boolean fallbackToScreenshots;
         private int totalAllowedRetryQuota;
@@ -305,11 +295,6 @@ public class Configuration implements TongsConfiguration {
 
         public Builder withTestOutputTimeout(int testOutputTimeout) {
             this.testOutputTimeout = testOutputTimeout;
-            return this;
-        }
-
-        public Builder withTestSize(String testSize) {
-            this.testSize = (testSize == null ? null : IRemoteAndroidTestRunner.TestSize.getTestSize(testSize));
             return this;
         }
 
