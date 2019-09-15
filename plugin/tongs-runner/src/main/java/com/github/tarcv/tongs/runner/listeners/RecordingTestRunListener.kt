@@ -11,7 +11,8 @@
 package com.github.tarcv.tongs.runner.listeners
 
 import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner
+import com.github.tarcv.tongs.runner.TestCaseFailed
+import com.github.tarcv.tongs.runner.TestCaseSkipped
 import java.io.File
 import java.io.FileWriter
 
@@ -36,15 +37,15 @@ class RecordingTestRunListener(device: Device, val runName: String, isLogOnly: B
         writer.append("$deviceSerial onTestSuccessful $runName$separator")
     }
 
-    override fun onTestSkipped(skipResult: AndroidDeviceTestRunner.TestCaseSkipped) {
+    override fun onTestSkipped(skipResult: TestCaseSkipped) {
         writer.append("$deviceSerial onTestIgnored $runName {$skipResult}$separator")
     }
 
-    override fun onTestAssumptionFailure(skipResult: AndroidDeviceTestRunner.TestCaseSkipped) {
+    override fun onTestAssumptionFailure(skipResult: TestCaseSkipped) {
         writer.append("$deviceSerial onTestAssumptionFailure $runName {$skipResult}$separator")
     }
 
-    override fun onTestFailed(failureResult: AndroidDeviceTestRunner.TestCaseFailed) {
+    override fun onTestFailed(failureResult: TestCaseFailed) {
         writer.append("$deviceSerial onTestFailed $runName {$failureResult}$separator")
     }
 }

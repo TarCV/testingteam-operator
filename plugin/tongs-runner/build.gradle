@@ -32,8 +32,9 @@ apply from: '../dependencies.gradle'
 
 dependencies {
     compile project(':tongs-common')
-    implementation deps.androidToolsCommon
-    implementation deps.ddmlib
+    compile project(':tongs-plugin-api')
+    implementation project(':tongs-plugin-android')
+
     implementation deps.guava
     implementation deps.commonsIo
     implementation deps.commonsLang
@@ -43,7 +44,6 @@ dependencies {
     implementation deps.slf4j
     implementation deps.gson
     implementation 'org.simpleframework:simple-xml:2.7.1'
-    implementation 'com.madgag:animated-gif-lib:1.2'
 
     implementation('org.lesscss:lesscss:1.7.0.1.1') {
         exclude module: 'slf4j-simple'

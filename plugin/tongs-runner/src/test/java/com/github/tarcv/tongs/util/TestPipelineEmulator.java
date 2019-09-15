@@ -12,7 +12,7 @@
 package com.github.tarcv.tongs.util;
 
 import com.android.ddmlib.testrunner.ITestRunListener;
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.testrunner.TestCase;
 
 import static java.util.Collections.emptyMap;
 
@@ -25,7 +25,7 @@ public class TestPipelineEmulator {
         this.fatalErrorMessage = builder.fatalErrorMessage;
     }
 
-    public void emulateFor(ITestRunListener testRunListener, TestIdentifier test) {
+    public void emulateFor(ITestRunListener testRunListener, TestCase test) {
         testRunListener.testRunStarted("emulated", 1);
         testRunListener.testStarted(test);
         if (trace != null) {

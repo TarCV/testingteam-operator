@@ -13,16 +13,16 @@
  */
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
+import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 
+import com.github.tarcv.tongs.runner.TestCaseFailed;
+import com.github.tarcv.tongs.runner.TestCaseSkipped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -35,10 +35,10 @@ class ConsoleLoggingTestRunListener implements TongsTestListener {
     private final String modelName;
     private final ProgressReporter progressReporter;
     private final String testPackage;
-    private final TestIdentifier test;
+    private final TestCase test;
 
     ConsoleLoggingTestRunListener(String testPackage,
-                                  TestIdentifier startedTest, String serial,
+                                  TestCase startedTest, String serial,
                                   String modelName,
                                   ProgressReporter progressReporter) {
         this.test = startedTest;
@@ -55,19 +55,19 @@ class ConsoleLoggingTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestFailed(AndroidDeviceTestRunner.TestCaseFailed failureResult) {
+    public void onTestFailed(TestCaseFailed failureResult) {
         System.out.println(format("%s %s %s %s [%s] Failed %s\n %s", runningTime(), progress(), failures(), modelName,
                 serial, testCase(test), failureResult.getStackTrace()));
     }
 
     @Override
-    public void onTestAssumptionFailure(AndroidDeviceTestRunner.TestCaseSkipped skipped) {
+    public void onTestAssumptionFailure(TestCaseSkipped skipped) {
         logger.debug("test={}", testCase(test));
         logger.debug("assumption failure {}", skipped.getStackTrace());
     }
 
     @Override
-    public void onTestSkipped(AndroidDeviceTestRunner.TestCaseSkipped skipped) {
+    public void onTestSkipped(TestCaseSkipped skipped) {
         logger.debug("ignored test {} {}", testCase(test), skipped.getStackTrace());
     }
 
@@ -81,7 +81,7 @@ class ConsoleLoggingTestRunListener implements TongsTestListener {
         return TEST_TIME.format(new Date(progressReporter.millisSinceTestsStarted()));
     }
 
-    private String testCase(TestIdentifier test) {
+    private String testCase(TestCase test) {
         return String.valueOf(test).replaceAll(testPackage, "");
     }
 

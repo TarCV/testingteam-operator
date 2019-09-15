@@ -15,7 +15,7 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.*;
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.testrunner.TestCase;
 
 import org.hamcrest.*;
 import org.hamcrest.collection.IsIterableContainingInOrder;
@@ -35,7 +35,7 @@ public class LogCatSerializerTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testOnlySerialisesTestSpecificLogs() {
-        TestIdentifier test = new TestIdentifier(CLASS1_NAME, TEST1_NAME);
+        TestCase test = new TestCase(CLASS1_NAME, TEST1_NAME);
         SpyLogCatWriter logCatWriter = new SpyLogCatWriter();
         LogCatSerializer serializer = new LogCatSerializer(test, logCatWriter);
 
@@ -56,7 +56,7 @@ public class LogCatSerializerTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testIsNotFooledByUnlikelyPackageNameClashes() {
-        TestIdentifier test = new TestIdentifier(CLASS1_NAME, TEST1_NAME);
+        TestCase test = new TestCase(CLASS1_NAME, TEST1_NAME);
         SpyLogCatWriter logCatWriter = new SpyLogCatWriter();
         LogCatSerializer serializer = new LogCatSerializer(test, logCatWriter);
 

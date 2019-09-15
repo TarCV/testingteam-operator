@@ -20,15 +20,12 @@ import com.github.tarcv.tongs.runner.PoolTestRunnerFactory;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader;
 import com.github.tarcv.tongs.suite.NoTestCasesFoundException;
-import com.github.tarcv.tongs.suite.TestSuiteLoader;
 import com.github.tarcv.tongs.suite.TestSuiteLoaderContext;
 import com.github.tarcv.tongs.summary.SummaryGeneratorHook;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -111,8 +108,9 @@ public class TongsRunner {
 
     // TODO: move to a separate file
     private static Collection<TestCaseEvent> createTestSuiteLoaderForPool(Pool pool) throws NoTestCasesFoundException {
-        TestSuiteLoaderContext testSuiteLoaderContext = new TestSuiteLoaderContext(configuration(), pool);
-        return new JUnitTestSuiteLoader(testSuiteLoaderContext, testRunFactory(), remoteAndroidTestRunnerFactory())
+        Configuration configuration = configuration();
+        TestSuiteLoaderContext testSuiteLoaderContext = new TestSuiteLoaderContext(configuration, pool);
+        return new JUnitTestSuiteLoader(testSuiteLoaderContext, testRunFactory(configuration), remoteAndroidTestRunnerFactory(configuration))
                 .loadTestSuite();
     }
 }

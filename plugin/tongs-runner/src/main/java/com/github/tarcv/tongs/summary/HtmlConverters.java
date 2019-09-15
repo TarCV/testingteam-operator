@@ -14,7 +14,7 @@
 package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.testrunner.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.google.common.base.Function;
 import com.github.tarcv.tongs.model.Device;
@@ -83,7 +83,7 @@ class HtmlConverters {
 				htmlTestResult.prettyClassName = readableClassName(input.getTestClass());
 				htmlTestResult.prettyMethodName = readableTestMethodName(input.getTestMethod());
 				htmlTestResult.timeTaken = String.format("%.2f", input.getTimeTaken());
-				TestIdentifier testIdentifier = new TestIdentifier(input.getTestClass(), input.getTestMethod());
+				TestCase testIdentifier = new TestCase(input.getTestClass(), input.getTestMethod());
 				htmlTestResult.testIdentifier = TestCaseEvent.newTestCase(testIdentifier);
 				htmlTestResult.fileNameForTest = fileManager.createFilenameForTest(testIdentifier , DOT_WITHOUT_EXTENSION);
 				htmlTestResult.poolName = poolName;

@@ -11,9 +11,9 @@
 
 package com.github.tarcv.tongs.system.io;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 
 import org.apache.commons.io.filefilter.AndFileFilter;
@@ -52,7 +52,7 @@ public class TongsFileManager implements FileManager {
     public File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent) {
         try {
             Path directory = createDirectory(fileType, pool, device);
-            String filename = createFilenameForTest(new TestIdentifier(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()), fileType);
+            String filename = createFilenameForTest(new TestCase(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()), fileType);
             return createFile(directory, filename);
         } catch (IOException e) {
             throw new CouldNotCreateDirectoryException(e);
@@ -68,7 +68,7 @@ public class TongsFileManager implements FileManager {
     @Override
     public File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent, String suffix) {
         try {
-            TestIdentifier testIdentifier = new TestIdentifier(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod());
+            TestCase testIdentifier = new TestCase(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod());
             Path directory = createDirectory(fileType, pool, device);
             String filename = createFilenameForTest(testIdentifier, fileType, suffix);
             return createFile(directory, filename);
@@ -89,7 +89,7 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public File[] getFiles(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier) {
+    public File[] getFiles(FileType fileType, Pool pool, Device device, TestCase testIdentifier) {
         FileFilter fileFilter = new AndFileFilter(
                 new PrefixFileFilter(testIdentifier.toString()),
                 new SuffixFileFilter(fileType.getSuffix()));
@@ -118,7 +118,7 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public String createFilenameForTest(TestIdentifier testIdentifier, FileType fileType) {
+    public String createFilenameForTest(TestCase testIdentifier, FileType fileType) {
         String testName = testIdentifier.toString();
         return createFilenameForTest(testName, fileType);
     }
@@ -151,7 +151,7 @@ public class TongsFileManager implements FileManager {
         return String.format("%s-%s.%s", safeChars, hash, fileType.getSuffix());
     }
 
-    private static String createFilenameForTest(TestIdentifier testIdentifier, FileType fileType, String suffix) {
+    private static String createFilenameForTest(TestCase testIdentifier, FileType fileType, String suffix) {
         return String.format("%s-%s.%s", testIdentifier.toString(), suffix, fileType.getSuffix());
     }
 }

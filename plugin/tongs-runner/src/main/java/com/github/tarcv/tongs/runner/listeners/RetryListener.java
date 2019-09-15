@@ -15,7 +15,8 @@ import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
+import com.github.tarcv.tongs.runner.TestCaseFailed;
+import com.github.tarcv.tongs.runner.TestCaseSkipped;
 import com.github.tarcv.tongs.runner.TestRetryer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -60,17 +61,17 @@ public class RetryListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestSkipped(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+    public void onTestSkipped(@NotNull TestCaseSkipped skipResult) {
 
     }
 
     @Override
-    public void onTestAssumptionFailure(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+    public void onTestAssumptionFailure(@NotNull TestCaseSkipped skipResult) {
 
     }
 
     @Override
-    public void onTestFailed(@NotNull AndroidDeviceTestRunner.TestCaseFailed failureResult) {
+    public void onTestFailed(@NotNull TestCaseFailed failureResult) {
         if (testRetryer.rescheduleTestExecution(currentTestCaseEvent)) {
             logger.info("Test " + currentTestCaseEvent.toString() + " enqueued again into pool:" + pool.getName());
             removeFailureTraceFiles();

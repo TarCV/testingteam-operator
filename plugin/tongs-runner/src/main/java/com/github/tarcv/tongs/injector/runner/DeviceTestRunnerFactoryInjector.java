@@ -19,6 +19,6 @@ public class DeviceTestRunnerFactoryInjector {
     private DeviceTestRunnerFactoryInjector() {}
 
     public static DeviceTestRunnerFactory deviceTestRunnerFactory() {
-        return new DeviceTestRunnerFactory(installer());
+        return new DeviceTestRunnerFactory(installer(configuration));
     }
 }

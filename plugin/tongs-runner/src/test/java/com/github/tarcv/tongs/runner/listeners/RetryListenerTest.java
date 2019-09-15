@@ -11,7 +11,7 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.testrunner.TestCase;
 import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
@@ -44,7 +44,7 @@ public class RetryListenerTest {
             .addDevice(device)
             .build();
 
-    private final TestIdentifier fatalCrashedTest = new TestIdentifier("com.example.FatalCrashedTest", "testMethod");
+    private final TestCase fatalCrashedTest = new TestCase("com.example.FatalCrashedTest", "testMethod");
     private final TestCaseEvent fatalCrashedTestCaseEvent = newTestCase(fatalCrashedTest);
 
     @Test

@@ -13,7 +13,7 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.testrunner.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 
 import java.util.Collection;

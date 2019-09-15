@@ -1,6 +1,6 @@
 package com.github.tarcv.tongs.suite
 
-import com.android.ddmlib.testrunner.TestIdentifier
+import com.android.ddmlib.testrunner.TestCase
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice
 import org.junit.Assert
@@ -11,8 +11,8 @@ class DeviceExcludesTest {
     private val device2 = aDevice().build()
     private val device3 = aDevice().build()
     private val device4 = aDevice().build()
-    private val test1 = TestIdentifier("class", "test1")
-    private val test2 = TestIdentifier("class", "test2")
+    private val test1 = TestCase("class", "test1")
+    private val test2 = TestCase("class", "test2")
 
     @Test
     fun testNoExcludes() {
@@ -26,7 +26,7 @@ class DeviceExcludesTest {
                 input
         )
         Assert.assertEquals(
-                emptyMap<TestIdentifier, Collection<AndroidDevice>>(),
+                emptyMap<TestCase, Collection<AndroidDevice>>(),
                 excludes
         )
     }
@@ -34,7 +34,7 @@ class DeviceExcludesTest {
     @Test
     fun testEverythingExcluded() {
         val input = listOf(
-                device1 to emptySet<TestIdentifier>(),
+                device1 to emptySet<TestCase>(),
                 device2 to emptySet()
         )
         val allTests = setOf(test1, test2)

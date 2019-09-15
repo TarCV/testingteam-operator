@@ -12,24 +12,13 @@
  */
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.testrunner.TestCase;
 import com.android.ddmlib.testrunner.XmlTestRunListener;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
-import com.github.tarcv.tongs.runner.ProgressReporter;
-import com.github.tarcv.tongs.system.io.FileManager;
-import com.github.tarcv.tongs.system.io.FileType;
-import com.google.common.collect.ImmutableMap;
+import com.github.tarcv.tongs.runner.TestCaseFailed;
+import com.github.tarcv.tongs.runner.TestCaseSkipped;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.util.Map;
-
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
-import static com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT;
 
 public class TongsXmlTestRunListener implements TongsTestListener {
     @Override
@@ -43,17 +32,17 @@ public class TongsXmlTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestSkipped(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+    public void onTestSkipped(@NotNull TestCaseSkipped skipResult) {
         onTestFinished();
     }
 
     @Override
-    public void onTestFailed(@NotNull AndroidDeviceTestRunner.TestCaseFailed failureResult) {
+    public void onTestFailed(@NotNull TestCaseFailed failureResult) {
         onTestFinished();
     }
 
     @Override
-    public void onTestAssumptionFailure(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+    public void onTestAssumptionFailure(@NotNull TestCaseSkipped skipResult) {
         onTestFinished();
     }
 

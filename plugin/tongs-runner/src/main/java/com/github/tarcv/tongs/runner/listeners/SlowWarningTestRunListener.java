@@ -11,9 +11,9 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
-
-import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
+import com.github.tarcv.tongs.model.TestCase;
+import com.github.tarcv.tongs.runner.TestCaseFailed;
+import com.github.tarcv.tongs.runner.TestCaseSkipped;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +25,9 @@ class SlowWarningTestRunListener implements TongsTestListener {
     private static final Logger logger = LoggerFactory.getLogger(SlowWarningTestRunListener.class);
     private static final long TEST_LENGTH_THRESHOLD_MILLIS = 30 * 1000;
     private long startTime;
-    private final TestIdentifier test;
+    private final TestCase test;
 
-    public SlowWarningTestRunListener(TestIdentifier test) {
+    public SlowWarningTestRunListener(TestCase test) {
         this.test = test;
     }
 
@@ -39,7 +39,7 @@ class SlowWarningTestRunListener implements TongsTestListener {
     public void onTestEnded() {
         long testDuration = millisSinceNanoTime(startTime);
         if (testDuration > TEST_LENGTH_THRESHOLD_MILLIS) {
-            logger.warn("Slow test ({}ms): {} {}" , testDuration, test.getClassName(), test.getTestName());
+            logger.warn("Slow test ({}ms): {} {}" , testDuration, test.getTestClass(), test.getTestMethod());
 
         }
     }
@@ -50,17 +50,17 @@ class SlowWarningTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestFailed(AndroidDeviceTestRunner.TestCaseFailed failureResult) {
+    public void onTestFailed(TestCaseFailed failureResult) {
         onTestEnded();
     }
 
     @Override
-    public void onTestSkipped(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+    public void onTestSkipped(@NotNull TestCaseSkipped skipResult) {
         onTestEnded();
     }
 
     @Override
-    public void onTestAssumptionFailure(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+    public void onTestAssumptionFailure(@NotNull TestCaseSkipped skipResult) {
         onTestEnded();
     }
 }

@@ -13,7 +13,7 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.testrunner.TestCase;
 import com.github.tarcv.tongs.model.AndroidDevice;
 import com.google.common.collect.Sets;
 import com.github.tarcv.tongs.TongsConfiguration;
@@ -46,8 +46,8 @@ public class SummaryCompiler {
     Summary compileSummary(Collection<Pool> pools, Collection<TestCaseEvent> testCases) {
         Summary.Builder summaryBuilder = aSummary();
 
-        Map<TestIdentifier, TestCaseEvent> eventMap = testCases.stream()
-                .collect(Collectors.toMap(o -> new TestIdentifier(o.getTestClass(), o.getTestMethod()),
+        Map<TestCase, TestCaseEvent> eventMap = testCases.stream()
+                .collect(Collectors.toMap(o -> new TestCase(o.getTestClass(), o.getTestMethod()),
                         Function.identity(), (o1, o2) -> o1));
 
         Set<TestResult> testResults = Sets.newHashSet();
@@ -77,7 +77,7 @@ public class SummaryCompiler {
         return summaryBuilder.build();
     }
 
-    private Collection<TestResult> getTestResultsForPool(Pool pool, Map<TestIdentifier, TestCaseEvent> eventMap) {
+    private Collection<TestResult> getTestResultsForPool(Pool pool, Map<TestCase, TestCaseEvent> eventMap) {
         Set<TestResult> testResults = Sets.newHashSet();
 
         Collection<TestResult> testResultsForPoolDevices = pool.getDevices()
@@ -87,7 +87,7 @@ public class SummaryCompiler {
                             .getTestResultsForDevice(pool, device).stream()
                             .map(testResult -> {
                                 // TODO: In current Tongs implementation testMetrics and properties is the same, probably split them later
-                                TestCaseEvent testCaseEvent = eventMap.get(new TestIdentifier(testResult.getTestClass(), testResult.getTestMethod()));
+                                TestCaseEvent testCaseEvent = eventMap.get(new TestCase(testResult.getTestClass(), testResult.getTestMethod()));
                                 if (testCaseEvent != null) {
                                     Map<String, String> xmlMetrics = testResult.getMetrics();
                                     Map<String, String> outMetrics = new HashMap<>();

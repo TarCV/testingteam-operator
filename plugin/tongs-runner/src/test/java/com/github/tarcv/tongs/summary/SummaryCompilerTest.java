@@ -12,7 +12,7 @@
 package com.github.tarcv.tongs.summary;
 
 import com.google.gson.JsonObject;
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.testrunner.TestCase;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
@@ -91,12 +91,12 @@ public class SummaryCompilerTest {
     );
 
     private final Collection<TestCaseEvent> testCaseEvents = newArrayList(
-            newTestCase(new TestIdentifier("com.example.CompletedClassTest", "doesJobProperly")),
-            newTestCase(new TestIdentifier("com.example.CompletedClassTest2", "doesJobProperly")),
+            newTestCase(new TestCase("com.example.CompletedClassTest", "doesJobProperly")),
+            newTestCase(new TestCase("com.example.CompletedClassTest2", "doesJobProperly")),
             newTestCase("doesJobProperly", "com.example.FailedClassTest", false,
                     emptyList(), testMetricsForFailedTest, new JsonObject(), emptyList()),
-            newTestCase(new TestIdentifier("com.example.IgnoredClassTest", "doesJobProperly"), true),
-            newTestCase(new TestIdentifier("com.example.SkippedClassTest", "doesJobProperly"))
+            newTestCase(new TestCase("com.example.IgnoredClassTest", "doesJobProperly"), true),
+            newTestCase(new TestCase("com.example.SkippedClassTest", "doesJobProperly"))
     );
 
     @Before

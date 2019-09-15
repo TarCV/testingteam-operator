@@ -12,9 +12,7 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.runner.AndroidDeviceTestRunner;
-import com.github.tarcv.tongs.runner.PoolProgressTracker;
-import com.github.tarcv.tongs.runner.ProgressReporter;
+import com.github.tarcv.tongs.runner.*;
 import org.jetbrains.annotations.NotNull;
 
 class ProgressTestRunListener implements TongsTestListener {
@@ -26,7 +24,7 @@ class ProgressTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestFailed(AndroidDeviceTestRunner.TestCaseFailed failureResult) {
+    public void onTestFailed(TestCaseFailed failureResult) {
         poolProgressTracker.failedTest();
         poolProgressTracker.completedTest();
     }
@@ -42,12 +40,12 @@ class ProgressTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestSkipped(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+    public void onTestSkipped(@NotNull TestCaseSkipped skipResult) {
         poolProgressTracker.completedTest();
     }
 
     @Override
-    public void onTestAssumptionFailure(@NotNull AndroidDeviceTestRunner.TestCaseSkipped skipResult) {
+    public void onTestAssumptionFailure(@NotNull TestCaseSkipped skipResult) {
         poolProgressTracker.completedTest();
     }
 }
