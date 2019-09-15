@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
+import com.github.tarcv.tongs.summary.ResultStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,26 +24,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.tarcv.tongs.runner.listeners.ResultListener.Status.*;
+import static com.github.tarcv.tongs.summary.ResultStatus.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+// TODO: Return ResultStatus.ERROR when necessary
 public class ResultListener extends BaseListener {
     private static final Logger logger = LoggerFactory.getLogger(ResultListener.class);
     private final TestCaseEvent currentTestCaseEvent;
     private TestIdentifier startedTest;
     private TestIdentifier failedTest;
 
-    public enum Status {
-        UNKNOWN,
-        FAILED,
-        SKIPPED,
-        ASSUMPTION_FAILED,
-        SUCCESSFUL
-    }
-    private final AtomicReference<Status> testStatus;
+    private final AtomicReference<ResultStatus> testStatus;
 
     public ResultListener(TestCaseEvent currentTestCaseEvent,
-                          AtomicReference<Status> testStatus,
+                          AtomicReference<ResultStatus> testStatus,
                           PreregisteringLatch latch) {
         super(latch);
         checkNotNull(currentTestCaseEvent);
@@ -52,11 +47,11 @@ public class ResultListener extends BaseListener {
         this.currentTestCaseEvent = currentTestCaseEvent;
     }
 
-    private void setStatus(Status newStatus) {
+    private void setStatus(ResultStatus newStatus) {
         if (!testStatus.compareAndSet(UNKNOWN, newStatus)) {
             logger.warn("Tried to set run status for {}#{} twice. Falling back to FAILED",
                     currentTestCaseEvent.getTestClass(), currentTestCaseEvent.getTestMethod());
-            testStatus.set(FAILED);
+            testStatus.set(FAIL);
         }
     }
 
@@ -72,7 +67,7 @@ public class ResultListener extends BaseListener {
 
     @Override
     public void testFailed(TestIdentifier test, String trace) {
-        setStatus(FAILED);
+        setStatus(FAIL);
     }
 
     @Override
@@ -82,18 +77,18 @@ public class ResultListener extends BaseListener {
 
     @Override
     public void testIgnored(TestIdentifier test) {
-        setStatus(SKIPPED);
+        setStatus(IGNORED);
     }
 
     @Override
     public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-        testStatus.compareAndSet(UNKNOWN, SUCCESSFUL);
+        testStatus.compareAndSet(UNKNOWN, PASS);
     }
 
     @Override
     public void testRunFailed(String errorMessage) {
         try {
-            setStatus(FAILED);
+            setStatus(IGNORED);
         } finally {
             onWorkFinished();
         }

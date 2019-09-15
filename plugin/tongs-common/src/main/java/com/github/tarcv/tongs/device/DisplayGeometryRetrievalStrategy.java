@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -10,7 +10,7 @@
  */
 package com.github.tarcv.tongs.device;
 
-import com.android.ddmlib.IDevice;
+import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.DisplayGeometry;
 
 /**
@@ -23,5 +23,5 @@ public interface DisplayGeometryRetrievalStrategy {
      * @param device the connected device
      * @return the resolved geometry
      */
-	DisplayGeometry retrieveGeometry(IDevice device);
+	DisplayGeometry retrieveGeometry(Device device);
 }

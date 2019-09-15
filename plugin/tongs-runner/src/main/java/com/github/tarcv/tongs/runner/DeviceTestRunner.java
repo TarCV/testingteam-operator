@@ -18,8 +18,8 @@ import com.github.tarcv.tongs.injector.ConfigurationInjector;
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector;
 import com.github.tarcv.tongs.injector.system.FileManagerInjector;
 import com.github.tarcv.tongs.model.*;
-import com.github.tarcv.tongs.runner.listeners.ResultListener.Status;
 import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
+import com.github.tarcv.tongs.summary.ResultStatus;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector.testRunListenersTongsFactory;
-import static com.github.tarcv.tongs.runner.listeners.ResultListener.Status.*;
+import static com.github.tarcv.tongs.summary.ResultStatus.UNKNOWN;
 
 public class DeviceTestRunner implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(DeviceTestRunner.class);
@@ -123,7 +123,7 @@ public class DeviceTestRunner implements Runnable {
         AndroidTestRunFactory androidTestRunFactory = TestRunFactoryInjector.testRunFactory(context.getConfiguration());
         PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         try {
-            AtomicReference<Status> testStatus = new AtomicReference<>(UNKNOWN);
+            AtomicReference<ResultStatus> testStatus = new AtomicReference<>(UNKNOWN);
             try {
                 AndroidInstrumentedTestRun testRun = androidTestRunFactory.createTestRun(context, context.getTestCaseEvent(),
                         (AndroidDevice) context.getDevice(),
@@ -152,15 +152,16 @@ public class DeviceTestRunner implements Runnable {
         return byteStream.toString();
     }
 
-    private static TestCaseRunResult statusToResultObject(Status status) {
+    private static TestCaseRunResult statusToResultObject(ResultStatus status) {
         // TODO: remove, TestCaseRunResult should be created by actual test runners
         switch (status) {
             case UNKNOWN:
-            case FAILED:
+            case ERROR: // TODO
+            case FAIL:
                 return new TestCaseFailed();
-            case SUCCESSFUL:
+            case PASS:
                 return new TestCaseSuccessful();
-            case SKIPPED:
+            case IGNORED:
             case ASSUMPTION_FAILED:
                 return new TestCaseSkipped();
             default:

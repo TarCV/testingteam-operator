@@ -11,7 +11,6 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.android.ddmlib.testrunner.TestCase;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;

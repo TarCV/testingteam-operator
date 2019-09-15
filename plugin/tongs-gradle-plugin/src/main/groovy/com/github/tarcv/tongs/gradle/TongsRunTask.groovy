@@ -65,8 +65,6 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
 
     int testOutputTimeout
 
-    String testSize
-
     Collection<String> excludedSerials
 
     boolean fallbackToScreenshots
@@ -100,7 +98,6 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
                 .withTestRunnerArguments(testRunnerArguments)
                 .withPlugins(plugins)
                 .withTestOutputTimeout(testOutputTimeout)
-                .withTestSize(testSize)
                 .withExcludedSerials(excludedSerials)
                 .withFallbackToScreenshots(fallbackToScreenshots)
                 .withTotalAllowedRetryQuota(totalAllowedRetryQuota)

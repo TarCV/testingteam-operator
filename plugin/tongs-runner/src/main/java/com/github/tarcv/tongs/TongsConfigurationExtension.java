@@ -55,11 +55,6 @@ public abstract class TongsConfigurationExtension {
     public int testOutputTimeout;
 
     /**
-     * The size of the tests that will be executed with this run.
-     */
-    public String testSize;
-
-    /**
      * The collection of serials that should be excluded from this test run
      */
     public Collection<String> excludedSerials;

@@ -99,7 +99,6 @@ public class TongsCli {
                     .withPlugins(tongsConfiguration.plugins)
                     .withTestOutputTimeout(tongsConfiguration.testOutputTimeout)
                     .withTestRunnerArguments(tongsConfiguration.android.instrumentationArguments)
-                    .withTestSize(tongsConfiguration.testSize)
                     .withExcludedSerials(tongsConfiguration.excludedSerials)
                     .withFallbackToScreenshots(tongsConfiguration.fallbackToScreenshots)
                     .withTotalAllowedRetryQuota(tongsConfiguration.totalAllowedRetryQuota)

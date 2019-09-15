@@ -13,13 +13,10 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.android.ddmlib.testrunner.TestCase;
-import com.github.tarcv.tongs.model.AndroidDevice;
+import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.model.TestCase;
 import com.google.common.collect.Sets;
 import com.github.tarcv.tongs.TongsConfiguration;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
 
 import java.util.*;
 import java.util.function.Function;
@@ -46,8 +43,8 @@ public class SummaryCompiler {
     Summary compileSummary(Collection<Pool> pools, Collection<TestCaseEvent> testCases) {
         Summary.Builder summaryBuilder = aSummary();
 
-        Map<TestCase, TestCaseEvent> eventMap = testCases.stream()
-                .collect(Collectors.toMap(o -> new TestCase(o.getTestClass(), o.getTestMethod()),
+        Map<com.github.tarcv.tongs.model.TestCase , TestCaseEvent> eventMap = testCases.stream()
+                .collect(Collectors.toMap(o -> new com.github.tarcv.tongs.model.TestCase(o.getTestClass(), o.getTestMethod()),
                         Function.identity(), (o1, o2) -> o1));
 
         Set<TestResult> testResults = Sets.newHashSet();
@@ -77,7 +74,7 @@ public class SummaryCompiler {
         return summaryBuilder.build();
     }
 
-    private Collection<TestResult> getTestResultsForPool(Pool pool, Map<TestCase, TestCaseEvent> eventMap) {
+    private Collection<TestResult> getTestResultsForPool(Pool pool, Map<com.github.tarcv.tongs.model.TestCase , TestCaseEvent> eventMap) {
         Set<TestResult> testResults = Sets.newHashSet();
 
         Collection<TestResult> testResultsForPoolDevices = pool.getDevices()

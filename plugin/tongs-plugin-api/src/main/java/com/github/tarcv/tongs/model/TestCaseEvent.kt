@@ -67,6 +67,7 @@ class TestCaseEvent private constructor(
         }
 
         @JvmOverloads
+        @JvmStatic
         fun newTestCase(testIdentifier: TestCase, isIgnored: Boolean = false): TestCaseEvent {
             return TestCaseEvent(testIdentifier, isIgnored, emptyList(), emptyList())
         }

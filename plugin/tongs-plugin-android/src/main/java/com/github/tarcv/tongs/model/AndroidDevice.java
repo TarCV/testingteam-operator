@@ -30,6 +30,9 @@ public class AndroidDevice extends Device {
 	private final int apiLevel;
 	private final transient IDevice deviceInterface;
 	private final boolean isTablet;
+
+	// Might be null when this is a temporary object used when determining geometry
+	@Nullable
 	private final DisplayGeometry geometry;
     private final Diagnostics diagnostics;
 

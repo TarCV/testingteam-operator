@@ -66,10 +66,6 @@ public class AndroidInstrumentedTestRun {
 		RemoteAndroidTestRunner runner =
 				remoteAndroidTestRunnerFactory.createRemoteAndroidTestRunner(testPackage, testRunParameters.getTestRunner(), device);
 
-		IRemoteAndroidTestRunner.TestSize testSize = testRunParameters.getTestSize();
-		if (testSize != null) {
-			runner.setTestSize(testSize);
-		}
 		runner.setRunName(poolName);
 		runner.setMaxtimeToOutputResponse(testRunParameters.getTestOutputTimeout());
 

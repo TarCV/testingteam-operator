@@ -18,6 +18,7 @@ import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.ResultListener;
 import com.github.tarcv.tongs.runner.listeners.TestRunListenersFactory;
 import com.github.tarcv.tongs.suite.TestCollectingListener;
+import com.github.tarcv.tongs.summary.ResultStatus;
 import com.github.tarcv.tongs.system.PermissionGrantingManager;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class AndroidTestRunFactory {
     public AndroidInstrumentedTestRun createTestRun(TongsTestCaseContext testRunContext, TestCaseEvent testCase,
                                                     AndroidDevice device,
                                                     Pool pool,
-                                                    AtomicReference<ResultListener.Status> testStatus,
+                                                    AtomicReference<ResultStatus> testStatus,
                                                     PreregisteringLatch workCountdownLatch) {
         TestRunParameters testRunParameters = createTestParameters(testCase, device, configuration);
 

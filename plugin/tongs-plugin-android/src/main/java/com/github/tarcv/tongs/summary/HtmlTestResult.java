@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,18 +13,26 @@
  */
 package com.github.tarcv.tongs.summary;
 
+import com.github.tarcv.tongs.model.TestCaseEvent;
+
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Plain bean class, to feed to Moustache markup files.
  */
-public class HtmlSummary {
-    public Collection<HtmlPoolSummary> pools;
-    public String title;
-    public String subtitle;
-    public List<String> ignoredTests;
-    public String overallStatus;
-    public List<String> failedTests;
-    public List<String> fatalCrashedTests;
+public class HtmlTestResult {
+	public String status;
+	public String prettyClassName;
+	public String prettyMethodName;
+	public String deviceSerial;
+	public String deviceSafeSerial;
+	public String deviceModelDespaced;
+	public TestCaseEvent testIdentifier;
+	public String fileNameForTest;
+	public String poolName;
+	public Collection<HtmlLogCatMessage> logcatMessages;
+	public String timeTaken;
+	public String[] trace;
+    public boolean diagnosticVideo;
+    public boolean diagnosticScreenshots;
 }

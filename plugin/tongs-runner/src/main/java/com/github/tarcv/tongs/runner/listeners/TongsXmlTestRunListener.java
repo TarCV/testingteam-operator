@@ -12,8 +12,6 @@
  */
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestCase;
-import com.android.ddmlib.testrunner.XmlTestRunListener;
 import com.github.tarcv.tongs.runner.TestCaseFailed;
 import com.github.tarcv.tongs.runner.TestCaseSkipped;
 import org.jetbrains.annotations.NotNull;

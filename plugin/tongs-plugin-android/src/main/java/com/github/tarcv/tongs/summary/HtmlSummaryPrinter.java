@@ -31,6 +31,7 @@ import static com.github.tarcv.tongs.summary.HtmlConverters.toHtmlSummary;
 import static com.github.tarcv.tongs.system.io.FileType.HTML;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 
+// TODO: split and keep some part in tongs-runner
 public class HtmlSummaryPrinter implements SummaryPrinter {
 	private static final String HTML_OUTPUT = "html";
 	private static final String STATIC = "static";
@@ -75,7 +76,7 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
         htmlOutput.mkdirs();
 		copyAssets();
 		generateCssFromLess();
-		HtmlSummary htmlSummary = toHtmlSummary(fileManager, summary);
+		HtmlSummary htmlSummary = HtmlConverters.toHtmlSummary(fileManager, summary);
         htmlGenerator.generateHtml("tongspages/index.html", htmlOutput, INDEX_FILENAME, htmlSummary);
         generatePoolHtml(htmlSummary);
 		generatePoolTestsHtml(htmlSummary);
@@ -133,6 +134,6 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
 
     private void addLogcats(HtmlTestResult testResult, HtmlPoolSummary pool) {
 		List<LogCatMessage> logCatMessages = retriever.retrieveLogCat(pool.plainPoolName, testResult.deviceSafeSerial, testResult.testIdentifier);
-        testResult.logcatMessages = transform(logCatMessages, toHtmlLogCatMessages());
+        testResult.logcatMessages = transform(logCatMessages, HtmlConverters.toHtmlLogCatMessages());
     }
 }

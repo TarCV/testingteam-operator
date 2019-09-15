@@ -13,6 +13,7 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.*;
+import com.github.tarcv.tongs.summary.ResultStatus;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import com.google.gson.Gson;
 import com.github.tarcv.tongs.TongsConfiguration;
@@ -36,7 +37,7 @@ public class TestRunListenersFactory {
     }
 
     public List<BaseListener> createAndroidListeners(TongsTestCaseContext context,
-                                                     AtomicReference<ResultListener.Status> testStatus,
+                                                     AtomicReference<ResultStatus> testStatus,
                                                      PreregisteringLatch latch) {
         TestCaseEvent testCase = context.getTestCaseEvent();
         AndroidDevice device = (AndroidDevice) context.getDevice();

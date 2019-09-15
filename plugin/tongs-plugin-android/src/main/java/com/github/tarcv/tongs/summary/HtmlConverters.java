@@ -14,7 +14,7 @@
 package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.testrunner.TestCase;
+import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.google.common.base.Function;
 import com.github.tarcv.tongs.model.Device;
@@ -64,7 +64,7 @@ class HtmlConverters {
 			}
 
             private String getPoolStatus(PoolSummary poolSummary) {
-                Boolean success = toPoolOutcome().apply(poolSummary);
+                Boolean success = OutcomeAggregator.toPoolOutcome().apply(poolSummary);
                 return (success != null && success? "pass" : "fail");
             }
         };

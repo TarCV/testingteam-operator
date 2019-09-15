@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,16 +13,18 @@
  */
 package com.github.tarcv.tongs.summary;
 
-/**
- * Plain bean for each line of a logcat
- */
+import java.util.Collection;
+import java.util.List;
 
-public class HtmlLogCatMessage {
-	public String appName;
-	public String logLevel;
-	public String message;
-	public int pid;
-	public String tag;
-	public int tid;
-	public String time;
+/**
+ * Plain bean class, to feed to Moustache markup files.
+ */
+public class HtmlSummary {
+    public Collection<HtmlPoolSummary> pools;
+    public String title;
+    public String subtitle;
+    public List<String> ignoredTests;
+    public String overallStatus;
+    public List<String> failedTests;
+    public List<String> fatalCrashedTests;
 }

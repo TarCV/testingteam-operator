@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -11,18 +11,10 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.github.tarcv.tongs.pooling.geometry;
+package com.github.tarcv.tongs.summary;
 
-/**
- * Contract for logging a command output from a device.
- */
-public interface CommandOutputLogger {
+public interface SummaryPrinter {
 
-    /**
-     * Log the output of a command that has run on a device with a given name.
-     * @param deviceIdentifier the device identifier, e.g. the name
-     * @param commandOutput the output of a command
-     * @throws Exception in case an exception happened during the logging
-     */
-    void logCommandOutput(String deviceIdentifier, String commandOutput) throws Exception;
+	void print(Summary summary);
+
 }

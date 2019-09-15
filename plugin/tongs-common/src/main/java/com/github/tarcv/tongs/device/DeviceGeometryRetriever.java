@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -10,7 +10,7 @@
  */
 package com.github.tarcv.tongs.device;
 
-import com.android.ddmlib.IDevice;
+import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.DisplayGeometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,14 +36,14 @@ public class DeviceGeometryRetriever {
      * @return the resolved geometry or null
      */
 	@Nullable
-	public DisplayGeometry detectGeometry(IDevice device) {
+	public DisplayGeometry detectGeometry(Device device) {
 		for (DisplayGeometryRetrievalStrategy strategy : strategies) {
 			DisplayGeometry geometry = strategy.retrieveGeometry(device);
 			if (geometry != null) {
 				return geometry;
 			}
 		}
-        logger.warn("No geometry found for {} ({})", device.getName(), device.getSerialNumber());
+        logger.warn("No geometry found for {} ({})", device.getName(), device.getSerial());
 		return null;
 	}
 }

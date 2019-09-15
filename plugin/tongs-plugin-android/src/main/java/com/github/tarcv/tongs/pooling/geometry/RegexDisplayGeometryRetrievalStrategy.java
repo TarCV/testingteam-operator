@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -15,6 +15,8 @@ package com.github.tarcv.tongs.pooling.geometry;
 
 import com.android.ddmlib.IDevice;
 import com.github.tarcv.tongs.device.DisplayGeometryRetrievalStrategy;
+import com.github.tarcv.tongs.model.AndroidDevice;
+import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.DisplayGeometry;
 import com.github.tarcv.tongs.system.adb.CollectingShellOutputReceiver;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * Runs a command on a device and sniffs its output for geometry by regex. Main aim is to determine shortest width.
  */
+// TODO: connect to plugin infrastructure
 public class RegexDisplayGeometryRetrievalStrategy implements DisplayGeometryRetrievalStrategy {
     private static final Logger logger = LoggerFactory.getLogger(RegexDisplayGeometryRetrievalStrategy.class);
     private final String command;
@@ -42,18 +45,19 @@ public class RegexDisplayGeometryRetrievalStrategy implements DisplayGeometryRet
     }
 
     @Override
-    public DisplayGeometry retrieveGeometry(IDevice device) {
+    public DisplayGeometry retrieveGeometry(Device device) {
         return getDisplayGeometry(device, commandOutputLogger);
     }
 
     //TODO Ugly method. Break this up.
-    DisplayGeometry getDisplayGeometry(IDevice device, CommandOutputLogger commandOutputLogger) {
+    DisplayGeometry getDisplayGeometry(Device device, CommandOutputLogger commandOutputLogger) {
+        IDevice deviceInterface = ((AndroidDevice)device).getDeviceInterface();
         DisplayGeometry displayGeometry = null;
         CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
-        String serial = device.getSerialNumber();
+        String serial = deviceInterface.getSerialNumber();
 
         try {
-            device.executeShellCommand(command, receiver);
+            deviceInterface.executeShellCommand(command, receiver);
             String commandOutput = receiver.getOutput();
             commandOutputLogger.logCommandOutput(serial, commandOutput);
             Pattern xxnnn = Pattern.compile("(\\w+?)(\\d+)");

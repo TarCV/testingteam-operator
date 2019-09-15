@@ -11,6 +11,7 @@
 package com.github.tarcv.tongs.device;
 
 import com.android.ddmlib.IDevice;
+import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.model.Device;
 
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
@@ -20,13 +21,14 @@ import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
  */
 public class DeviceLoader {
     public static Device loadDeviceCharacteristics(IDevice device, DeviceGeometryRetriever deviceGeometryRetriever) {
-        return aDevice()
+        AndroidDevice.Builder builderWithoutGeometry = aDevice()
                 .withSerial(device.getSerialNumber())
                 .withManufacturer(device.getProperty("ro.product.manufacturer"))
                 .withModel(device.getProperty("ro.product.model"))
                 .withApiLevel(device.getProperty("ro.build.version.sdk"))
                 .withDeviceInterface(device)
-                .withTabletCharacteristic(device.getProperty("ro.build.characteristics"))
-                .withDisplayGeometry(deviceGeometryRetriever.detectGeometry(device)).build();
+                .withTabletCharacteristic(device.getProperty("ro.build.characteristics"));
+        return builderWithoutGeometry
+                .withDisplayGeometry(deviceGeometryRetriever.detectGeometry(builderWithoutGeometry.build())).build();
     }
 }

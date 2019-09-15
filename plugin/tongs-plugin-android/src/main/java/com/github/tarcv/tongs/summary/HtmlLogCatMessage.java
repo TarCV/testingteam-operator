@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,12 +13,16 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.android.ddmlib.logcat.LogCatMessage;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+/**
+ * Plain bean for each line of a logcat
+ */
 
-import java.util.List;
-
-public interface LogCatRetriever {
-
-    List<LogCatMessage> retrieveLogCat(String poolName, String serial, TestCaseEvent testIdentifier);
+public class HtmlLogCatMessage {
+	public String appName;
+	public String logLevel;
+	public String message;
+	public int pid;
+	public String tag;
+	public int tid;
+	public String time;
 }

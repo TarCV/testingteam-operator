@@ -13,27 +13,12 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.android.ddmlib.testrunner.TestCase;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 
-import java.util.Collection;
+import java.util.List;
 
-/**
- * Plain bean class, to feed to Moustache markup files.
- */
-public class HtmlTestResult {
-	public String status;
-	public String prettyClassName;
-	public String prettyMethodName;
-	public String deviceSerial;
-	public String deviceSafeSerial;
-	public String deviceModelDespaced;
-	public TestCaseEvent testIdentifier;
-	public String fileNameForTest;
-	public String poolName;
-	public Collection<HtmlLogCatMessage> logcatMessages;
-	public String timeTaken;
-	public String[] trace;
-    public boolean diagnosticVideo;
-    public boolean diagnosticScreenshots;
+public interface LogCatRetriever {
+
+    List<LogCatMessage> retrieveLogCat(String poolName, String serial, TestCaseEvent testIdentifier);
 }
