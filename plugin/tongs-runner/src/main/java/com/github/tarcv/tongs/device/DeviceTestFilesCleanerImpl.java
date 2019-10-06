@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.TEST;
+
 public class DeviceTestFilesCleanerImpl implements DeviceTestFilesCleaner {
     private static final Logger logger = LoggerFactory.getLogger(DeviceTestFilesCleanerImpl.class);
     private final FileManager fileManager;
@@ -35,7 +37,7 @@ public class DeviceTestFilesCleanerImpl implements DeviceTestFilesCleaner {
 
     @Override
     public boolean deleteTraceFiles(TestCaseEvent testIdentifier) {
-        File file = fileManager.getFile(FileType.TEST, pool.getName(), device.getSafeSerial(), testIdentifier);
+        File file = fileManager.getFile(TEST, pool.getName(), device.getSafeSerial(), testIdentifier.getTestCase());
         boolean isDeleted = file.delete();
         if (!isDeleted) {
             logger.warn("Failed to delete a file %s", file.getAbsolutePath());

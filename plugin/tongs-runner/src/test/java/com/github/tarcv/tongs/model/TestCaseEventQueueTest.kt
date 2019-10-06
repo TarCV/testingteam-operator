@@ -65,7 +65,7 @@ private fun withTimeout(block: () -> Unit) {
 }
 
 private fun createTestCaseEvent(name: String, excludes: List<Device>) =
-        TestCaseEvent.newTestCase("class", name, false, emptyList(), emptyMap(), null, excludes)
+        TestCaseEvent.newTestCase(name, "class", false, emptyList(), emptyMap(), null, excludes)
 
 private fun createStubDevice(serial: String): Device {
     val api = 20

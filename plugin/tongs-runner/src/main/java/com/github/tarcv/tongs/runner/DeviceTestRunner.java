@@ -68,7 +68,7 @@ public class DeviceTestRunner implements Runnable {
                 TestCaseEventQueue.TestCaseTask testCaseTask = queueOfTestsInPool.pollForDevice(device, 10);
                 if (testCaseTask != null) {
                     testCaseTask.doWork(testCaseEvent -> {
-                        TestCaseFileManager testCaseFileManager = new TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent);
+                        TestCaseFileManager testCaseFileManager = new TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.getTestCase());
                         Configuration configuration = ConfigurationInjector.configuration();
                         TongsTestCaseContext context = new TongsTestCaseContext(
                                 configuration, testCaseFileManager,
@@ -83,7 +83,7 @@ public class DeviceTestRunner implements Runnable {
                                 queueOfTestsInPool,
                                 configuration.getTongsIntegrationTestRunType()));
 
-                        TestCase identifier = new TestCase(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod());
+                        TestCase identifier = new TestCase(testCaseEvent.getTestMethod(), testCaseEvent.getTestClass());
 
                         // TODO: Add some defensive code
                         testRunListeners.forEach(baseListener -> {

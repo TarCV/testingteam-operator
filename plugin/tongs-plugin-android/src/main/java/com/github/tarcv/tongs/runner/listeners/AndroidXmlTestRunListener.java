@@ -15,9 +15,10 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.testrunner.XmlTestRunListener;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
-import com.github.tarcv.tongs.system.io.FileType;
 
 import java.io.File;
+
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.TEST;
 
 public class AndroidXmlTestRunListener extends XmlTestRunListener {
 
@@ -29,6 +30,6 @@ public class AndroidXmlTestRunListener extends XmlTestRunListener {
 
     @Override
     protected File getResultFile(File reportDir) {
-        return fileManager.createFile(FileType.TEST);
+        return fileManager.createFile(TEST);
     }
 }

@@ -18,10 +18,11 @@ import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.github.tarcv.tongs.system.io.FileManager;
-import com.github.tarcv.tongs.system.io.FileType;
 
 import java.io.*;
 import java.util.List;
+
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.JSON_LOG;
 
 public class JsonLogCatRetriever implements LogCatRetriever {
     private final Gson gson;
@@ -34,7 +35,7 @@ public class JsonLogCatRetriever implements LogCatRetriever {
 
     @Override
     public List<LogCatMessage> retrieveLogCat(String poolName, String safeSerial, TestCaseEvent testIdentifier) {
-        File logcatJsonFile = fileManager.getFile(FileType.JSON_LOG, poolName, safeSerial, testIdentifier);
+        File logcatJsonFile = fileManager.getFile(JSON_LOG, poolName, safeSerial, testIdentifier.getTestCase());
         try {
             FileReader fileReader = new FileReader(logcatJsonFile);
             return gson.fromJson(fileReader, new TypeToken<List<LogCatMessage>>() {}.getType());

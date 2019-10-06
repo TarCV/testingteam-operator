@@ -14,7 +14,6 @@ package com.github.tarcv.tongs.system.io;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.model.TestCaseEvent;
 
 import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
@@ -23,15 +22,10 @@ import org.apache.commons.io.filefilter.SuffixFileFilter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.github.tarcv.tongs.CommonDefaults.TONGS_SUMMARY_FILENAME_FORMAT;
-import static com.github.tarcv.tongs.system.io.FileType.TEST;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.TEST;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Paths.get;
 
@@ -49,10 +43,10 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent) {
+    public File createFile(FileType fileType, Pool pool, Device device, TestCase testCase) {
         try {
             Path directory = createDirectory(fileType, pool, device);
-            String filename = createFilenameForTest(new TestCase(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()), fileType);
+            String filename = FileUtils.createFilenameForTest(testCase, fileType);
             return createFile(directory, filename);
         } catch (IOException e) {
             throw new CouldNotCreateDirectoryException(e);
@@ -60,17 +54,16 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent, int sequenceNumber) {
+    public File createFile(FileType fileType, Pool pool, Device device, TestCase testCase, int sequenceNumber) {
         String sequenceSuffix = String.format("%02d", sequenceNumber);
-        return createFile(fileType, pool, device, testCaseEvent, sequenceSuffix);
+        return createFile(fileType, pool, device, testCase, sequenceSuffix);
     }
 
     @Override
-    public File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent, String suffix) {
+    public File createFile(FileType fileType, Pool pool, Device device, TestCase testCase, String suffix) {
         try {
-            TestCase testIdentifier = new TestCase(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod());
             Path directory = createDirectory(fileType, pool, device);
-            String filename = createFilenameForTest(testIdentifier, fileType, suffix);
+            String filename = FileUtils.createFilenameForTest(testCase, fileType, suffix);
             return createFile(directory, filename);
         } catch (IOException e) {
             throw new CouldNotCreateDirectoryException(e);
@@ -99,8 +92,8 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public File getFile(FileType fileType, String pool, String safeSerial, TestCaseEvent testIdentifier) {
-        String filenameForTest = createFilenameForTest(testIdentifier.toString(), fileType);
+    public File getFile(FileType fileType, String pool, String safeSerial, TestCase testIdentifier) {
+        String filenameForTest = FileUtils.createFilenameForTest(testIdentifier, fileType);
         Path path = get(output.getAbsolutePath(), fileType.getDirectory(), pool, safeSerial, filenameForTest);
         return path.toFile();
     }
@@ -117,41 +110,4 @@ public class TongsFileManager implements FileManager {
         return new File(directory.toFile(), filename);
     }
 
-    @Override
-    public String createFilenameForTest(TestCase testIdentifier, FileType fileType) {
-        String testName = testIdentifier.toString();
-        return createFilenameForTest(testName, fileType);
-    }
-
-    private static String createFilenameForTest(String testName, FileType fileType) {
-        // Test identifier can contain absolutely any characters, so generate safe name out of it
-        // Dots are not safe because of '.', '..' and extensions
-        String safeChars = testName.replaceAll("[^A-Za-z0-9_]", "_");
-
-        // Always use hash to handle edge case of test name that differ only with char case
-        String hash;
-        try {
-            byte[] hashBytes = MessageDigest.getInstance("MD5")
-                    .digest(testName.getBytes(StandardCharsets.UTF_8));
-            hash = IntStream.range(0, hashBytes.length)
-                    .map(i -> {
-                        if (hashBytes[i] >= 0) {
-                            return hashBytes[i];
-                        } else {
-                            return 0x100 + hashBytes[i];
-                        }
-                    })
-                    .skip(hashBytes.length / 2) // avoid too long file names
-                    .mapToObj(b -> String.format("%02x", b))
-                    .collect(Collectors.joining());
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Failed to generate safe file name");
-        }
-
-        return String.format("%s-%s.%s", safeChars, hash, fileType.getSuffix());
-    }
-
-    private static String createFilenameForTest(TestCase testIdentifier, FileType fileType, String suffix) {
-        return String.format("%s-%s.%s", testIdentifier.toString(), suffix, fileType.getSuffix());
-    }
 }

@@ -14,7 +14,6 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
-import com.github.tarcv.tongs.system.io.FileManager;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
@@ -24,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 
-import static com.github.tarcv.tongs.system.io.FileType.COVERAGE;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.COVERAGE;
 
 public class CoverageListener extends BaseListener {
 
@@ -77,7 +76,7 @@ public class CoverageListener extends BaseListener {
     @Override
     public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
         try {
-            TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
+            TestCase testIdentifier = new TestCase(testCase.getTestMethod(), testCase.getTestClass());
             final String remoteFile = RemoteFileManager.getCoverageFileName(testIdentifier);
             final File file = fileManager.createFile(COVERAGE);
             try {

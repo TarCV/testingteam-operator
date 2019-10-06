@@ -21,7 +21,7 @@ import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import java.io.*;
 import java.util.List;
 
-import static com.github.tarcv.tongs.system.io.FileType.RAW_LOG;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.RAW_LOG;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.write;
 

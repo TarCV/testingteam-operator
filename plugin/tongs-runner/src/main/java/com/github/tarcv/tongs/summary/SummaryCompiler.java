@@ -44,7 +44,7 @@ public class SummaryCompiler {
         Summary.Builder summaryBuilder = aSummary();
 
         Map<com.github.tarcv.tongs.model.TestCase , TestCaseEvent> eventMap = testCases.stream()
-                .collect(Collectors.toMap(o -> new com.github.tarcv.tongs.model.TestCase(o.getTestClass(), o.getTestMethod()),
+                .collect(Collectors.toMap(o -> new com.github.tarcv.tongs.model.TestCase(o.getTestMethod(), o.getTestClass()),
                         Function.identity(), (o1, o2) -> o1));
 
         Set<TestResult> testResults = Sets.newHashSet();
@@ -84,7 +84,7 @@ public class SummaryCompiler {
                             .getTestResultsForDevice(pool, device).stream()
                             .map(testResult -> {
                                 // TODO: In current Tongs implementation testMetrics and properties is the same, probably split them later
-                                TestCaseEvent testCaseEvent = eventMap.get(new TestCase(testResult.getTestClass(), testResult.getTestMethod()));
+                                TestCaseEvent testCaseEvent = eventMap.get(new TestCase(testResult.getTestMethod(), testResult.getTestClass()));
                                 if (testCaseEvent != null) {
                                     Map<String, String> xmlMetrics = testResult.getMetrics();
                                     Map<String, String> outMetrics = new HashMap<>();

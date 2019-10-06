@@ -16,7 +16,6 @@ import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.github.tarcv.tongs.model.*;
-import com.github.tarcv.tongs.system.io.FileManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,17 +25,15 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.imageio.ImageIO;
 
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
-import static com.github.tarcv.tongs.system.io.FileType.ANIMATION;
-import static com.github.tarcv.tongs.system.io.FileType.SCREENSHOT;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.ANIMATION;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.SCREENSHOT;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static java.lang.System.nanoTime;
-import static java.util.Arrays.asList;
 
 class ScreenCapturer implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ScreenCapturer.class);

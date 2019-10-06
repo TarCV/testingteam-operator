@@ -22,7 +22,7 @@ import com.github.tarcv.tongs.model.Pool;
 import java.io.*;
 import java.util.List;
 
-import static com.github.tarcv.tongs.system.io.FileType.JSON_LOG;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.JSON_LOG;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 class JsonLogCatWriter implements LogCatWriter {

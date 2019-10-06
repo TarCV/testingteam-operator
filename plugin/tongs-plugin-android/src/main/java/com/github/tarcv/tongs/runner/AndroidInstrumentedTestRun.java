@@ -18,6 +18,7 @@ import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.system.PermissionGrantingManager;
@@ -84,7 +85,7 @@ public class AndroidInstrumentedTestRun {
 
 			if (testRunParameters.isCoverageEnabled()) {
 				runner.setCoverage(true);
-				runner.addInstrumentationArg("coverageFile", RemoteFileManager.getCoverageFileName(new TestIdentifier(testClassName, testMethodName)));
+				runner.addInstrumentationArg("coverageFile", RemoteFileManager.getCoverageFileName(new TestCase(testMethodName, testClassName)));
 			}
 		} else {
 			testClassName = "Test case collection";

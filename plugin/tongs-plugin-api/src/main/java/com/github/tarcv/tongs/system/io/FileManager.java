@@ -23,17 +23,15 @@ import java.io.File;
 public interface FileManager {
     File[] getTestFilesForDevice(Pool pool, Device serial);
 
-    File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent);
+    File createFile(FileType fileType, Pool pool, Device device, TestCase testCaseEvent);
 
-    File createFile(FileType fileType, Pool pool, Device device,  TestCaseEvent testCaseEvent, int sequenceNumber);
+    File createFile(FileType fileType, Pool pool, Device device,  TestCase testCaseEvent, int sequenceNumber);
 
-    File createFile(FileType fileType, Pool pool, Device device,  TestCaseEvent testCaseEvent, String suffix);
+    File createFile(FileType fileType, Pool pool, Device device,  TestCase testCaseEvent, String suffix);
 
     File createSummaryFile();
 
     File[] getFiles(FileType fileType, Pool pool, Device device, TestCase testIdentifier);
 
-    File getFile(FileType fileType, String pool, String safeSerial, TestCaseEvent testIdentifier);
-
-    String createFilenameForTest(TestCase testIdentifier, FileType fileType);
+    File getFile(FileType fileType, String pool, String safeSerial, TestCase testIdentifier);
 }

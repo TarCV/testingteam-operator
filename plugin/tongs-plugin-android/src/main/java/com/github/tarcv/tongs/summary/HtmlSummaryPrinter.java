@@ -26,9 +26,7 @@ import java.util.List;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.collect.Collections2.transform;
 import static com.github.tarcv.tongs.io.Files.copyResource;
-import static com.github.tarcv.tongs.summary.HtmlConverters.toHtmlLogCatMessages;
-import static com.github.tarcv.tongs.summary.HtmlConverters.toHtmlSummary;
-import static com.github.tarcv.tongs.system.io.FileType.HTML;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.HTML;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 
 // TODO: split and keep some part in tongs-runner
