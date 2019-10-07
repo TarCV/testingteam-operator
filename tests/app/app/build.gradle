@@ -78,6 +78,12 @@ tongs {
         }
     }
 
+    plugins {
+        if (Boolean.valueOf(System.getenv("CI_STUBBED"))) {
+            deviceProviders = ["com.github.tarcv.tongs.plugin.android.StubDeviceProvider"]
+        }
+    }
+
     tongsIntegrationTestRunType = Boolean.valueOf(System.getenv("CI_STUBBED")) ?
             com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN
             : com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.RECORD_LISTENER_EVENTS

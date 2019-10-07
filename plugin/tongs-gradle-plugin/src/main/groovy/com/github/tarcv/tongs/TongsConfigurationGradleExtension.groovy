@@ -17,9 +17,20 @@ class TongsConfigurationGradleExtension extends TongsConfigurationExtension {
      */
     public GradlePoolingStrategy poolingStrategy;
 
+    /**
+     * Plugins configuration
+     */
+    public Plugins plugins;
+
     void poolingStrategy(Closure<?> poolingStrategyClosure) {
         poolingStrategy = new GradlePoolingStrategy()
         poolingStrategyClosure.setDelegate(poolingStrategy)
         poolingStrategyClosure.call()
+    }
+
+    void plugins(Closure<?> pluginsClosure) {
+        plugins = new Plugins()
+        pluginsClosure.setDelegate(plugins)
+        pluginsClosure.call()
     }
 }
