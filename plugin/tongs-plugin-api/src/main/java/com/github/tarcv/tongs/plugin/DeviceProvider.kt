@@ -10,7 +10,17 @@
 
 package com.github.tarcv.tongs.plugin
 
+import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.Device
+import com.github.tarcv.tongs.runner.rules.RuleFactory
+
+interface DeviceProviderContext {
+    val configuration: TongsConfiguration
+}
+
+interface DeviceProviderFactory<out T: DeviceProvider>: RuleFactory<DeviceProviderContext, T> {
+    override fun create(context: DeviceProviderContext): T
+}
 
 interface DeviceProvider {
     fun provideDevices(): Set<Device>

@@ -12,10 +12,7 @@ package com.github.tarcv.tongs.plugin
 
 import com.github.tarcv.tongs.TongsConfiguration
 
-interface DeviceProviderContext {
-    val configuration: TongsConfiguration
-}
-
+// TODO: move to runner module
 class DeviceProviderContextImpl(
         override val configuration: TongsConfiguration
 ) : DeviceProviderContext

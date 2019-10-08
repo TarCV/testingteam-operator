@@ -6,6 +6,7 @@ import com.github.tarcv.tongs.device.clearLogcat
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
+import com.github.tarcv.tongs.runner.rules.TestRule
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader.Companion.logcatWaiterSleep
 import com.github.tarcv.tongs.suite.TestCollectingListener

@@ -15,11 +15,16 @@ import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.DisplayGeometry
 import com.github.tarcv.tongs.plugin.DeviceProvider
 import com.github.tarcv.tongs.plugin.DeviceProviderContext
+import com.github.tarcv.tongs.plugin.DeviceProviderFactory
 import com.github.tarcv.tongs.pooling.StubDevice
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory.Companion.functionalTestTestIdentifierDuration
 
-class StubDeviceProvider(unused: DeviceProviderContext) : DeviceProvider {
+class StubDeviceProviderFactory: DeviceProviderFactory<StubDeviceProvider> {
+    override fun create(context: DeviceProviderContext): StubDeviceProvider = StubDeviceProvider()
+}
+
+class StubDeviceProvider() : DeviceProvider {
     override fun provideDevices(): Set<Device> {
         val device1 = createStubDevice("tongs-5554", 25)
         val device2 = createStubDevice("tongs-5556", 22)

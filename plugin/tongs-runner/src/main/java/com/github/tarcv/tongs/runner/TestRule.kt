@@ -14,6 +14,8 @@ import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEvent
+import com.github.tarcv.tongs.runner.rules.TestRule
+import com.github.tarcv.tongs.runner.rules.TestRuleContext
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
 class TongsTestCaseContext<T: Device>(
@@ -25,7 +27,7 @@ class TongsTestCaseContext<T: Device>(
 )
 
 interface TestRuleFactory<D: Device, T: TestRule<D>> {
-    fun create(context: TongsTestCaseContext<D>): T
+    fun create(context: TestRuleContext<D>): T
 }
 
 interface TestRule<D: Device> {

@@ -15,14 +15,28 @@ import com.github.tarcv.tongs.injector.device.ConnectedDeviceProviderInjector
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.plugin.DeviceProvider
 import com.github.tarcv.tongs.plugin.DeviceProviderContext
+import com.github.tarcv.tongs.plugin.DeviceProviderFactory
+import com.github.tarcv.tongs.system.adb.ConnectedDeviceProvider
 import java.util.stream.Collectors
 
-class LocalDeviceProvider(val context: DeviceProviderContext) : DeviceProvider {
+class LocalDeviceProviderFactory: DeviceProviderFactory<LocalDeviceProvider> {
+    override fun create(context: DeviceProviderContext): LocalDeviceProvider {
+        return LocalDeviceProvider(
+                ConnectedDeviceProviderInjector.connectedDeviceProvider(),
+                HashSet(context.configuration.excludedSerials)
+        )
+    }
+}
+
+class LocalDeviceProvider(
+        private val connectedDeviceProvider: ConnectedDeviceProvider,
+        private val excludedSerials: Set<String>
+) : DeviceProvider {
     override fun provideDevices(): Set<Device> {
-        val deviceLoader = ConnectedDeviceProviderInjector.connectedDeviceProvider()
+        val deviceLoader = connectedDeviceProvider
         deviceLoader.init()
         return deviceLoader.getDevices().stream()
-                .filter({ d -> !context.configuration.excludedSerials.contains(d.serial) })
+                .filter({ d -> !excludedSerials.contains(d.serial) })
                 .collect(Collectors.toSet<Device>())
     }
 }

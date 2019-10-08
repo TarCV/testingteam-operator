@@ -14,22 +14,16 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.device.DeviceTestFilesCleanerImpl;
 import com.github.tarcv.tongs.model.*;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 import com.github.tarcv.tongs.runner.TestRetryerImpl;
-import com.github.tarcv.tongs.runner.TongsTestCaseContext;
 import com.github.tarcv.tongs.system.io.FileManager;
-import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.tarcv.tongs.model.Diagnostics.SCREENSHOTS;
-import static com.github.tarcv.tongs.model.Diagnostics.VIDEO;
 import static java.util.Arrays.asList;
 
 public class TestRunListenersFactoryTongs {

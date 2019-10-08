@@ -14,5 +14,10 @@ class Plugins(
     /**
      * DeviceProvider classes that should be loaded and used during test runs
      */
-    var deviceProviders: Collection<String> = emptyList()
+    var deviceProviders: Collection<String> = emptyList(),
+
+    /**
+     * FQCNs of RunRule classes
+     */
+    var runRules: Collection<String> = emptyList()
 )

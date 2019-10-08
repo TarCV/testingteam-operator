@@ -19,6 +19,7 @@ import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector;
 import com.github.tarcv.tongs.injector.system.FileManagerInjector;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
+import com.github.tarcv.tongs.runner.rules.TestRuleContext;
 import com.github.tarcv.tongs.summary.ResultStatus;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl;
@@ -70,7 +71,7 @@ public class DeviceTestRunner implements Runnable {
                     testCaseTask.doWork(testCaseEvent -> {
                         TestCaseFileManager testCaseFileManager = new TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.getTestCase());
                         Configuration configuration = ConfigurationInjector.configuration();
-                        TongsTestCaseContext context = new TongsTestCaseContext(
+                        TestRuleContext context = new TestRuleContext(
                                 configuration, testCaseFileManager,
                                 pool, device, testCaseEvent);
 
@@ -119,7 +120,7 @@ public class DeviceTestRunner implements Runnable {
     }
 
     @Nullable
-    private static TestCaseRunResult executeTestCase(TongsTestCaseContext context) {
+    private static TestCaseRunResult executeTestCase(TestRuleContext context) {
         AndroidTestRunFactory androidTestRunFactory = TestRunFactoryInjector.testRunFactory(context.getConfiguration());
         PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         try {

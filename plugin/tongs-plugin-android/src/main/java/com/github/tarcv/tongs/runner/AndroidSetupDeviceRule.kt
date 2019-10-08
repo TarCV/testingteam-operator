@@ -8,9 +8,12 @@ import com.github.tarcv.tongs.system.io.RemoteFileManager
 
 import com.github.tarcv.tongs.device.clearLogcat
 import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
+import com.github.tarcv.tongs.runner.rules.DeviceRule
+import com.github.tarcv.tongs.runner.rules.DeviceRuleContext
+import com.github.tarcv.tongs.runner.rules.DeviceRuleFactory
 
 class AndroidSetupDeviceRuleFactory : DeviceRuleFactory<AndroidDevice, AndroidSetupDeviceRule> {
-    override fun create(context: TongsDeviceContext<AndroidDevice>): AndroidSetupDeviceRule {
+    override fun create(context: DeviceRuleContext<AndroidDevice>): AndroidSetupDeviceRule {
         return AndroidSetupDeviceRule(context.device.deviceInterface, installer(context.configuration))
     }
 }
