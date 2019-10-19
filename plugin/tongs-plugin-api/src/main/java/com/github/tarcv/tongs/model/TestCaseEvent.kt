@@ -13,13 +13,11 @@ package com.github.tarcv.tongs.model
 
 import com.google.common.base.Objects
 import com.google.gson.JsonObject
-import java.util.HashSet
-
+import java.util.*
 import java.util.Collections.emptyList
 
 class TestCaseEvent private constructor(
         val testCase: TestCase,
-        val isIgnored: Boolean,
         val permissionsToGrant: List<String>,
         excludedDevices: Collection<Device>) {
 
@@ -61,15 +59,14 @@ class TestCaseEvent private constructor(
 
     companion object {
 
-        fun newTestCase(testMethod: String, testClass: String, isIgnored: Boolean, permissionsToGrant: List<String>, properties: Map<String, String>, info: JsonObject?, excludedDevices: Collection<Device>): TestCaseEvent {
+        fun newTestCase(testMethod: String, testClass: String, permissionsToGrant: List<String>, properties: Map<String, String>, info: JsonObject?, excludedDevices: Collection<Device>): TestCaseEvent {
             val testCase = TestCase(testMethod, testClass, properties)
-            return TestCaseEvent(testCase, isIgnored, permissionsToGrant, excludedDevices)
+            return TestCaseEvent(testCase, permissionsToGrant, excludedDevices)
         }
 
-        @JvmOverloads
         @JvmStatic
-        fun newTestCase(testIdentifier: TestCase, isIgnored: Boolean = false): TestCaseEvent {
-            return TestCaseEvent(testIdentifier, isIgnored, emptyList(), emptyList())
+        fun newTestCase(testIdentifier: TestCase): TestCaseEvent {
+            return TestCaseEvent(testIdentifier, emptyList(), emptyList())
         }
     }
 }

@@ -13,23 +13,24 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.android.ddmlib.logcat.LogCatMessage;
-import com.google.common.io.Resources;
 import com.github.tarcv.tongs.io.HtmlGenerator;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.github.tarcv.tongs.system.io.FileManager;
-
+import com.github.tarcv.tongs.system.io.FileUtils;
+import com.google.common.io.Resources;
 import org.lesscss.LessCompiler;
 
 import java.io.File;
-import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.collect.Collections2.transform;
 import static com.github.tarcv.tongs.io.Files.copyResource;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.DOT_WITHOUT_EXTENSION;
 import static com.github.tarcv.tongs.system.io.StandardFileTypes.HTML;
+import static com.google.common.base.Charsets.UTF_8;
+import static java.util.function.Function.identity;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 
-// TODO: split and keep some part in tongs-runner
 public class HtmlSummaryPrinter implements SummaryPrinter {
 	private static final String HTML_OUTPUT = "html";
 	private static final String STATIC = "static";
@@ -77,7 +78,7 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
 		HtmlSummary htmlSummary = HtmlConverters.toHtmlSummary(fileManager, summary);
         htmlGenerator.generateHtml("tongspages/index.html", htmlOutput, INDEX_FILENAME, htmlSummary);
         generatePoolHtml(htmlSummary);
-		generatePoolTestsHtml(htmlSummary);
+		generatePoolTestsHtml(summary, htmlSummary);
 	}
 
 	private void copyAssets() {
@@ -116,22 +117,20 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
 	/**
      * Genarates an HTML page for each test of each pool.
      *
-	 * @param htmlSummary the summary containing the results
+	 * @param summary the summary containing the results
+	 * @param htmlSummary
 	 */
 	@SuppressWarnings("ResultOfMethodCallIgnored")
-    private void generatePoolTestsHtml(HtmlSummary htmlSummary) {
-        for (HtmlPoolSummary pool : htmlSummary.pools) {
-            File poolTestsDir = new File(htmlOutput, "pools/" + pool.plainPoolName);
+    private void generatePoolTestsHtml(Summary summary, HtmlSummary htmlSummary) {
+		Map<String, HtmlPoolSummary> namesToHtmlPools = htmlSummary.pools.stream()
+				.collect(Collectors.toMap(htmlPoolSummary -> htmlPoolSummary.plainPoolName, identity()));
+		for (TestCaseRunResult testResult : summary.getAllTests()) {
+			HtmlPoolSummary pool = namesToHtmlPools.get(testResult.getPool().getName());
+
+            File poolTestsDir = new File(htmlOutput, "pools/" + testResult.getPool().getName());
             poolTestsDir.mkdirs();
-            for (HtmlTestResult testResult : pool.testResults) {
-				addLogcats(testResult, pool);
-                htmlGenerator.generateHtml("tongspages/pooltest.html", poolTestsDir, testResult.fileNameForTest + HTML.getSuffix(), testResult, pool);
-            }
+			String fileNameForTest = FileUtils.createFilenameForTest(testResult.getTestCase(), DOT_WITHOUT_EXTENSION);
+			htmlGenerator.generateHtml("tongspages/pooltest.html", poolTestsDir, fileNameForTest + HTML.getSuffix(), testResult, pool);
         }
 	}
-
-    private void addLogcats(HtmlTestResult testResult, HtmlPoolSummary pool) {
-		List<LogCatMessage> logCatMessages = retriever.retrieveLogCat(pool.plainPoolName, testResult.deviceSafeSerial, testResult.testIdentifier);
-        testResult.logcatMessages = transform(logCatMessages, HtmlConverters.toHtmlLogCatMessages());
-    }
 }

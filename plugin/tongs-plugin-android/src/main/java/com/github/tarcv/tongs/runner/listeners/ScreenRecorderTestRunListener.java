@@ -15,7 +15,9 @@ import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
+import com.github.tarcv.tongs.runner.TestCaseFile;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Map;
@@ -31,12 +33,21 @@ class ScreenRecorderTestRunListener extends BaseListener {
     private boolean hasFailed;
     private ScreenRecorderStopper screenRecorderStopper;
 
+    @NotNull
+    public final TestCaseFile file;
+
     public ScreenRecorderTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
         super(latch);
         this.fileManager = fileManager;
         this.pool = pool;
         this.device = device;
         deviceInterface = device.getDeviceInterface();
+        file = new TestCaseFile(fileManager, SCREENRECORD, "");
+    }
+
+    @NotNull
+    public TestCaseFile getFile() {
+        return file;
     }
 
     @Override
@@ -46,7 +57,7 @@ class ScreenRecorderTestRunListener extends BaseListener {
     @Override
     public void testStarted(TestIdentifier test) {
         hasFailed = false;
-        File localVideoFile = fileManager.createFile(SCREENRECORD);
+        File localVideoFile = file.create();
         screenRecorderStopper = new ScreenRecorderStopper(deviceInterface);
         ScreenRecorder screenRecorder = new ScreenRecorder(test, screenRecorderStopper, localVideoFile, deviceInterface);
         new Thread(screenRecorder, "ScreenRecorder").start();

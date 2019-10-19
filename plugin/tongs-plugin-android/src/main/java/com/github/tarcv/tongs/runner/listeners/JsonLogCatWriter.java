@@ -22,7 +22,6 @@ import com.github.tarcv.tongs.model.Pool;
 import java.io.*;
 import java.util.List;
 
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.JSON_LOG;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 class JsonLogCatWriter implements LogCatWriter {
@@ -30,17 +29,18 @@ class JsonLogCatWriter implements LogCatWriter {
     private final TestCaseFileManager fileManager;
     private final Pool pool;
     private final Device device;
+	private final File file;
 
-	JsonLogCatWriter(Gson gson, TestCaseFileManager fileManager, Pool pool, Device device) {
+	JsonLogCatWriter(Gson gson, TestCaseFileManager fileManager, Pool pool, Device device, File file) {
         this.gson = gson;
         this.fileManager = fileManager;
 		this.pool = pool;
 		this.device = device;
+		this.file = file;
 	}
 
 	@Override
 	public void writeLogs(List<LogCatMessage> logCatMessages) {
-        File file = fileManager.createFile(JSON_LOG);
 		FileWriter fileWriter = null;
 		try {
 			fileWriter = new FileWriter(file);

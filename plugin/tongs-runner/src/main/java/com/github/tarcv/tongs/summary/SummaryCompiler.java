@@ -13,10 +13,11 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.model.*;
-import com.github.tarcv.tongs.model.TestCase;
-import com.google.common.collect.Sets;
 import com.github.tarcv.tongs.TongsConfiguration;
+import com.github.tarcv.tongs.model.TestCase;
+import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.google.common.collect.Sets;
 
 import java.util.*;
 import java.util.function.Function;
@@ -27,7 +28,6 @@ import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
 import static com.github.tarcv.tongs.summary.ResultStatus.ERROR;
 import static com.github.tarcv.tongs.summary.ResultStatus.FAIL;
 import static com.github.tarcv.tongs.summary.Summary.Builder.aSummary;
-import static com.github.tarcv.tongs.summary.TestResult.Builder.aTestResult;
 import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
 
@@ -40,16 +40,20 @@ public class SummaryCompiler {
         this.deviceTestFilesRetriever = deviceTestFilesRetriever;
     }
 
-    Summary compileSummary(Collection<Pool> pools, Collection<TestCaseEvent> testCases) {
+    Summary compileSummary(Collection<Pool> pools, Collection<TestCaseEvent> testCases, List<TestCaseRunResult> results) {
         Summary.Builder summaryBuilder = aSummary();
+        summaryBuilder.addResults(results);
 
         Map<com.github.tarcv.tongs.model.TestCase , TestCaseEvent> eventMap = testCases.stream()
                 .collect(Collectors.toMap(o -> new com.github.tarcv.tongs.model.TestCase(o.getTestMethod(), o.getTestClass()),
                         Function.identity(), (o1, o2) -> o1));
 
-        Set<TestResult> testResults = Sets.newHashSet();
+        Map<Pool, List<TestCaseRunResult>> resultsByPool = results.stream()
+                .collect(Collectors.groupingBy(TestCaseRunResult::getPool));
+
+        Set<TestCaseRunResult> testResults = Sets.newHashSet();
         for (Pool pool : pools) {
-            Collection<TestResult> testResultsForPool = getTestResultsForPool(pool, eventMap);
+            Collection<TestCaseRunResult> testResultsForPool = resultsByPool.get(pool);
             testResults.addAll(testResultsForPool);
 
             PoolSummary poolSummary = aPoolSummary()
@@ -58,15 +62,17 @@ public class SummaryCompiler {
                     .build();
 
             summaryBuilder.addPoolSummary(poolSummary);
+
+            // TODO: add tests that should had been executed in the pool but didn't
             addFailedOrFatalCrashedTests(testResultsForPool, summaryBuilder);
+
+            addIgnoredTests(testResultsForPool, summaryBuilder);
         }
 
-        Collection<TestResult> ignoredTestResults = getIgnoredTestResults(testCases);
-        addIgnoredTests(ignoredTestResults, summaryBuilder);
-        testResults.addAll(ignoredTestResults);
-
-        Collection<TestResult> fatalCrashedTests = getFatalCrashedTests(testResults, testCases);
+        Collection<TestCaseRunResult> fatalCrashedTests = getFatalCrashedTests(testResults, testCases);
         addFatalCrashedTests(fatalCrashedTests, summaryBuilder);
+
+        // TODO: Use TestCaseRunResult datas instead of reading videos, logcat, etc
 
         summaryBuilder.withTitle(configuration.getTitle());
         summaryBuilder.withSubtitle(configuration.getSubtitle());
@@ -124,39 +130,32 @@ public class SummaryCompiler {
                 .build();
     }
 
-    private static void addFailedOrFatalCrashedTests(Collection<TestResult> testResults, Summary.Builder summaryBuilder) {
-        for (TestResult testResult : testResults) {
+    private static void addFailedOrFatalCrashedTests(Collection<TestCaseRunResult> testResults, Summary.Builder summaryBuilder) {
+        for (TestCaseRunResult testResult : testResults) {
             int totalFailureCount = testResult.getTotalFailureCount();
             if (totalFailureCount > 0) {
                 String failedTest = format(ENGLISH, "%d times %s", totalFailureCount, getTestResultData(testResult));
                 summaryBuilder.addFailedTests(failedTest);
-            } else if (testResult.getResultStatus() == ERROR || testResult.getResultStatus() == FAIL) {
+            } else if (testResult.getStatus() == ERROR || testResult.getStatus() == FAIL) {
                 summaryBuilder.addFatalCrashedTest(getTestResultData(testResult));
             }
         }
     }
 
-    private static Collection<TestResult> getIgnoredTestResults(Collection<TestCaseEvent> testCases) {
-        return testCases.stream()
-                .filter(TestCaseEvent::isIgnored)
-                .map(testCaseEvent -> aTestResult()
-                        .withTestClass(testCaseEvent.getTestClass())
-                        .withTestMethod(testCaseEvent.getTestMethod())
-                        .withIgnored(true)
-                        .build())
-                .collect(Collectors.toSet());
+    private static void addIgnoredTests(Collection<TestCaseRunResult> ignoredTestResults, Summary.Builder summaryBuilder) {
+        ignoredTestResults.stream()
+                .filter(r ->
+                        // TODO: check ASSUMPTION_FAILED eventually executed on some device are not considered skipped
+                        r.getStatus() == ResultStatus.IGNORED || r.getStatus() == ResultStatus.ASSUMPTION_FAILED)
+                .forEach(testCaseRunResult -> {
+                    summaryBuilder.addIgnoredTest(testCaseRunResult.getTestCase().toString());
+                });
     }
 
-    private static void addIgnoredTests(Collection<TestResult> ignoredTestResults, Summary.Builder summaryBuilder) {
-        for (TestResult testResult : ignoredTestResults) {
-            summaryBuilder.addIgnoredTest(testResult.getTestFullName());
-        }
-    }
-
-    private static Collection<TestResult> getFatalCrashedTests(Collection<TestResult> processedTestResults,
-                                                               Collection<TestCaseEvent> testCases) {
+    private static Collection<TestCaseRunResult> getFatalCrashedTests(Set<TestCaseRunResult> processedTestResults,
+                                                                      Collection<TestCaseEvent> testCases) {
         Set<TestResultItem> processedTests = processedTestResults.stream()
-                .map(testResult -> new TestResultItem(testResult.getTestClass(), testResult.getTestMethod()))
+                .map(testResult -> new TestResultItem(testResult.getTestCase().getTestClass(), testResult.getTestCase().getTestMethod()))
                 .collect(Collectors.toSet());
         Set<TestResultItem> allTests = testCases.stream()
                 .map(testCaseEvent -> new TestResultItem(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()))
@@ -164,19 +163,25 @@ public class SummaryCompiler {
 
         return Sets.difference(allTests, processedTests)
                 .stream()
-                .map(TestResultItem::toTestResult)
+                .map(testResultItem -> {
+                    return new TestCaseRunResult(null, null,
+                            new TestCase(testResultItem.testMethod, testResultItem.testClass),
+                            ERROR, "Fatally crashed",
+                            0, 0,
+                            Collections.emptyMap(), null, Collections.emptyList());
+                })
                 .collect(Collectors.toSet());
     }
 
-    private static void addFatalCrashedTests(Collection<TestResult> fatalCrashedTests, Summary.Builder summaryBuilder) {
-        for (TestResult fatalCrashedTest : fatalCrashedTests) {
+    private static void addFatalCrashedTests(Collection<TestCaseRunResult> fatalCrashedTests, Summary.Builder summaryBuilder) {
+        for (TestCaseRunResult fatalCrashedTest : fatalCrashedTests) {
             summaryBuilder.addFatalCrashedTest(getTestResultData(fatalCrashedTest));
         }
     }
 
-    private static String getTestResultData(TestResult testResult) {
-        return format(ENGLISH, "%s#%s on %s", testResult.getTestClass(), testResult.getTestMethod(),
-                testResult.getDeviceSerial());
+    private static String getTestResultData(TestCaseRunResult testResult) {
+        return format(ENGLISH, "%s#%s on %s", testResult.getTestCase().getTestClass(), testResult.getTestCase().getTestMethod(),
+                testResult.getDevice().getSerial());
     }
 
     private static class TestResultItem {
@@ -186,13 +191,6 @@ public class SummaryCompiler {
         TestResultItem(String testClass, String testMethod) {
             this.testClass = testClass;
             this.testMethod = testMethod;
-        }
-
-        TestResult toTestResult() {
-            return aTestResult()
-                    .withTestClass(testClass)
-                    .withTestMethod(testMethod)
-                    .build();
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -15,20 +15,20 @@ package com.github.tarcv.tongs;
 
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.pooling.*;
+import com.github.tarcv.tongs.pooling.NoDevicesForPoolException;
+import com.github.tarcv.tongs.pooling.NoPoolLoaderConfiguredException;
+import com.github.tarcv.tongs.pooling.PoolLoader;
 import com.github.tarcv.tongs.runner.PoolTestRunnerFactory;
 import com.github.tarcv.tongs.runner.ProgressReporter;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader;
 import com.github.tarcv.tongs.suite.NoTestCasesFoundException;
 import com.github.tarcv.tongs.suite.TestSuiteLoaderContext;
 import com.github.tarcv.tongs.summary.SummaryGeneratorHook;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -74,12 +74,14 @@ public class TongsRunner {
             Collection<TestCaseEvent> allTestCases = poolTestCasesMap.values().stream()
                     .flatMap(poolEvents -> poolEvents.stream())
                     .collect(Collectors.toSet());
-            summaryGeneratorHook.registerHook(pools, allTestCases);
+            List<TestCaseRunResult> allResults = new ArrayList<>();
+            summaryGeneratorHook.registerHook(pools, allTestCases, allResults);
 
             progressReporter.start();
             for (Pool pool : pools) {
                 Collection<TestCaseEvent> poolTestCases = poolTestCasesMap.get(pool);
-                Runnable poolTestRunner = poolTestRunnerFactory.createPoolTestRunner(pool, poolTestCases,
+                Runnable poolTestRunner = poolTestRunnerFactory.createPoolTestRunner(pool,
+                        poolTestCases, allResults,
                         poolCountDownLatch, progressReporter);
                 poolExecutor.execute(poolTestRunner);
             }

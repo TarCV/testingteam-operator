@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -55,7 +55,8 @@ public class DeviceTestFilesRetrieverImpl implements DeviceTestFilesRetriever {
         return testResults;
     }
 
-    private Collection<TestResult> parseTestResultsFromFile(File file, Device device) {
+    @Override
+    public Collection<TestResult> parseTestResultsFromFile(File file, Device device) {
         try {
             TestSuite testSuite = serializer.read(TestSuite.class, file, STRICT);
             Collection<TestCase> testCases = testSuite.getTestCase();

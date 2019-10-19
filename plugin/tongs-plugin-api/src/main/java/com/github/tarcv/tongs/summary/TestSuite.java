@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,48 +13,30 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import org.simpleframework.xml.Attribute;
-import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.ElementMap;
+import org.simpleframework.xml.Path;
 import org.simpleframework.xml.Root;
 
-@Root(name="testcase", strict=false)
-class TestCase {
+import java.util.List;
+import java.util.Map;
 
-	@Attribute
-	private String name;
 
-	@Attribute
-	private String classname;
+@Root
+class TestSuite {
 
-	@Attribute
-	private float time;
+	@ElementList(inline=true, type=TestCase.class, required=false)
+	private List<TestCase> testCases;
 
-	@Element(required=false)
-	private String failure;
+    @Path("./properties")
+    @ElementMap(required = false, entry = "property", key = "name", value = "value", attribute = true, inline = true)
+    private Map<String, String> properties;
 
-	@Element(required=false)
-	private String error;
-
-    TestCase() {
+    public List<TestCase>  getTestCase() {
+        return testCases;
     }
 
-	public String getName() {
-		return name;
-	}
-
-	public String getClassname() {
-		return classname;
-	}
-
-	public float getTime() {
-		return time;
-	}
-
-	public String getError() {
-		return error;
-	}
-
-	public String getFailure() {
-		return failure;
-	}
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 }

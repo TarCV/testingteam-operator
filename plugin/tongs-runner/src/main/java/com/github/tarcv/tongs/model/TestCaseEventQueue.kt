@@ -1,13 +1,18 @@
 package com.github.tarcv.tongs.model
 
+import com.github.tarcv.tongs.runner.TestCaseRunResult
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-class TestCaseEventQueue(events: Collection<TestCaseEvent>) {
+class TestCaseEventQueue(
+        events: Collection<TestCaseEvent>,
+        resultsCollection: MutableList<TestCaseRunResult>
+) {
     private val list = ArrayList<TestCaseEvent>(events)
+    private val syncResultsCollection = Collections.synchronizedList(resultsCollection)
 
     private val conditionLock = ReentrantLock()
     private val newItemCondition = conditionLock.newCondition()
@@ -63,10 +68,11 @@ class TestCaseEventQueue(events: Collection<TestCaseEvent>) {
     private fun indexOfEventFor(device: Device) = list.indexOfFirst { !it.isExcluded(device) }
 
     inner class TestCaseTask(private val testCaseEvent: TestCaseEvent) {
-        fun doWork(block: (testCaseEvent: TestCaseEvent) -> Unit) {
+        fun doWork(block: (testCaseEvent: TestCaseEvent) -> TestCaseRunResult) {
             try {
                 numEventsInWork.incrementAndGet()
-                block.invoke(testCaseEvent)
+                val testCaseResult = block.invoke(testCaseEvent)
+                syncResultsCollection.add(testCaseResult)
             } finally {
                 val result = numEventsInWork.decrementAndGet()
                 if (result < 0) {

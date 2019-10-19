@@ -13,24 +13,22 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.android.ddmlib.logcat.LogCatMessage;
-import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.system.io.FileUtils;
-import com.google.common.base.Function;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Diagnostics;
+import com.github.tarcv.tongs.model.TestCase;
+import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.github.tarcv.tongs.system.io.FileManager;
+import com.github.tarcv.tongs.system.io.FileUtils;
+import com.google.common.base.Function;
 
 import javax.annotation.Nullable;
 
-import static com.google.common.collect.Collections2.transform;
 import static com.github.tarcv.tongs.model.Diagnostics.SCREENSHOTS;
 import static com.github.tarcv.tongs.model.Diagnostics.VIDEO;
 import static com.github.tarcv.tongs.system.io.StandardFileTypes.DOT_WITHOUT_EXTENSION;
-import static com.github.tarcv.tongs.utils.ReadableNames.readableClassName;
-import static com.github.tarcv.tongs.utils.ReadableNames.readablePoolName;
-import static com.github.tarcv.tongs.utils.ReadableNames.readableTestMethodName;
+import static com.github.tarcv.tongs.utils.ReadableNames.*;
+import static com.google.common.collect.Collections2.transform;
 
 class HtmlConverters {
 
@@ -70,24 +68,24 @@ class HtmlConverters {
         };
 	}
 
-	private static Function<TestResult, HtmlTestResult> toHtmlTestResult(
+	private static Function<TestCaseRunResult, HtmlTestResult> toHtmlTestResult(
 			final FileManager fileManager,
 			final String poolName
 	) {
-		return new Function<TestResult, HtmlTestResult>(){
+		return new Function<TestCaseRunResult, HtmlTestResult>(){
 			@Override
 			@Nullable
-			public HtmlTestResult apply(@Nullable TestResult input) {
+			public HtmlTestResult apply(@Nullable TestCaseRunResult input) {
 				HtmlTestResult htmlTestResult = new HtmlTestResult();
 				htmlTestResult.status = computeStatus(input);
-				htmlTestResult.prettyClassName = readableClassName(input.getTestClass());
-				htmlTestResult.prettyMethodName = readableTestMethodName(input.getTestMethod());
+				htmlTestResult.prettyClassName = readableClassName(input.getTestCase().getTestClass());
+				htmlTestResult.prettyMethodName = readableTestMethodName(input.getTestCase().getTestMethod());
 				htmlTestResult.timeTaken = String.format("%.2f", input.getTimeTaken());
-				TestCase testIdentifier = new TestCase(input.getTestMethod(), input.getTestClass());
+				TestCase testIdentifier = new TestCase(input.getTestCase().getTestMethod(), input.getTestCase().getTestClass());
 				htmlTestResult.testIdentifier = TestCaseEvent.newTestCase(testIdentifier);
 				htmlTestResult.fileNameForTest = FileUtils.createFilenameForTest(testIdentifier , DOT_WITHOUT_EXTENSION);
 				htmlTestResult.poolName = poolName;
-				htmlTestResult.trace = input.getTrace().split("\n");
+				htmlTestResult.trace = input.getStackTrace().split("\n");
 				// Keeping logcats in memory is hugely wasteful. Now they're read at page-creation.
 				// htmlTestResult.logcatMessages = transform(input.getLogCatMessages(), toHtmlLogCatMessages());
 				Device device = input.getDevice();
@@ -102,30 +100,12 @@ class HtmlConverters {
 		};
 	}
 
-	private static String computeStatus(@Nullable TestResult input) {
-		String result  = input.getResultStatus().name().toLowerCase();
-		if(input.getResultStatus() == ResultStatus.PASS
+	private static String computeStatus(@Nullable TestCaseRunResult input) {
+		String result  = input.getStatus().name().toLowerCase();
+		if(input.getStatus() == ResultStatus.PASS
 				&& input.getTotalFailureCount() > 0){
 			result = "warn";
 		}
 		return result;
-	}
-
-	public static Function<LogCatMessage, HtmlLogCatMessage> toHtmlLogCatMessages() {
-		return new Function<LogCatMessage, HtmlLogCatMessage>() {
-			@Nullable
-			@Override
-			public HtmlLogCatMessage apply(@Nullable LogCatMessage logCatMessage) {
-				HtmlLogCatMessage htmlLogCatMessage = new HtmlLogCatMessage();
-				htmlLogCatMessage.appName = logCatMessage.getAppName();
-				htmlLogCatMessage.logLevel = logCatMessage.getLogLevel().getStringValue();
-				htmlLogCatMessage.message = logCatMessage.getMessage();
-				htmlLogCatMessage.pid = logCatMessage.getPid();
-				htmlLogCatMessage.tag = logCatMessage.getTag();
-				htmlLogCatMessage.tid = logCatMessage.getTid();
-				htmlLogCatMessage.time = logCatMessage.getTimestamp().toString();
-				return htmlLogCatMessage;
-			}
-		};
 	}
 }

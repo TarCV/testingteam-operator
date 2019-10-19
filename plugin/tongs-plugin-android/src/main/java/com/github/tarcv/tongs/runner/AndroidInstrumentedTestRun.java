@@ -19,6 +19,7 @@ import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
+import com.github.tarcv.tongs.runner.listeners.IResultProducer;
 import com.github.tarcv.tongs.runner.rules.TestRule;
 import com.github.tarcv.tongs.system.PermissionGrantingManager;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
@@ -43,22 +44,25 @@ public class AndroidInstrumentedTestRun {
 	private final List<TestRule> testRules;
 	private final PermissionGrantingManager permissionGrantingManager;
 	private final IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory;
+	private final IResultProducer resultProducer;
 
 	public AndroidInstrumentedTestRun(String poolName,
-									  TestRunParameters testRunParameters,
-									  List<BaseListener> testRunListeners,
-									  List<TestRule> testRules,
-									  PermissionGrantingManager permissionGrantingManager,
-									  IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory) {
+                                      TestRunParameters testRunParameters,
+                                      List<BaseListener> testRunListeners,
+                                      IResultProducer resultProducer,
+                                      List<TestRule> testRules,
+                                      PermissionGrantingManager permissionGrantingManager,
+                                      IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory) {
         this.poolName = poolName;
 		this.testRunParameters = testRunParameters;
 		this.testRunListeners = testRunListeners;
+		this.resultProducer = resultProducer;
 		this.testRules = testRules;
 		this.permissionGrantingManager = permissionGrantingManager;
 		this.remoteAndroidTestRunnerFactory = remoteAndroidTestRunnerFactory;
 	}
 
-	public void execute() {
+	public TestCaseRunResult execute() {
 		String applicationPackage = testRunParameters.getApplicationPackage();
 		String testPackage = testRunParameters.getTestPackage();
 		IDevice device = testRunParameters.getDeviceInterface();
@@ -73,9 +77,11 @@ public class AndroidInstrumentedTestRun {
 		TestCaseEvent test = testRunParameters.getTest();
 		String testClassName;
 		String testMethodName;
+		TestCase testCase;
 		if (test != null) {
 			testClassName = test.getTestClass();
 			testMethodName = test.getTestMethod();
+			testCase = new TestCase(testMethodName, testClassName);
 
 			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", testClassName);
 			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", testMethodName);
@@ -84,11 +90,12 @@ public class AndroidInstrumentedTestRun {
 
 			if (testRunParameters.isCoverageEnabled()) {
 				runner.setCoverage(true);
-				runner.addInstrumentationArg("coverageFile", RemoteFileManager.getCoverageFileName(new TestCase(testMethodName, testClassName)));
+				runner.addInstrumentationArg("coverageFile", RemoteFileManager.getCoverageFileName(testCase));
 			}
 		} else {
 			testClassName = "Test case collection";
 			testMethodName = "";
+			testCase = new TestCase(testMethodName, testClassName);
 
 			runner.addBooleanArg("log", true);
 			addFilterAndCustomArgs(runner, COLLECTING_RUN_FILTER);
@@ -129,6 +136,7 @@ public class AndroidInstrumentedTestRun {
 			testRules.forEach(TestRule::after);
 		}
 
+        return resultProducer.getResult();
     }
 
 	private void addFilterAndCustomArgs(RemoteAndroidTestRunner runner, String collectingRunFilter) {

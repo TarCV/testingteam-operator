@@ -11,12 +11,11 @@
 
 package com.github.tarcv.tongs.summary;
 
-import com.google.gson.JsonObject;
-import com.android.ddmlib.testrunner.TestCase;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.google.gson.JsonObject;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
@@ -27,13 +26,13 @@ import org.junit.Test;
 import java.util.Collection;
 import java.util.HashMap;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
 import static com.github.tarcv.tongs.summary.FakeDeviceTestFilesRetriever.aFakeDeviceTestFilesRetriever;
 import static com.github.tarcv.tongs.summary.TestResult.Builder.aTestResult;
 import static com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -111,7 +110,7 @@ public class SummaryCompilerTest {
     public void compilesSummaryWithCompletedTests() {
         fakeDeviceTestFilesRetriever.thatReturns(testResults);
 
-        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents);
+        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, results);
 
         assertThat(summary.getPoolSummaries().get(0).getTestResults(), hasItems(
                 firstCompletedTest, secondCompletedTest));
@@ -121,7 +120,7 @@ public class SummaryCompilerTest {
     public void compilesSummaryWithIgnoredTests() {
         fakeDeviceTestFilesRetriever.thatReturns(testResults);
 
-        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents);
+        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, results);
 
         assertThat(summary.getIgnoredTests(), hasSize(1));
         assertThat(summary.getIgnoredTests(), contains("com.example.IgnoredClassTest:doesJobProperly"));
@@ -131,7 +130,7 @@ public class SummaryCompilerTest {
     public void compilesSummaryWithFailedTests() {
         fakeDeviceTestFilesRetriever.thatReturns(testResults);
 
-        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents);
+        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, results);
 
         assertThat(summary.getFailedTests(), hasSize(1));
         assertThat(summary.getFailedTests(),
@@ -142,7 +141,7 @@ public class SummaryCompilerTest {
     public void compilesSummaryWithFatalCrashedTestsIfTheyAreNotFoundInPassedOrFailedOrIgnored() {
         fakeDeviceTestFilesRetriever.thatReturns(testResults);
 
-        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents);
+        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, results);
 
         assertThat(summary.getFatalCrashedTests(), hasSize(1));
         assertThat(summary.getFatalCrashedTests(),

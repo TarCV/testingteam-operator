@@ -17,7 +17,7 @@ class TestCaseEventQueueTest {
         val queue = TestCaseEventQueue(listOf(
                 test1,
                 test2
-        ))
+        ), mutableListOf())
         withTimeout {
             Assert.assertEquals(test1, queue.pollForDevice(device1))
             Assert.assertEquals(test2, queue.pollForDevice(device2))
@@ -35,7 +35,7 @@ class TestCaseEventQueueTest {
                 test2,
                 test3,
                 test4
-        ))
+        ), mutableListOf())
         withTimeout {
             Assert.assertEquals(test2, queue.pollForDevice(device1))
             Assert.assertEquals(test1, queue.pollForDevice(device2))
@@ -48,7 +48,7 @@ class TestCaseEventQueueTest {
         val test2 = createTestCaseEvent("test2", emptyList())
         val queue = TestCaseEventQueue(listOf(
                 test1
-        ))
+        ), mutableListOf())
         thread(start = true) {
             sleep(100)
             queue.offer(test2)

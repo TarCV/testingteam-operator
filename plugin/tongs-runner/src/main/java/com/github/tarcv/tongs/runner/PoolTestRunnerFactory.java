@@ -16,7 +16,7 @@ import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class PoolTestRunnerFactory {
@@ -28,7 +28,7 @@ public class PoolTestRunnerFactory {
 
     public Runnable createPoolTestRunner(Pool pool,
                                          Collection<TestCaseEvent> testCases,
-                                         CountDownLatch poolCountDownLatch,
+                                         List<TestCaseRunResult> testCaseResults, CountDownLatch poolCountDownLatch,
                                          ProgressReporter progressReporter) {
 
         int totalTests = testCases.size();
@@ -37,7 +37,7 @@ public class PoolTestRunnerFactory {
         return new PoolTestRunner(
                 deviceTestRunnerFactory,
                 pool,
-                new TestCaseEventQueue(testCases),
+                new TestCaseEventQueue(testCases, testCaseResults),
                 poolCountDownLatch,
                 progressReporter);
     }

@@ -16,7 +16,6 @@ package com.github.tarcv.tongs.system.io;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.model.TestCaseEvent;
 
 import java.io.File;
 
@@ -33,5 +32,9 @@ public interface FileManager {
 
     File[] getFiles(FileType fileType, Pool pool, Device device, TestCase testIdentifier);
 
-    File getFile(FileType fileType, String pool, String safeSerial, TestCase testIdentifier);
+    File getFile(FileType fileType, String pool, String device, TestCase testIdentifier);
+
+    File getFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier);
+
+    File getRelativeFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier);
 }

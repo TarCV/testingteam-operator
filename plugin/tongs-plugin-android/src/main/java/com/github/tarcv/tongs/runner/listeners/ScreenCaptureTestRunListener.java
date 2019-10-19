@@ -16,8 +16,10 @@ import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
+import com.github.tarcv.tongs.runner.TestCaseFile;
 import com.github.tarcv.tongs.system.io.FileManager;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -75,5 +77,10 @@ class ScreenCaptureTestRunListener extends BaseListener {
 
     @Override
     public void testRunStopped(long elapsedTime) {
+    }
+
+    @NotNull
+    public TestCaseFile getFile() {
+        return screenCapturer.getFile();
     }
 }

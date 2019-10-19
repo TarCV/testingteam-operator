@@ -21,7 +21,6 @@ import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import java.io.*;
 import java.util.List;
 
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.RAW_LOG;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.write;
 
@@ -29,17 +28,18 @@ class RawLogCatWriter implements LogCatWriter {
     private final TestCaseFileManager fileManager;
 	private final Pool pool;
 	private final Device device;
+	private final File file;
 
-	RawLogCatWriter(TestCaseFileManager fileManager, Pool pool, Device device) {
+	RawLogCatWriter(TestCaseFileManager fileManager, Pool pool, Device device, File file) {
         this.fileManager = fileManager;
 		this.pool = pool;
 		this.device = device;
+		this.file = file;
 	}
 
 	@Override
 	public void writeLogs(List<LogCatMessage> logCatMessages) {
-        File file = fileManager.createFile(RAW_LOG);
-        FileWriter fileWriter = null;
+		FileWriter fileWriter = null;
 		try {
 			fileWriter = new FileWriter(file);
 			for (LogCatMessage logCatMessage : logCatMessages) {

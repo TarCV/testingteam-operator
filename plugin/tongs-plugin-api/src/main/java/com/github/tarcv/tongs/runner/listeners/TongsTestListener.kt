@@ -10,13 +10,12 @@
 
 package com.github.tarcv.tongs.runner.listeners
 
-import com.github.tarcv.tongs.runner.TestCaseFailed
-import com.github.tarcv.tongs.runner.TestCaseSkipped
+import com.github.tarcv.tongs.runner.TestCaseRunResult
 
 interface TongsTestListener {
     fun onTestStarted()
     fun onTestSuccessful()
-    fun onTestSkipped(skipResult: TestCaseSkipped)
-    fun onTestFailed(failureResult: TestCaseFailed)
-    fun onTestAssumptionFailure(skipResult: TestCaseSkipped)
+    fun onTestSkipped(skipResult: TestCaseRunResult)
+    fun onTestFailed(failureResult: TestCaseRunResult)
+    fun onTestAssumptionFailure(skipResult: TestCaseRunResult)
 }

@@ -13,6 +13,7 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.*;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.runner.TestCaseFile;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
 import com.github.tarcv.tongs.model.*;
@@ -47,6 +48,7 @@ class ScreenCapturer implements Runnable {
     private final List<File> files = new ArrayList<>();
     private boolean capturing;
     private boolean hasFailed;
+    private final TestCaseFile animationFile;
 
     ScreenCapturer(IDevice deviceInterface, TestCaseFileManager fileManager, Pool pool, Device device, TestIdentifier test) {
         this.deviceInterface = deviceInterface;
@@ -54,6 +56,7 @@ class ScreenCapturer implements Runnable {
         this.pool = pool;
         this.device = device;
         this.test = test;
+        this.animationFile = new TestCaseFile(fileManager, ANIMATION, "");
     }
 
     @Override
@@ -67,7 +70,7 @@ class ScreenCapturer implements Runnable {
             }
 
             if (hasFailed) {
-                File file = fileManager.createFile(ANIMATION);
+                File file = animationFile.create();
                 createGif(files, file);
             }
             deleteFiles(files);
@@ -150,5 +153,9 @@ class ScreenCapturer implements Runnable {
         for (File file : files) {
             file.delete();
         }
+    }
+
+    public TestCaseFile getFile() {
+        return animationFile;
     }
 }

@@ -12,8 +12,7 @@
  */
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.github.tarcv.tongs.runner.TestCaseFailed;
-import com.github.tarcv.tongs.runner.TestCaseSkipped;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import org.jetbrains.annotations.NotNull;
 
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
@@ -30,17 +29,17 @@ public class TongsXmlTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestSkipped(@NotNull TestCaseSkipped skipResult) {
+    public void onTestSkipped(@NotNull TestCaseRunResult skipResult) {
         onTestFinished();
     }
 
     @Override
-    public void onTestFailed(@NotNull TestCaseFailed failureResult) {
+    public void onTestFailed(@NotNull TestCaseRunResult failureResult) {
         onTestFinished();
     }
 
     @Override
-    public void onTestAssumptionFailure(@NotNull TestCaseSkipped skipResult) {
+    public void onTestAssumptionFailure(@NotNull TestCaseRunResult skipResult) {
         onTestFinished();
     }
 

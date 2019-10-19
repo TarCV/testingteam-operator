@@ -31,13 +31,16 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector.testRunListenersTongsFactory;
+import static com.github.tarcv.tongs.summary.ResultStatus.ERROR;
 import static com.github.tarcv.tongs.summary.ResultStatus.UNKNOWN;
+import static java.util.Collections.emptyList;
 
 public class DeviceTestRunner implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(DeviceTestRunner.class);
@@ -91,23 +94,29 @@ public class DeviceTestRunner implements Runnable {
                             baseListener.onTestStarted();
                         });
                         TestCaseRunResult result = executeTestCase(context);
+
+                        ResultStatus fixedStatus = result.getStatus();
+                        if (fixedStatus == UNKNOWN) {
+                            // TODO: Report as a fatal crashed test
+                            fixedStatus = ERROR;
+                        }
+
+                        TestCaseRunResult fixedResult = result.copy(pool, device, testCaseEvent.getTestCase(), fixedStatus);
                         testRunListeners.forEach(baseListener -> {
-                            if (result instanceof TestCaseSuccessful) {
-                                // no op
-                            } else if (result instanceof TestCaseSkipped) {
-                                // TODO: support assumption failed
-                                baseListener.onTestSkipped((TestCaseSkipped) result);
+                            ResultStatus status = fixedResult.getStatus();
+                            if (status == ResultStatus.PASS) {
+                                baseListener.onTestSuccessful();
+                            } else if (status == ResultStatus.IGNORED) {
+                                baseListener.onTestSkipped(fixedResult);
+                            } else if (status == ResultStatus.ASSUMPTION_FAILED) {
+                                baseListener.onTestAssumptionFailure(fixedResult);
+                            } else if (status == ResultStatus.FAIL || status == ERROR) {
+                                baseListener.onTestFailed(fixedResult);
                             } else {
-                                TestCaseFailed failureResult;
-                                if (result instanceof TestCaseFailed) {
-                                    failureResult = (TestCaseFailed) result;
-                                } else {
-                                    failureResult = new TestCaseFailed();
-                                }
-                                baseListener.onTestFailed(failureResult);
+                                throw new IllegalStateException("Got unknown status:" + status);
                             }
                         });
-                        return null;
+                        return fixedResult;
                     });
                 } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
                     break;
@@ -132,16 +141,24 @@ public class DeviceTestRunner implements Runnable {
                         testStatus,
                         workCountdownLatch);
                 workCountdownLatch.finalizeRegistering();
-                testRun.execute();
+                return testRun.execute();
             } finally {
                 workCountdownLatch.await(15, TimeUnit.SECONDS);
             }
-            return statusToResultObject(testStatus.get());
         } catch (Throwable e) {
             logger.error("Exception during test case execution", e);
 
             String stackTrace = traceAsStream(e);
-            return new TestCaseFailed(stackTrace);
+            return new TestCaseRunResult(
+                    context.getPool(), context.getDevice(),
+                    context.getTestCaseEvent().getTestCase(),
+                    ERROR,
+                    stackTrace,
+                    0,
+                    0,
+                    Collections.emptyMap(),
+                    null,
+                    emptyList());
         }
     }
 
@@ -152,23 +169,4 @@ public class DeviceTestRunner implements Runnable {
 
         return byteStream.toString();
     }
-
-    private static TestCaseRunResult statusToResultObject(ResultStatus status) {
-        // TODO: remove, TestCaseRunResult should be created by actual test runners
-        switch (status) {
-            case UNKNOWN:
-            case ERROR: // TODO
-            case FAIL:
-                return new TestCaseFailed();
-            case PASS:
-                return new TestCaseSuccessful();
-            case IGNORED:
-            case ASSUMPTION_FAILED:
-                return new TestCaseSkipped();
-            default:
-                throw new IllegalArgumentException("Unexpected test run state: " + status);
-        }
-    }
-
-
 }

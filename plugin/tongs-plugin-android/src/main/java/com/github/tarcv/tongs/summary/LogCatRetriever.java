@@ -20,5 +20,5 @@ import java.util.List;
 
 public interface LogCatRetriever {
 
-    List<LogCatMessage> retrieveLogCat(String poolName, String serial, TestCaseEvent testIdentifier);
+    List<LogCatMessage> retrieveLogCat(String pool, String device, TestCaseEvent testIdentifier);
 }

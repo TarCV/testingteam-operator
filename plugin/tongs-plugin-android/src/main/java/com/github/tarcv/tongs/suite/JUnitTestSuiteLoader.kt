@@ -20,8 +20,8 @@ import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.TestCaseEvent
-import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
 import com.github.tarcv.tongs.runner.AndroidTestRunFactory
+import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
@@ -225,7 +225,6 @@ public class JUnitTestSuiteLoader(
                 TestCaseEvent.newTestCase(
                         it.testName,
                         it.className,
-                        false,
                         info.permissionsToGrant,
                         info.properties,
                         info.info,

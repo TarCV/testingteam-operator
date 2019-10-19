@@ -13,9 +13,12 @@ package com.github.tarcv.tongs.runner;
 
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector;
-import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.model.AndroidDevice;
+import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
-import com.github.tarcv.tongs.runner.listeners.TestRunListenersFactory;
+import com.github.tarcv.tongs.runner.listeners.ResultProducer;
+import com.github.tarcv.tongs.runner.listeners.TestCollectorResultProducer;
 import com.github.tarcv.tongs.runner.rules.TestRule;
 import com.github.tarcv.tongs.runner.rules.TestRuleContext;
 import com.github.tarcv.tongs.runner.rules.TestRuleFactory;
@@ -32,12 +35,10 @@ import java.util.stream.Collectors;
 
 public class AndroidTestRunFactory {
 
-    private final TestRunListenersFactory testRunListenersFactory;
     private final TongsConfiguration configuration;
 
-    public AndroidTestRunFactory(TongsConfiguration configuration, TestRunListenersFactory testRunListenersFactory) {
+    public AndroidTestRunFactory(TongsConfiguration configuration) {
         this.configuration = configuration;
-        this.testRunListenersFactory = testRunListenersFactory;
     }
 
     public AndroidInstrumentedTestRun createTestRun(TestRuleContext testRunContext, TestCaseEvent testCase,
@@ -48,7 +49,8 @@ public class AndroidTestRunFactory {
         TestRunParameters testRunParameters = createTestParameters(testCase, device, configuration);
 
         List<BaseListener> testRunListeners = new ArrayList<>();
-        testRunListeners.addAll(testRunListenersFactory.createAndroidListeners(testRunContext, testStatus, workCountdownLatch));
+        ResultProducer resultProducer = new ResultProducer(testRunContext, workCountdownLatch);
+        testRunListeners.addAll(resultProducer.requestListeners());
 
         List<TestRuleFactory> testRuleFactories = Collections.singletonList(new AndroidCleanupTestRuleFactory());
         List<TestRule> testRules = testRuleFactories.stream()
@@ -59,6 +61,7 @@ public class AndroidTestRunFactory {
                 pool.getName(),
                 testRunParameters,
                 testRunListeners,
+                resultProducer,
                 testRules,
                 new PermissionGrantingManager(configuration),
                 RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration)
@@ -80,6 +83,7 @@ public class AndroidTestRunFactory {
                 pool.getName(),
                 testRunParameters,
                 testRunListeners,
+                new TestCollectorResultProducer(pool, device),
                 Collections.singletonList(collectingTestRule),
                 null,
                 RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration)

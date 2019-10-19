@@ -15,8 +15,6 @@ package com.github.tarcv.tongs.summary;
 
 import com.github.tarcv.tongs.model.TestCaseEvent;
 
-import java.util.Collection;
-
 /**
  * Plain bean class, to feed to Moustache markup files.
  */
@@ -30,7 +28,6 @@ public class HtmlTestResult {
 	public TestCaseEvent testIdentifier;
 	public String fileNameForTest;
 	public String poolName;
-	public Collection<HtmlLogCatMessage> logcatMessages;
 	public String timeTaken;
 	public String[] trace;
     public boolean diagnosticVideo;

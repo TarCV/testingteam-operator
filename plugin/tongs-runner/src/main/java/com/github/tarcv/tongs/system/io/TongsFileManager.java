@@ -14,7 +14,6 @@ package com.github.tarcv.tongs.system.io;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCase;
-
 import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -92,10 +91,23 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public File getFile(FileType fileType, String pool, String safeSerial, TestCase testIdentifier) {
+    public File getFile(FileType fileType, String pool, String device, TestCase testIdentifier) {
         String filenameForTest = FileUtils.createFilenameForTest(testIdentifier, fileType);
-        Path path = get(output.getAbsolutePath(), fileType.getDirectory(), pool, safeSerial, filenameForTest);
+        Path path = get(output.getAbsolutePath(), fileType.getDirectory(), pool, device, filenameForTest);
         return path.toFile();
+    }
+
+    @Override
+    public File getFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier) {
+        String filenameForTest = FileUtils.createFilenameForTest(testIdentifier, fileType);
+        Path path = get(output.getAbsolutePath(), fileType.getDirectory(), pool.getName(), device.getSafeSerial(), filenameForTest);
+        return path.toFile();
+    }
+
+    @Override
+    public File getRelativeFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier) {
+        File absoluteFile = getFile(fileType, pool, device, testIdentifier);
+        return absoluteFile.toPath().relativize(output.getAbsoluteFile().toPath()).toFile();
     }
 
     private Path createDirectory(FileType test, Pool pool, Device device) throws IOException {

@@ -14,9 +14,11 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
+import com.github.tarcv.tongs.runner.TestCaseFile;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,12 +35,16 @@ public class CoverageListener extends BaseListener {
     private final Logger logger = LoggerFactory.getLogger(CoverageListener.class);
     private final TestCaseEvent testCase;
 
+    @NotNull
+    public final TestCaseFile coverageFile;
+
     public CoverageListener(AndroidDevice device, TestCaseFileManager fileManager, Pool pool, TestCaseEvent testCase, PreregisteringLatch latch) {
         super(latch);
         this.device = device;
         this.fileManager = fileManager;
         this.pool = pool;
         this.testCase = testCase;
+        this.coverageFile = new TestCaseFile(fileManager, COVERAGE, "");
     }
 
     @Override
@@ -78,7 +84,7 @@ public class CoverageListener extends BaseListener {
         try {
             TestCase testIdentifier = new TestCase(testCase.getTestMethod(), testCase.getTestClass());
             final String remoteFile = RemoteFileManager.getCoverageFileName(testIdentifier);
-            final File file = fileManager.createFile(COVERAGE);
+            final File file = coverageFile.create();
             try {
                 device.getDeviceInterface().pullFile(remoteFile, file.getAbsolutePath());
             } catch (Exception e) {

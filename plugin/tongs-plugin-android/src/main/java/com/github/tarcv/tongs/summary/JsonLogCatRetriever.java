@@ -15,11 +15,13 @@ package com.github.tarcv.tongs.summary;
 
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.system.io.FileManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.github.tarcv.tongs.system.io.FileManager;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.List;
 
 import static com.github.tarcv.tongs.system.io.StandardFileTypes.JSON_LOG;
@@ -34,8 +36,8 @@ public class JsonLogCatRetriever implements LogCatRetriever {
     }
 
     @Override
-    public List<LogCatMessage> retrieveLogCat(String poolName, String safeSerial, TestCaseEvent testIdentifier) {
-        File logcatJsonFile = fileManager.getFile(JSON_LOG, poolName, safeSerial, testIdentifier.getTestCase());
+    public List<LogCatMessage> retrieveLogCat(String pool, String device, TestCaseEvent testIdentifier) {
+        File logcatJsonFile = fileManager.getFile(JSON_LOG, pool, device, testIdentifier.getTestCase());
         try {
             FileReader fileReader = new FileReader(logcatJsonFile);
             return gson.fromJson(fileReader, new TypeToken<List<LogCatMessage>>() {}.getType());

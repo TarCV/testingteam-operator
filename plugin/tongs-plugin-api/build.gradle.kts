@@ -23,6 +23,7 @@ dependencies {
     implementation(extra.deps.getValue("gson"))
     implementation(extra.deps.getValue("guava"))
     implementation(extra.deps.getValue("jsr305"))
+    api("org.simpleframework:simple-xml:2.7.1")
     api(extra.deps.getValue("slf4j"))
 
     testCompile(group = "junit", name = "junit", version = "4.12")

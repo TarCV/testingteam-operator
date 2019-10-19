@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@ package com.github.tarcv.tongs.summary;
 
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
 
 import java.util.Collection;
+import java.util.List;
 
 public class Summarizer {
 
@@ -28,8 +30,8 @@ public class Summarizer {
         this.outcomeAggregator = outcomeAggregator;
     }
 
-    boolean summarize(Collection<Pool> pools, Collection<TestCaseEvent> testCases) {
-        Summary summary = summaryCompiler.compileSummary(pools, testCases);
+    boolean summarize(Collection<Pool> pools, Collection<TestCaseEvent> testCases, List<TestCaseRunResult> results) {
+        Summary summary = summaryCompiler.compileSummary(pools, testCases, results);
         summaryPrinter.print(summary);
         return outcomeAggregator.aggregate(summary);
     }

@@ -14,7 +14,9 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.testrunner.XmlTestRunListener;
+import com.github.tarcv.tongs.runner.TestCaseFile;
 import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -22,14 +24,20 @@ import static com.github.tarcv.tongs.system.io.StandardFileTypes.TEST;
 
 public class AndroidXmlTestRunListener extends XmlTestRunListener {
 
-    private final TestCaseFileManager fileManager;
+    @NotNull
+    private final TestCaseFile file;
 
     public AndroidXmlTestRunListener(TestCaseFileManager fileManager) {
-        this.fileManager = fileManager;
+        this.file = new TestCaseFile(fileManager, TEST, "");
+    }
+
+    @NotNull
+    public TestCaseFile getFile() {
+        return file;
     }
 
     @Override
     protected File getResultFile(File reportDir) {
-        return fileManager.createFile(TEST);
+        return file.create();
     }
 }

@@ -15,15 +15,24 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
-import com.github.tarcv.tongs.system.io.TestCaseFileManager;
-import com.google.gson.Gson;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.system.io.FileManager;
+import com.github.tarcv.tongs.runner.PreregisteringLatch;
+import com.github.tarcv.tongs.runner.Table;
+import com.github.tarcv.tongs.runner.TestCaseFile;
+import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.JSON_LOG;
+import static com.github.tarcv.tongs.system.io.StandardFileTypes.RAW_LOG;
+import static java.util.Arrays.asList;
 
 class LogCatTestRunListener extends BaseListener {
 	private final LogcatReceiver logcatReceiver;
@@ -31,14 +40,20 @@ class LogCatTestRunListener extends BaseListener {
     private final Pool pool;
 	private final Device device;
     private final Gson gson;
+    private final List<LogCatMessage> messages = Collections.synchronizedList(new ArrayList<LogCatMessage>());
 
-    public LogCatTestRunListener(Gson gson, TestCaseFileManager fileManager, Pool pool, Device device, PreregisteringLatch latch) {
+	private final TestCaseFile jsonFile;
+	private final TestCaseFile rawFile;
+
+	public LogCatTestRunListener(Gson gson, TestCaseFileManager fileManager, Pool pool, Device device, PreregisteringLatch latch) {
 		super(latch);
 		this.logcatReceiver = new LogcatReceiver(device);
         this.gson = gson;
         this.fileManager = fileManager;
         this.pool = pool;
 		this.device = device;
+		this.jsonFile = new TestCaseFile(fileManager, JSON_LOG, "");
+		this.rawFile = new TestCaseFile(fileManager, RAW_LOG, "");
 	}
 
 	@Override
@@ -65,9 +80,13 @@ class LogCatTestRunListener extends BaseListener {
     @Override
 	public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
 		List<LogCatMessage> copyOfLogCatMessages = logcatReceiver.getMessages();
-        LogCatWriter logCatWriter = new CompositeLogCatWriter(
-                new JsonLogCatWriter(gson, fileManager, pool, device),
-                new RawLogCatWriter(fileManager, pool, device));
+		synchronized (messages) {
+			messages.clear();
+			messages.addAll(copyOfLogCatMessages);
+		}
+		LogCatWriter logCatWriter = new CompositeLogCatWriter(
+                new JsonLogCatWriter(gson, fileManager, pool, device, jsonFile.create()),
+                new RawLogCatWriter(fileManager, pool, device, rawFile.create()));
         LogCatSerializer logCatSerializer = new LogCatSerializer(test, logCatWriter);
 		logCatSerializer.serializeLogs(copyOfLogCatMessages);
 	}
@@ -87,5 +106,38 @@ class LogCatTestRunListener extends BaseListener {
 		} finally {
     		onWorkFinished();
 		}
+	}
+
+	public TestCaseFile getJsonFile() {
+		return jsonFile;
+	}
+
+	public TestCaseFile getRawFile() {
+		return rawFile;
+	}
+
+	@NotNull
+	public Table getAsTable() {
+		List<String> headers = asList("appName",
+				"logLevel",
+				"message",
+				"pid",
+				"tag",
+				"tid",
+				"time"
+		);
+		List<List<String>> rows = messages.stream()
+				.map(logCatMessage -> {
+					return asList(logCatMessage.getAppName(),
+							logCatMessage.getLogLevel().getStringValue(),
+							logCatMessage.getMessage(),
+							String.valueOf(logCatMessage.getPid()),
+							logCatMessage.getTag(),
+							String.valueOf(logCatMessage.getTid()),
+							logCatMessage.getTimestamp().toString()
+					);
+				})
+				.collect(Collectors.toList());
+		return new Table(headers, rows);
 	}
 }

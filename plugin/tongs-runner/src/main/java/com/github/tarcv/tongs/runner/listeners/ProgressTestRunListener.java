@@ -24,7 +24,7 @@ class ProgressTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestFailed(TestCaseFailed failureResult) {
+    public void onTestFailed(TestCaseRunResult failureResult) {
         poolProgressTracker.failedTest();
         poolProgressTracker.completedTest();
     }
@@ -40,12 +40,12 @@ class ProgressTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestSkipped(@NotNull TestCaseSkipped skipResult) {
+    public void onTestSkipped(@NotNull TestCaseRunResult skipResult) {
         poolProgressTracker.completedTest();
     }
 
     @Override
-    public void onTestAssumptionFailure(@NotNull TestCaseSkipped skipResult) {
+    public void onTestAssumptionFailure(@NotNull TestCaseRunResult skipResult) {
         poolProgressTracker.completedTest();
     }
 }

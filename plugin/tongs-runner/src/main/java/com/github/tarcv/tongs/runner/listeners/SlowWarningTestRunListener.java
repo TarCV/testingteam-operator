@@ -12,8 +12,7 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.runner.TestCaseFailed;
-import com.github.tarcv.tongs.runner.TestCaseSkipped;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,17 +49,17 @@ class SlowWarningTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestFailed(TestCaseFailed failureResult) {
+    public void onTestFailed(TestCaseRunResult failureResult) {
         onTestEnded();
     }
 
     @Override
-    public void onTestSkipped(@NotNull TestCaseSkipped skipResult) {
+    public void onTestSkipped(@NotNull TestCaseRunResult skipResult) {
         onTestEnded();
     }
 
     @Override
-    public void onTestAssumptionFailure(@NotNull TestCaseSkipped skipResult) {
+    public void onTestAssumptionFailure(@NotNull TestCaseRunResult skipResult) {
         onTestEnded();
     }
 }

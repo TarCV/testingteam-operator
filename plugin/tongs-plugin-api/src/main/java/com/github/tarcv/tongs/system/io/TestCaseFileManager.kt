@@ -19,4 +19,6 @@ interface TestCaseFileManager {
     fun createFile(fileType: FileType): File
     fun createFile(fileType: FileType, sequenceNumber: Int): File
     fun createFile(fileType: FileType, suffix: String): File
+    fun getFile(fileType: FileType, suffix: String): File
+    fun getRelativeFile(fileType: FileType, suffix: String): File
 }

@@ -13,24 +13,26 @@
  */
 package com.github.tarcv.tongs.summary;
 
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class PoolSummary {
 	private final String poolName;
-	private final Collection<TestResult> testResults;
+	private final Collection<TestCaseRunResult> testResults;
 
 	public String getPoolName() {
 		return poolName;
 	}
 
-	public Collection<TestResult> getTestResults() {
+	public Collection<TestCaseRunResult> getTestResults() {
 		return testResults;
 	}
 
 	public static class Builder {
 		private String poolName;
-		private final Collection<TestResult> testResults = new ArrayList<>();
+		private final Collection<TestCaseRunResult> testResults = new ArrayList<>();
 
 		public static Builder aPoolSummary() {
 			return new Builder();
@@ -41,7 +43,7 @@ public class PoolSummary {
 			return this;
 		}
 
-		public Builder addTestResults(Collection<TestResult> testResults) {
+		public Builder addTestResults(Collection<TestCaseRunResult> testResults) {
 			this.testResults.addAll(testResults);
 			return this;
 		}

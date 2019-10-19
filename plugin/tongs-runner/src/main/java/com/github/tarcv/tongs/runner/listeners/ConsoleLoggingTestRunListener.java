@@ -16,8 +16,7 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 
-import com.github.tarcv.tongs.runner.TestCaseFailed;
-import com.github.tarcv.tongs.runner.TestCaseSkipped;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,19 +54,19 @@ class ConsoleLoggingTestRunListener implements TongsTestListener {
     }
 
     @Override
-    public void onTestFailed(TestCaseFailed failureResult) {
+    public void onTestFailed(TestCaseRunResult failureResult) {
         System.out.println(format("%s %s %s %s [%s] Failed %s\n %s", runningTime(), progress(), failures(), modelName,
                 serial, testCase(test), failureResult.getStackTrace()));
     }
 
     @Override
-    public void onTestAssumptionFailure(TestCaseSkipped skipped) {
+    public void onTestAssumptionFailure(TestCaseRunResult skipped) {
         logger.debug("test={}", testCase(test));
         logger.debug("assumption failure {}", skipped.getStackTrace());
     }
 
     @Override
-    public void onTestSkipped(TestCaseSkipped skipped) {
+    public void onTestSkipped(TestCaseRunResult skipped) {
         logger.debug("ignored test {} {}", testCase(test), skipped.getStackTrace());
     }
 

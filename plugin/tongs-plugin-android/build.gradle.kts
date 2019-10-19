@@ -31,9 +31,6 @@ dependencies {
     implementation(extra.deps.getValue("jsr305"))
     implementation(extra.deps.getValue("slf4j"))
     implementation("com.madgag:animated-gif-lib:1.2") // TODO: move GIF creation back to plugin api or runner
-    implementation("org.lesscss:lesscss:1.7.0.1.1") { // TODO: move to plugin api or runner
-        exclude(module = "slf4j-simple")
-    }
 
     testCompile(group = "junit", name = "junit", version = "4.12")
 }

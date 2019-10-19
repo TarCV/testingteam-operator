@@ -12,5 +12,10 @@
 package com.github.tarcv.tongs.summary;
 
 public enum ResultStatus {
-    PASS, FAIL, ERROR, IGNORED, ASSUMPTION_FAILED, UNKNOWN
+    PASS,
+    FAIL,
+    ERROR, // TODO
+    IGNORED,
+    ASSUMPTION_FAILED,
+    UNKNOWN
 }
