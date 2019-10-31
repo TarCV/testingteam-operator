@@ -14,9 +14,7 @@ package com.github.tarcv.tongs.io
 
 import com.github.mustachejava.DefaultMustacheFactory
 import com.github.mustachejava.MustacheFactory
-import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.model.Diagnostics
-import com.github.tarcv.tongs.model.DisplayGeometry
+import com.github.tarcv.tongs.model.Device.TEST_DEVICE
 import com.github.tarcv.tongs.model.Pool.Builder.aDevicePool
 import com.github.tarcv.tongs.model.TestCase
 import com.github.tarcv.tongs.runner.*
@@ -35,29 +33,8 @@ class TemplateTest {
         private val mustacheFactory: MustacheFactory = DefaultMustacheFactory()
     }
 
-    val device = object: Device() {
-        override fun getSerial(): String = "DeviceSerial"
-
-        override fun getManufacturer(): String = "DeviceManufacturer"
-
-        override fun getModelName(): String = "DeviceModel"
-
-        override fun getOsApiLevel(): Int = 25
-
-        override fun getLongName(): String = "LongDeviceName"
-
-        override fun getDeviceInterface(): Any = java.lang.Object()
-
-        override fun isTablet(): Boolean = false
-
-        override fun getGeometry(): DisplayGeometry? = DisplayGeometry(300)
-
-        override fun getSupportedVisualDiagnostics(): Diagnostics = Diagnostics.VIDEO
-
-        override fun getUniqueIdentifier(): Any = java.lang.Object()
-    }
     val pool = aDevicePool()
-            .addDevice(device)
+            .addDevice(TEST_DEVICE)
             .withName("TestPool")
             .build()
 
@@ -112,10 +89,9 @@ class TemplateTest {
     fun tableDataIsCorrectlyDisplayed() {
         val mustache = StringReader("""
             {{#data}}
-                {{#titleIs.Table title}}is Table{{/titleIs.Table title}}
                 - title: {{title}}
                 {{#table}}
-                    {{#headers}}|{{.}}{{/headers}}|
+                    {{#headers}}|{{title}}{{/headers}}|
                     {{#rows}}
                     {{#cells}}{{.}}-{{/cells}}
                     {{/rows}}
@@ -124,7 +100,7 @@ class TemplateTest {
             """.trimIndent()).use {
             mustacheFactory.compile(it, "template")
         }
-        val model = aTestCaseRunResult(datas = listOf(TableReportData("Table title",
+        val model = aTestCaseRunResult(datas = listOf(TableReportData("Table-title",
                 tableOf(
                         listOf("foo", "bar"),
                         listOf("1", "2"),
@@ -137,7 +113,7 @@ class TemplateTest {
             it.toString()
         }
         Assert.assertEquals("""
-            |    - title: Table
+            |    - title: Table-title
             |        |foo|bar|
             |        1-2-
             |        3-4-
@@ -146,7 +122,7 @@ class TemplateTest {
 
     private fun aTestCaseRunResult(datas: List<TestReportData>): TestCaseRunResult {
         return TestCaseRunResult(
-                pool, device,
+                pool, TEST_DEVICE,
                 TestCase("method", "Class"),
                 ResultStatus.FAIL, "stackTrace\n\ttrace",
                 10F, 3,

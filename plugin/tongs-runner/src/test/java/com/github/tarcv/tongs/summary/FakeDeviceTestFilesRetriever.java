@@ -15,6 +15,7 @@ import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.Collection;
 
 import static java.util.Collections.emptyList;
@@ -38,5 +39,10 @@ public class FakeDeviceTestFilesRetriever implements DeviceTestFilesRetriever {
     @Override
     public Collection<TestResult> getTestResultsForDevice(Pool pool, Device device) {
         return testResults;
+    }
+
+    @Override
+    public Collection<TestResult> parseTestResultsFromFile(File file, Device device) {
+        throw new UnsupportedOperationException();
     }
 }

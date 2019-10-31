@@ -14,8 +14,10 @@ package com.github.tarcv.tongs.runner
 
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
+import com.github.tarcv.tongs.model.Pool.Builder.aDevicePool
 import com.github.tarcv.tongs.model.TestCase
 import com.github.tarcv.tongs.summary.ResultStatus
+import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
 import com.github.tarcv.tongs.system.io.FileType
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import java.io.File
@@ -39,6 +41,25 @@ class TestCaseRunResult(
                 this.stackTrace, this.timeTaken, this.totalFailureCount,
                 this.metrics, this.coverageReport, this.data
         )
+    }
+
+    companion object {
+        private val pool = aDevicePool().addDevice(Device.TEST_DEVICE).build()
+
+        @JvmStatic
+        fun aTestResult(testClass: String, testMethod: String, status: ResultStatus, trace: String): TestCaseRunResult {
+            return aTestResult(pool, Device.TEST_DEVICE, testClass, testMethod, status, trace)
+        }
+
+        @JvmStatic
+        @JvmOverloads
+        fun aTestResult(pool: Pool, device: Device, testClass: String, testMethod: String, status: ResultStatus, trace: String, metrics: Map<String, String> = emptyMap()): TestCaseRunResult {
+            val totalFailureCount: Int = metrics
+                    .get(SUMMARY_KEY_TOTAL_FAILURE_COUNT)
+                    ?.let(Integer::parseInt)
+                    ?: 0
+            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, trace, 15f, totalFailureCount, metrics, null, emptyList())
+        }
     }
 }
 

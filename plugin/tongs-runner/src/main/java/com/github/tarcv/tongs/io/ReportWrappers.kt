@@ -3,8 +3,6 @@ package com.github.tarcv.tongs.io
 import org.slf4j.LoggerFactory
 import java.beans.Introspector
 import java.nio.file.Paths
-import kotlin.reflect.KClass
-import kotlin.reflect.full.memberProperties
 
 class ReportWrapperEntry(override val key: String, override val value: Any) : Map.Entry<String, Any>
 
@@ -20,9 +18,6 @@ class ReportWrapper<T: Any>(private val wrapped: T): Map<String, Any> {
         val suffixes = listOf("", lowerCaseSuffix, upperCaseSuffix,
                 despacedUnderscoreSuffix, unixPathSuffix, equalsSuffix)
     }
-
-    @Suppress("UNCHECKED_CAST")
-    val memberProperties = (wrapped::class as KClass<T>).memberProperties
 
     override val entries: Set<Map.Entry<String, Any>>
         get() {

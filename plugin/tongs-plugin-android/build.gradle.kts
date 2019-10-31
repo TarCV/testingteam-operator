@@ -32,5 +32,6 @@ dependencies {
     implementation(extra.deps.getValue("slf4j"))
     implementation("com.madgag:animated-gif-lib:1.2") // TODO: move GIF creation back to plugin api or runner
 
-    testCompile(group = "junit", name = "junit", version = "4.12")
+    testImplementation(extra.deps.getValue("junit"))
+    testImplementation(extra.deps.getValue("hamcrest"))
 }

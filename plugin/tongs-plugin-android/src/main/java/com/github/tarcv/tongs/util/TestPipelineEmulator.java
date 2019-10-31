@@ -11,33 +11,49 @@
 
 package com.github.tarcv.tongs.util;
 
-import com.android.ddmlib.testrunner.ITestRunListener;
-import com.android.ddmlib.testrunner.TestCase;
+import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.model.TestCase;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
+import com.github.tarcv.tongs.summary.ResultStatus;
+import org.jetbrains.annotations.NotNull;
 
+import static com.github.tarcv.tongs.model.Device.TEST_DEVICE;
+import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 public class TestPipelineEmulator {
     private final String trace;
     private final String fatalErrorMessage;
+    private final Pool testPool = aDevicePool()
+            .addDevice(TEST_DEVICE)
+            .build();
 
     private TestPipelineEmulator(Builder builder) {
         this.trace = builder.trace;
         this.fatalErrorMessage = builder.fatalErrorMessage;
     }
 
-    public void emulateFor(ITestRunListener testRunListener, TestCase test) {
-        testRunListener.testRunStarted("emulated", 1);
-        testRunListener.testStarted(test);
+    public void emulateFor(TongsTestListener testRunListener, TestCase testCase) {
+        TestIdentifier test = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
+        testRunListener.onTestStarted();
         if (trace != null) {
-            testRunListener.testFailed(test, trace);
+            testRunListener.onTestFailed(failureResult(testCase, ResultStatus.FAIL, trace));
+        } else if (fatalErrorMessage != null) {
+            testRunListener.onTestFailed(failureResult(testCase, ResultStatus.ERROR, fatalErrorMessage));
+        } else {
+            testRunListener.onTestSuccessful();
         }
-        testRunListener.testEnded(test, emptyMap());
-        if (fatalErrorMessage != null) {
-            testRunListener.testRunFailed(fatalErrorMessage);
-        }
-        testRunListener.testRunEnded(100L, emptyMap());
     }
 
+    @NotNull
+    private TestCaseRunResult failureResult(TestCase testCase, ResultStatus status, String trace) {
+        return new TestCaseRunResult(testPool, TEST_DEVICE, testCase, status, trace, 100, 0, emptyMap(), null, emptyList());
+    }
+
+    // TODO: Rewrite for new Tongs pipeline
     public static class Builder {
         private String trace;
         private String fatalErrorMessage;

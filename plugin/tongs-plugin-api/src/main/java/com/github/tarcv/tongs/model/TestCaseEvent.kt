@@ -59,6 +59,7 @@ class TestCaseEvent private constructor(
 
     companion object {
 
+        @JvmStatic
         fun newTestCase(testMethod: String, testClass: String, permissionsToGrant: List<String>, properties: Map<String, String>, info: JsonObject?, excludedDevices: Collection<Device>): TestCaseEvent {
             val testCase = TestCase(testMethod, testClass, properties)
             return TestCaseEvent(testCase, permissionsToGrant, excludedDevices)

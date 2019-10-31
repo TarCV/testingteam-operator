@@ -38,7 +38,7 @@ public abstract class Device {
     public abstract boolean isTablet();
 
     @Nullable
-public abstract DisplayGeometry getGeometry();
+    public abstract DisplayGeometry getGeometry();
 
     public abstract Diagnostics getSupportedVisualDiagnostics();
 
@@ -64,4 +64,57 @@ public abstract DisplayGeometry getGeometry();
     public int hashCode() {
         return Objects.hash(getUniqueIdentifier());
     }
+
+    public static final Device TEST_DEVICE = new Device() {
+        @Override
+        public String getSerial() {
+            return "DeviceSerial";
+        }
+
+        @Override
+        public String getManufacturer() {
+            return "DeviceManufacturer";
+        }
+
+        @Override
+        public String getModelName() {
+            return "DeviceModel";
+        }
+
+        @Override
+        public int getOsApiLevel() {
+            return 25;
+        }
+
+        @Override
+        public String getLongName() {
+            return "LongDeviceName";
+        }
+
+        @Override
+        public Object getDeviceInterface() {
+            return new Object();
+        }
+
+        @Override
+        public boolean isTablet() {
+            return false;
+        }
+
+        @Override
+        @Nullable
+        public DisplayGeometry getGeometry() {
+            return new DisplayGeometry(300);
+        }
+
+        @Override
+        public Diagnostics getSupportedVisualDiagnostics() {
+            return Diagnostics.VIDEO;
+        }
+
+        @Override
+        protected Object getUniqueIdentifier() {
+            return new Object();
+        }
+    };
 }

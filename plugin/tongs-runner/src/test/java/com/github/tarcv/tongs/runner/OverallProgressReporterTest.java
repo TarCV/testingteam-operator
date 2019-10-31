@@ -11,18 +11,17 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.google.gson.JsonObject;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
-
+import com.google.gson.JsonObject;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
+import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
 import static com.github.tarcv.tongs.runner.FakePoolTestCaseAccumulator.aFakePoolTestCaseAccumulator;
@@ -40,7 +39,7 @@ public class OverallProgressReporterTest {
     private final Pool A_POOL = aDevicePool()
             .addDevice(A_DEVICE)
             .build();
-    private final TestCaseEvent A_TEST_CASE = newTestCase("aTestMethod", "aTestClass", false, emptyList(), emptyMap(), new JsonObject(), emptyList());
+    private final TestCaseEvent A_TEST_CASE = newTestCase("aTestMethod", "aTestClass", emptyList(), emptyMap(), new JsonObject(), emptyList());
 
     private OverallProgressReporter overallProgressReporter;
 

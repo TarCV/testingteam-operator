@@ -11,10 +11,10 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestCase;
 import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.runner.TestRetryer;
@@ -25,7 +25,7 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
+import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
 import static com.github.tarcv.tongs.util.TestPipelineEmulator.Builder.testPipelineEmulator;
@@ -51,13 +51,13 @@ public class RetryListenerTest {
     public void reschedulesTestIfTestRunFailedAndDeleteTraceFiles() {
         PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         RetryListener retryListener =
-                new RetryListener(pool, device, startedTest, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
+                new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner);
 
         mockery.checking(new Expectations() {{
             oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTestCaseEvent);
             will(returnValue(true));
 
-            oneOf(deviceTestFilesCleaner).deleteTraceFiles(fatalCrashedTest);
+            oneOf(deviceTestFilesCleaner).deleteTraceFiles(newTestCase(fatalCrashedTest));
         }});
 
         TestPipelineEmulator emulator = testPipelineEmulator()
@@ -70,13 +70,13 @@ public class RetryListenerTest {
     public void doesNotDeleteTraceFilesIfCannotRescheduleTestAfterTestRunFailed() {
         PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         RetryListener retryListener =
-                new RetryListener(pool, device, startedTest, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner, workCountdownLatch);
+                new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner);
 
         mockery.checking(new Expectations() {{
             oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTestCaseEvent);
             will(returnValue(false));
 
-            never(deviceTestFilesCleaner).deleteTraceFiles(fatalCrashedTest);
+            never(deviceTestFilesCleaner).deleteTraceFiles(newTestCase(fatalCrashedTest));
         }});
 
         TestPipelineEmulator emulator = testPipelineEmulator()

@@ -65,19 +65,23 @@ private fun withTimeout(block: () -> Unit) {
 }
 
 private fun createTestCaseEvent(name: String, excludes: List<Device>) =
-        TestCaseEvent.newTestCase(name, "class", false, emptyList(), emptyMap(), null, excludes)
+        TestCaseEvent.newTestCase(name, "class", emptyList(), emptyMap(), null, excludes)
 
 private fun createStubDevice(serial: String): Device {
     val api = 20
     val manufacturer = "tongs"
     val model = "Emu-$api"
     val stubDevice = StubDevice(serial, manufacturer, model, serial, api, "", 1)
-    return Device.Builder()
-            .withApiLevel(api.toString())
-            .withDisplayGeometry(DisplayGeometry(640))
-            .withManufacturer(manufacturer)
-            .withModel(model)
-            .withSerial(serial)
-            .withDeviceInterface(stubDevice)
-            .build()
+    return object: Device() {
+        override fun getSerial(): String = serial
+        override fun getManufacturer(): String = manufacturer
+        override fun getModelName(): String = model
+        override fun getOsApiLevel(): Int = api
+        override fun getLongName(): String = "${serial} ($model)"
+        override fun getDeviceInterface(): Any = stubDevice
+        override fun isTablet(): Boolean = false
+        override fun getGeometry(): DisplayGeometry? = DisplayGeometry(640)
+        override fun getSupportedVisualDiagnostics(): Diagnostics = Diagnostics.VIDEO
+        override fun getUniqueIdentifier(): Any = getSerial()
+    }
 }

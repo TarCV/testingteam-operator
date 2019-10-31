@@ -18,5 +18,5 @@ data class TestCase @JvmOverloads constructor(
      * Returns a readable string uniquely identifying a test case for use in logs and file names.
      * In current implementation it consists of the testMethod name and the name of the test class
      */
-    override fun toString(): String = "$testClass#$testMethod:"
+    override fun toString(): String = "$testClass#$testMethod"
 }

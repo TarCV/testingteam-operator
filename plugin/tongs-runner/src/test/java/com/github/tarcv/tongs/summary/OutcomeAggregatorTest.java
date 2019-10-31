@@ -11,28 +11,31 @@
 
 package com.github.tarcv.tongs.summary;
 
+import com.github.tarcv.tongs.model.Device;
+import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import org.junit.Test;
 
+import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
+import static com.github.tarcv.tongs.summary.ResultStatus.IGNORED;
+import static com.github.tarcv.tongs.summary.ResultStatus.PASS;
 import static com.github.tarcv.tongs.summary.Summary.Builder.aSummary;
-import static com.github.tarcv.tongs.summary.TestResult.Builder.aTestResult;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 public class OutcomeAggregatorTest {
+    private final Pool pool = aDevicePool().addDevice(Device.TEST_DEVICE).build();
+
     @Test
     public void returnsFalseIfThereAreFatalCrashedTests() {
         Summary summary = aSummary()
                 .addFatalCrashedTest("com.example.FatalCrashedTest:testMethod")
                 .addPoolSummary(aPoolSummary()
                         .withPoolName("pool")
-                        .addTestResults(singleton(aTestResult()
-                                .withTestClass("com.example.SuccessfulTest")
-                                .withTestMethod("testMethod")
-                                .withTimeTaken(15.0f)
-                                .build()))
+                        .addTestResults(singleton(TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", ResultStatus.ERROR, "error")))
                         .build())
                 .build();
 
@@ -48,16 +51,8 @@ public class OutcomeAggregatorTest {
                 .addPoolSummary(aPoolSummary()
                         .withPoolName("pool")
                         .addTestResults(asList(
-                                aTestResult()
-                                        .withTestClass("com.example.SuccessfulTest")
-                                        .withTestMethod("testMethod")
-                                        .withTimeTaken(15.0f)
-                                        .build(),
-                                aTestResult()
-                                        .withTestClass("com.example.IgnoredTest")
-                                        .withTestMethod("testMethod")
-                                        .withIgnored(true)
-                                        .build()
+                                TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", PASS, ""),
+                                TestCaseRunResult.Companion.aTestResult("com.example.IgnoredTest", "testMethod", IGNORED, "")
                         ))
                         .build())
                 .build();
