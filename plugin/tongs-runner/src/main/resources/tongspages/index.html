@@ -24,14 +24,14 @@
                         <tbody>
                             {{#pools}}
                             <tr class="device">
-                                <th colspan="{{testCount}}">
-                                	<a href="pools/{{plainPoolName}}.html">{{prettyPoolName}}</a>
+                                <th colspan="{{size testResults}}">
+                                	<a href="pools/{{poolName}}.html">{{titleize poolName}}</a>
                                 </th>
                             </tr>
                             <tr class="result">
                                 {{#testResults}}
                                 <td class="test {{status}}">
-                                    <a href="pools/{{plainPoolName}}/{{fileNameForTest}}html" id="testMethod" data-original-title="{{prettyClassName}}" data-content="{{prettyMethodName}} ({{deviceModelDespaced}}) [{{deviceSerial}}]">&nbsp;</a>
+                                    <a href="pools/{{poolName}}/{{fileNameForTest}}html" id="testMethod" data-original-title="{{simpleClassName testCase.testClass}}" data-content="{{prettyMethodName}} ({{replace device.modelName ' ' '_'}}) [{{device.serial}}]">&nbsp;</a>
                                 </td>
                                 {{/testResults}}
                             </tr>
@@ -55,7 +55,7 @@
         Failed tests:
         <ul>
             {{#failedTests}}
-            <li>{{.}}</li>
+            <li>{{totalFailureCount}} times {{testCase.testClass}}#{{testCase.testMethod}} on {{device.serial}}</li>
             {{/failedTests}}
             {{^failedTests}}
             <li>None.</li>
@@ -64,12 +64,15 @@
 
         Fatal crashed tests:
         <ul>
-            {{#fatalCrashedTests}}
+            {{#fatalErrors}}
             <li>{{.}}</li>
+            {{/fatalErrors}}
+            {{#fatalCrashedTests}}
+            <li>{{testCase.testClass}}#{{testCase.testMethod}} on {{device.serial}}</li>
             {{/fatalCrashedTests}}
-            {{^fatalCrashedTests}}
+            {{^fatalCrashedTests}}{{^fatalErrors}}
             <li>None.</li>
-            {{/fatalCrashedTests}}
+            {{/fatalErrors}}{{/fatalCrashedTests}}
         </ul>
 
         <script type="text/javascript">

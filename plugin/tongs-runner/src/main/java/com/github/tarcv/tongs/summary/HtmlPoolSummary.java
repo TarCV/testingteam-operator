@@ -13,15 +13,15 @@
  */
 package com.github.tarcv.tongs.summary;
 
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
+
 import java.util.Collection;
 
 /**
  * Plain bean class, to feed to Moustache markup files.
  */
 public class HtmlPoolSummary {
-    public String poolStatus;
-    public String prettyPoolName;
-    public int testCount;
-    public Collection<HtmlTestResult> testResults;
-    public String plainPoolName;
+    public String poolStatus; // TODO: replace strings with appropriate objects
+    public Collection<TestCaseRunResult> testResults;
+    public String poolName;
 }

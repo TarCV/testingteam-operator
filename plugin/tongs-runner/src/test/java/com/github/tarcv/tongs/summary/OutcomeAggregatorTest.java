@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import org.junit.Test;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.runner.TestCaseRunResult.aTestResult;
 import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
-import static com.github.tarcv.tongs.summary.ResultStatus.IGNORED;
-import static com.github.tarcv.tongs.summary.ResultStatus.PASS;
+import static com.github.tarcv.tongs.summary.ResultStatus.*;
 import static com.github.tarcv.tongs.summary.Summary.Builder.aSummary;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -32,7 +32,7 @@ public class OutcomeAggregatorTest {
     @Test
     public void returnsFalseIfThereAreFatalCrashedTests() {
         Summary summary = aSummary()
-                .addFatalCrashedTest("com.example.FatalCrashedTest:testMethod")
+                .addFatalCrashedTest(aTestResult("com.example.FatalCrashedTest", "testMethod", ERROR, ""))
                 .addPoolSummary(aPoolSummary()
                         .withPoolName("pool")
                         .addTestResults(singleton(TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", ResultStatus.ERROR, "error")))
@@ -47,7 +47,7 @@ public class OutcomeAggregatorTest {
     @Test
     public void returnsTrueIfThereAreOnlyPassedAndIgnoredTests() {
         Summary summary = aSummary()
-                .addIgnoredTest("com.example.IgnoredTest:testMethod")
+                .addIgnoredTest(aTestResult("com.example.IgnoredTest", "testMethod", IGNORED, ""))
                 .addPoolSummary(aPoolSummary()
                         .withPoolName("pool")
                         .addTestResults(asList(

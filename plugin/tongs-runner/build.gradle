@@ -39,7 +39,8 @@ dependencies {
     implementation deps.commonsIo
     implementation deps.commonsLang
     implementation deps.jsr305
-    implementation deps.mustacheCompiler
+    implementation deps.handleBars
+    implementation deps.handleBarsHuminize
     implementation deps.jcommander
     implementation deps.slf4j
     implementation deps.gson

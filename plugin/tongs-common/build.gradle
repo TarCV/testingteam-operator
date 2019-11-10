@@ -40,7 +40,7 @@ dependencies {
     implementation deps.commonsLang
     implementation deps.commonsIo
 
-    implementation "com.github.spullara.mustache.java:compiler:0.8.0"
+    implementation deps.handleBars
     implementation deps.gson
     implementation deps.slf4j
 

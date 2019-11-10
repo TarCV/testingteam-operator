@@ -19,6 +19,7 @@ import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.NotNull;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
@@ -30,6 +31,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
@@ -113,7 +115,7 @@ public class SummaryCompilerTest {
         Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, testResults);
 
         assertThat(summary.getIgnoredTests(), hasSize(1));
-        assertThat(summary.getIgnoredTests(), contains("com.example.IgnoredClassTest#doesJobProperly"));
+        assertThat(mapToStringList(summary.getIgnoredTests()), contains("com.example.IgnoredClassTest#doesJobProperly"));
     }
 
     @Test
@@ -121,8 +123,10 @@ public class SummaryCompilerTest {
         Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, testResults);
 
         assertThat(summary.getFailedTests(), hasSize(1));
-        assertThat(summary.getFailedTests(),
-                contains("10 times com.example.FailedClassTest#doesJobProperly on DeviceSerial"));
+        assertThat(summary.getFailedTests().stream()
+                        .map(r -> String.format("%d times %s", r.getTotalFailureCount(), r.getTestCase().toString()))
+                        .collect(Collectors.toList()),
+                contains("10 times com.example.FailedClassTest#doesJobProperly"));
     }
 
     @Test
@@ -130,7 +134,14 @@ public class SummaryCompilerTest {
         Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, testResults);
 
         assertThat(summary.getFatalCrashedTests(), hasSize(1));
-        assertThat(summary.getFatalCrashedTests(),
-                contains("com.example.SkippedClassTest#doesJobProperly on N/A"));
+        assertThat(mapToStringList(summary.getFatalCrashedTests()),
+                contains("com.example.SkippedClassTest#doesJobProperly"));
+    }
+
+    @NotNull
+    private static List<String> mapToStringList(List<TestCaseRunResult> resultList) {
+        return resultList.stream()
+                .map(testCaseRunResult -> testCaseRunResult.getTestCase().toString())
+                .collect(Collectors.toList());
     }
 }

@@ -17,6 +17,7 @@ import com.github.tarcv.tongs.runner.TestCaseRunResult;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class Summarizer {
 
@@ -30,7 +31,7 @@ public class Summarizer {
         this.outcomeAggregator = outcomeAggregator;
     }
 
-    boolean summarize(Collection<Pool> pools, Collection<TestCaseEvent> testCases, List<TestCaseRunResult> results) {
+    boolean summarize(Collection<Pool> pools, Map<Pool, Collection<TestCaseEvent>> testCases, List<TestCaseRunResult> results) {
         Summary summary = summaryCompiler.compileSummary(pools, testCases, results);
         summaryPrinter.print(summary);
         return outcomeAggregator.aggregate(summary);

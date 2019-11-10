@@ -23,11 +23,13 @@ class Summary private constructor(builder: Builder) {
 
     val poolSummaries: List<PoolSummary>
         get() = unmodifiableList(field)
-    val ignoredTests: List<String>
+    val ignoredTests: List<TestCaseRunResult>
         get() = unmodifiableList(field)
-    val failedTests: List<String>
+    val failedTests: List<TestCaseRunResult>
         get() = unmodifiableList(field)
-    val fatalCrashedTests: List<String>
+    val fatalCrashedTests: List<TestCaseRunResult>
+        get() = unmodifiableList(field)
+    val fatalErrors: List<String>
         get() = unmodifiableList(field)
     val allTests: List<TestCaseRunResult>
         get() = unmodifiableList(field)
@@ -39,16 +41,18 @@ class Summary private constructor(builder: Builder) {
         ignoredTests = builder.ignoredTests
         failedTests = builder.failedTests
         fatalCrashedTests = builder.fatalCrashedTests
+        fatalErrors = builder.fatalErrors
         allTests = builder.allTests
     }
 
     class Builder {
         internal val poolSummaries = ArrayList<PoolSummary>()
-        internal val ignoredTests = ArrayList<String>()
+        internal val ignoredTests = ArrayList<TestCaseRunResult>()
         internal var title = "Report Title"
         internal var subtitle = "Report Subtitle"
-        internal val failedTests = ArrayList<String>()
-        internal val fatalCrashedTests = ArrayList<String>()
+        internal val failedTests = ArrayList<TestCaseRunResult>()
+        internal val fatalCrashedTests = ArrayList<TestCaseRunResult>()
+        internal val fatalErrors = ArrayList<String>()
         internal val allTests = ArrayList<TestCaseRunResult>()
 
         fun addPoolSummary(poolSummary: PoolSummary): Builder {
@@ -66,17 +70,17 @@ class Summary private constructor(builder: Builder) {
             return this
         }
 
-        fun addIgnoredTest(s: String): Builder {
-            this.ignoredTests.add(s)
+        fun addIgnoredTest(testCase: TestCaseRunResult): Builder {
+            this.ignoredTests.add(testCase)
             return this
         }
 
-        fun addFailedTests(failedTests: String): Builder {
-            this.failedTests.add(failedTests)
+        fun addFailedTests(failedTest: TestCaseRunResult): Builder {
+            this.failedTests.add(failedTest)
             return this
         }
 
-        fun addFatalCrashedTest(fatalCrashedTest: String): Builder {
+        fun addFatalCrashedTest(fatalCrashedTest: TestCaseRunResult): Builder {
             fatalCrashedTests.add(fatalCrashedTest)
             return this
         }
@@ -88,6 +92,11 @@ class Summary private constructor(builder: Builder) {
 
         fun build(): Summary {
             return Summary(this)
+        }
+
+        fun addFatalError(message: String): Builder {
+            fatalErrors.add(message)
+            return this
         }
 
         companion object {

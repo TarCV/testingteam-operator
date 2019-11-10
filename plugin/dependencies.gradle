@@ -1,5 +1,6 @@
 ext.versions = [
     androidTools: '25.1.0',
+    handleBars: '4.1.2',
     junit: '4.12',
     jmock: '2.8.2',
     kotlin: '1.3.41',
@@ -13,7 +14,8 @@ ext.deps = [
     androidToolsCommon: "com.android.tools:common:${versions.androidTools}",
     commonsLang: "org.apache.commons:commons-lang3:3.4",
     commonsIo: "commons-io:commons-io:2.5",
-    mustacheCompiler: "com.github.spullara.mustache.java:compiler:0.8.0",
+    handleBars: "com.github.jknack:handlebars:${versions.handleBars}",
+    handleBarsHuminize: "com.github.jknack:handlebars-humanize:${versions.handleBars}",
     gson: 'com.google.code.gson:gson:2.6.2',
     slf4j: 'org.slf4j:slf4j-log4j12:1.7.21',
     hamcrest: 'org.hamcrest:hamcrest-all:1.3',

@@ -13,6 +13,8 @@
  */
 package com.github.tarcv.tongs.summary;
 
+import com.github.tarcv.tongs.runner.TestCaseRunResult;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -23,8 +25,9 @@ public class HtmlSummary {
     public Collection<HtmlPoolSummary> pools;
     public String title;
     public String subtitle;
-    public List<String> ignoredTests;
-    public String overallStatus;
-    public List<String> failedTests;
-    public List<String> fatalCrashedTests;
+    public List<TestCaseRunResult> ignoredTests;
+    public String overallStatus; // TODO: replace strings with appropriate objects
+    public List<TestCaseRunResult> failedTests;
+    public List<TestCaseRunResult> fatalCrashedTests;
+    public List<String> fatalErrors;
 }

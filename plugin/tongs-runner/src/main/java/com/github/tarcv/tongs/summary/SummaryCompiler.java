@@ -19,8 +19,8 @@ import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.google.common.collect.Sets;
 
+import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.runner.PoolTestRunner.DROPPED_BY;
@@ -40,13 +40,9 @@ public class SummaryCompiler {
         this.deviceTestFilesRetriever = deviceTestFilesRetriever;
     }
 
-    Summary compileSummary(Collection<Pool> pools, Collection<TestCaseEvent> testCases, List<TestCaseRunResult> results) {
+    Summary compileSummary(Collection<Pool> pools, Map<Pool, Collection<TestCaseEvent>> testCasesPerPool, List<TestCaseRunResult> results) {
         Summary.Builder summaryBuilder = aSummary();
         summaryBuilder.addResults(results);
-
-        Map<com.github.tarcv.tongs.model.TestCase , TestCaseEvent> eventMap = testCases.stream()
-                .collect(Collectors.toMap(o -> new com.github.tarcv.tongs.model.TestCase(o.getTestMethod(), o.getTestClass()),
-                        Function.identity(), (o1, o2) -> o1));
 
         Map<Pool, List<TestCaseRunResult>> resultsByPool = results.stream()
                 .collect(Collectors.groupingBy(TestCaseRunResult::getPool));
@@ -63,14 +59,14 @@ public class SummaryCompiler {
 
             summaryBuilder.addPoolSummary(poolSummary);
 
-            // TODO: add tests that should had been executed in the pool but didn't
-            addFailedOrFatalCrashedTests(testResultsForPool, summaryBuilder);
+            Collection<TestCaseEvent> testCasesForPool = testCasesPerPool.get(pool);
+            addFatalCrashedTests(pool, testCasesForPool, testResultsForPool, summaryBuilder);
+            addFailedOrCrashedTests(testResultsForPool, summaryBuilder);
 
             addIgnoredTests(testResultsForPool, summaryBuilder);
         }
 
-        Collection<TestCaseRunResult> fatalCrashedTests = getFatalCrashedTests(testResults, testCases);
-        addFatalCrashedTests(fatalCrashedTests, summaryBuilder);
+        addFatalCrashedPools(pools, testCasesPerPool, summaryBuilder);
 
         // TODO: Use TestCaseRunResult datas instead of reading videos, logcat, etc
 
@@ -78,6 +74,13 @@ public class SummaryCompiler {
         summaryBuilder.withSubtitle(configuration.getSubtitle());
 
         return summaryBuilder.build();
+    }
+
+    private static void addFatalCrashedPools(Collection<Pool> pools, Map<Pool, Collection<TestCaseEvent>> testCases, Summary.Builder summaryBuilder) {
+        Sets.difference(new HashSet<>(pools), testCases.keySet())
+                .forEach(pool -> {
+                    summaryBuilder.addFatalError("Pool " + pool.getName() + " not executed");
+                });
     }
 
     private Collection<TestResult> getTestResultsForPool(Pool pool, Map<com.github.tarcv.tongs.model.TestCase , TestCaseEvent> eventMap) {
@@ -130,16 +133,38 @@ public class SummaryCompiler {
                 .build();
     }
 
-    private static void addFailedOrFatalCrashedTests(Collection<TestCaseRunResult> testResults, Summary.Builder summaryBuilder) {
-        for (TestCaseRunResult testResult : testResults) {
+    private static void addFailedOrCrashedTests(Collection<TestCaseRunResult> testResultsForPool, Summary.Builder summaryBuilder) {
+        for (TestCaseRunResult testResult : testResultsForPool) {
             int totalFailureCount = testResult.getTotalFailureCount();
             if (totalFailureCount > 0) {
                 String failedTest = format(ENGLISH, "%d times %s", totalFailureCount, getTestResultData(testResult));
-                summaryBuilder.addFailedTests(failedTest);
+                summaryBuilder.addFailedTests(testResult);
             } else if (testResult.getStatus() == ERROR || testResult.getStatus() == FAIL) {
-                summaryBuilder.addFatalCrashedTest(getTestResultData(testResult));
+                summaryBuilder.addFatalCrashedTest(testResult);
             }
         }
+    }
+
+    private static void addFatalCrashedTests(Pool pool, Collection<TestCaseEvent> testCasesForPool, Collection<TestCaseRunResult> testResultsForPool, Summary.Builder summaryBuilder) {
+        Set<TestResultItem> processedTests = testResultsForPool.stream()
+                .map(testResult -> new TestResultItem(testResult.getTestCase().getTestClass(), testResult.getTestCase().getTestMethod()))
+                .collect(Collectors.toSet());
+        Set<TestResultItem> allTests = testCasesForPool.stream()
+                .map(testCaseEvent -> new TestResultItem(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()))
+                .collect(Collectors.toSet());
+
+        Sets.difference(allTests, processedTests)
+                .stream()
+                .map(testResultItem -> {
+                    return new TestCaseRunResult(pool, NO_DEVICE,
+                            new TestCase(testResultItem.testMethod, testResultItem.testClass),
+                            ERROR, "Fatally crashed",
+                            0, 0,
+                            Collections.emptyMap(), null, Collections.emptyList());
+                })
+                .forEach(testCaseRunResult -> {
+                    summaryBuilder.addFatalCrashedTest(testCaseRunResult);
+                });
     }
 
     private static void addIgnoredTests(Collection<TestCaseRunResult> ignoredTestResults, Summary.Builder summaryBuilder) {
@@ -148,35 +173,8 @@ public class SummaryCompiler {
                         // TODO: check ASSUMPTION_FAILED eventually executed on some device are not considered skipped
                         r.getStatus() == ResultStatus.IGNORED || r.getStatus() == ResultStatus.ASSUMPTION_FAILED)
                 .forEach(testCaseRunResult -> {
-                    summaryBuilder.addIgnoredTest(testCaseRunResult.getTestCase().toString());
+                    summaryBuilder.addIgnoredTest(testCaseRunResult);
                 });
-    }
-
-    private static Collection<TestCaseRunResult> getFatalCrashedTests(Set<TestCaseRunResult> processedTestResults,
-                                                                      Collection<TestCaseEvent> testCases) {
-        Set<TestResultItem> processedTests = processedTestResults.stream()
-                .map(testResult -> new TestResultItem(testResult.getTestCase().getTestClass(), testResult.getTestCase().getTestMethod()))
-                .collect(Collectors.toSet());
-        Set<TestResultItem> allTests = testCases.stream()
-                .map(testCaseEvent -> new TestResultItem(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()))
-                .collect(Collectors.toSet());
-
-        return Sets.difference(allTests, processedTests)
-                .stream()
-                .map(testResultItem -> {
-                    return new TestCaseRunResult(null, null,
-                            new TestCase(testResultItem.testMethod, testResultItem.testClass),
-                            ERROR, "Fatally crashed",
-                            0, 0,
-                            Collections.emptyMap(), null, Collections.emptyList());
-                })
-                .collect(Collectors.toSet());
-    }
-
-    private static void addFatalCrashedTests(Collection<TestCaseRunResult> fatalCrashedTests, Summary.Builder summaryBuilder) {
-        for (TestCaseRunResult fatalCrashedTest : fatalCrashedTests) {
-            summaryBuilder.addFatalCrashedTest(getTestResultData(fatalCrashedTest));
-        }
     }
 
     private static String getTestResultData(TestCaseRunResult testResult) {
@@ -207,4 +205,57 @@ public class SummaryCompiler {
             return Objects.hash(testClass, testMethod);
         }
     }
+
+    private static final Device NO_DEVICE = new Device() {
+        @Override
+        public String getSerial() {
+            return "N/A";
+        }
+
+        @Override
+        public String getManufacturer() {
+            return "-";
+        }
+
+        @Override
+        public String getModelName() {
+            return "No Device";
+        }
+
+        @Override
+        public int getOsApiLevel() {
+            return 0;
+        }
+
+        @Override
+        public String getLongName() {
+            return "No Device";
+        }
+
+        @Override
+        public Object getDeviceInterface() {
+            return new Object();
+        }
+
+        @Override
+        public boolean isTablet() {
+            return false;
+        }
+
+        @Override
+        @Nullable
+        public DisplayGeometry getGeometry() {
+            return new DisplayGeometry(300);
+        }
+
+        @Override
+        public Diagnostics getSupportedVisualDiagnostics() {
+            return Diagnostics.NONE;
+        }
+
+        @Override
+        protected Object getUniqueIdentifier() {
+            return new Object();
+        }
+    };
 }

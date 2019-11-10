@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.Utils.namedExecutor;
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
@@ -71,11 +70,8 @@ public class TongsRunner {
             }
 
             // TODO: check that different sets of test cases in different pools doesn't fail run
-            Collection<TestCaseEvent> allTestCases = poolTestCasesMap.values().stream()
-                    .flatMap(poolEvents -> poolEvents.stream())
-                    .collect(Collectors.toSet());
             List<TestCaseRunResult> allResults = new ArrayList<>();
-            summaryGeneratorHook.registerHook(pools, allTestCases, allResults);
+            summaryGeneratorHook.registerHook(pools, poolTestCasesMap, allResults);
 
             progressReporter.start();
             for (Pool pool : pools) {

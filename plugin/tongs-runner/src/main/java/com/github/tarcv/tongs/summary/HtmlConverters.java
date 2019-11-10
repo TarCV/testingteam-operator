@@ -13,21 +13,12 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Diagnostics;
-import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.github.tarcv.tongs.system.io.FileManager;
-import com.github.tarcv.tongs.system.io.FileUtils;
 import com.google.common.base.Function;
 
 import javax.annotation.Nullable;
 
-import static com.github.tarcv.tongs.model.Diagnostics.SCREENSHOTS;
-import static com.github.tarcv.tongs.model.Diagnostics.VIDEO;
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.DOT_WITHOUT_EXTENSION;
-import static com.github.tarcv.tongs.utils.ReadableNames.*;
 import static com.google.common.collect.Collections2.transform;
 
 class HtmlConverters {
@@ -40,6 +31,7 @@ class HtmlConverters {
 		htmlSummary.ignoredTests = summary.getIgnoredTests();
 		htmlSummary.failedTests = summary.getFailedTests();
         htmlSummary.fatalCrashedTests = summary.getFatalCrashedTests();
+        htmlSummary.fatalErrors = summary.getFatalErrors();
         htmlSummary.overallStatus = new OutcomeAggregator().aggregate(summary) ? "pass" : "fail";
 		return htmlSummary;
 	}
@@ -54,10 +46,8 @@ class HtmlConverters {
 				HtmlPoolSummary htmlPoolSummary = new HtmlPoolSummary();
                 htmlPoolSummary.poolStatus = getPoolStatus(poolSummary);
 				String poolName = poolSummary.getPoolName();
-				htmlPoolSummary.prettyPoolName = readablePoolName(poolName);
-                htmlPoolSummary.plainPoolName = poolName;
-                htmlPoolSummary.testCount = poolSummary.getTestResults().size();
-                htmlPoolSummary.testResults = transform(poolSummary.getTestResults(), toHtmlTestResult(fileManager, poolName));
+                htmlPoolSummary.poolName = poolName;
+                htmlPoolSummary.testResults = poolSummary.getTestResults();
 				return htmlPoolSummary;
 			}
 
@@ -66,38 +56,6 @@ class HtmlConverters {
                 return (success != null && success? "pass" : "fail");
             }
         };
-	}
-
-	private static Function<TestCaseRunResult, HtmlTestResult> toHtmlTestResult(
-			final FileManager fileManager,
-			final String poolName
-	) {
-		return new Function<TestCaseRunResult, HtmlTestResult>(){
-			@Override
-			@Nullable
-			public HtmlTestResult apply(@Nullable TestCaseRunResult input) {
-				HtmlTestResult htmlTestResult = new HtmlTestResult();
-				htmlTestResult.status = computeStatus(input);
-				htmlTestResult.prettyClassName = readableClassName(input.getTestCase().getTestClass());
-				htmlTestResult.prettyMethodName = readableTestMethodName(input.getTestCase().getTestMethod());
-				htmlTestResult.timeTaken = String.format("%.2f", input.getTimeTaken());
-				TestCase testIdentifier = new TestCase(input.getTestCase().getTestMethod(), input.getTestCase().getTestClass());
-				htmlTestResult.testIdentifier = TestCaseEvent.newTestCase(testIdentifier);
-				htmlTestResult.fileNameForTest = FileUtils.createFilenameForTest(testIdentifier , DOT_WITHOUT_EXTENSION);
-				htmlTestResult.poolName = poolName;
-				htmlTestResult.trace = input.getStackTrace().split("\n");
-				// Keeping logcats in memory is hugely wasteful. Now they're read at page-creation.
-				// htmlTestResult.logcatMessages = transform(input.getLogCatMessages(), toHtmlLogCatMessages());
-				Device device = input.getDevice();
-				htmlTestResult.deviceSerial = device.getSerial();
-				htmlTestResult.deviceSafeSerial = device.getSafeSerial();
-				htmlTestResult.deviceModelDespaced = device.getModelName().replace(" ", "_");
-                Diagnostics supportedDiagnostics = device.getSupportedVisualDiagnostics();
-                htmlTestResult.diagnosticVideo = VIDEO.equals(supportedDiagnostics);
-                htmlTestResult.diagnosticScreenshots = SCREENSHOTS.equals(supportedDiagnostics);
-				return htmlTestResult;
-			}
-		};
 	}
 
 	private static String computeStatus(@Nullable TestCaseRunResult input) {

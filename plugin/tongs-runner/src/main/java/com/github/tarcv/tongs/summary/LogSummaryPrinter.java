@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -43,13 +43,13 @@ public class LogSummaryPrinter implements SummaryPrinter {
         for (PoolSummary poolSummary : summary.getPoolSummaries()) {
             printMiniSummary(poolSummary);
         }
-        List<String> suppressedTests = summary.getIgnoredTests();
+        List<TestCaseRunResult> suppressedTests = summary.getIgnoredTests();
         if (suppressedTests.isEmpty()) {
             logger.info("No suppressed tests.");
         } else {
             logger.info("Suppressed tests:");
-            for (String s : suppressedTests) {
-                logger.info(s);
+            for (TestCaseRunResult s : suppressedTests) {
+                logger.info(s.getTestCase().toString());
             }
         }
     }

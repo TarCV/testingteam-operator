@@ -14,30 +14,30 @@
     </head>
     <body>
         <div class="container">
-            <div class="hero-unit {{status-lowerCase}}">
-                <h1>{{testCase.testMethodReadable}}</h1>
-                <p>{{testCase.testClassSimpleName}} - Took {{timeTaken}}s on {{device.serial}} ({{device.modelName-despaced_}})</p>
+            <div class="hero-unit {{lower status}}">
+                <h1>{{readableMethodName testCase.testMethod}}</h1>
+                <p>{{simpleClassName testCase.testClass}} - Took {{timeTaken}}s on {{device.serial}} ({{replace device.modelName ' ' '_'}})</p>
                 <p>
                     <a href="../{{pool.name}}.html">Other tests for this pool</a>
                     {{#data}}{{#linkedFilePath}}
-                    - <a href="{{linkedFilePath-unixPath}}">{{title}}</a>
+                    - <a href="{{unixPath linkedFilePath}}">{{title}}</a>
                     {{/linkedFilePath}}{{/data}}
                 </p>
             </div>
             {{#data}}
             {{^linkedFilePath}}
             <div>
-                <a name="{{title-despaced_}}"><h1>{{title}}</h1></a>
-                {{#videoPath-unixPath}}
-                <video class="diagnostic {{status-lowerCase}}" width="35%" height="35%" controls src="../../../screenrecord/{{.}}" type="video/mp4">
+                <a name="{{replace title ' ' '_'}}"><h1>{{title}}</h1></a>
+                {{#videoPath}}
+                <video class="diagnostic {{lower status}}" width="35%" height="35%" controls src="../../../screenrecord/{{unixPath .}}" type="video/mp4">
                     Is video supported in this browser?
                 </video>
-                {{/videoPath-unixPath}}
-                {{#imagePath-unixPath}}
-                <img class="diagnostic {{status-lowerCase}}" width="35%" height="35%" src="../../../animation/{{.}}"  />
-                {{/imagePath-unixPath}}
+                {{/videoPath}}
+                {{#imagePath}}
+                <img class="diagnostic {{lower status}}" width="35%" height="35%" src="../../../animation/{{unixPath .}}"  />
+                {{/imagePath}}
                 {{#table}}
-                    {{#title-equals.Logcat}}
+                    {{#if (eq title 'Logcat')}}
                         <form>
                             <input type="text" id="filter" class="regex" placeholder="Search for regular expression"/>
                             <input type="button" value="Hide" onclick="filterTable('none')">
@@ -45,38 +45,37 @@
                         </form>
                         <div>
                             <table class="table logcat">
-                                <tr>{{#headers}}{{#title-equals.pid}}<th>Process</th>{{/title-equals.pid}}{{/headers}}
-                                    {{#headers}}{{#title-equals.tag}}<th>Tag</th>{{/title-equals.tag}}{{/headers}}
-                                    {{#headers}}{{#title-equals.logLevel}}<th>Level</th>{{/title-equals.logLevel}}{{/headers}}
-                                    {{#headers}}{{#title-equals.time}}<th>Time</th>{{/title-equals.time}}{{/headers}}
-                                    {{#headers}}{{#title-equals.message}}<th class="message">Message</th>{{/title-equals.message}}{{/headers}}
+                                <tr>{{#headers}}{{#if (eq title 'pid')}}<th>Process</th>{{/if}}{{/headers}}
+                                    {{#headers}}{{#if (eq title 'tag')}}<th>Tag</th>{{/if}}{{/headers}}
+                                    {{#headers}}{{#if (eq title 'logLevel')}}<th>Level</th>{{/if}}{{/headers}}
+                                    {{#headers}}{{#if (eq title 'time')}}<th>Time</th>{{/if}}{{/headers}}
+                                    {{#headers}}{{#if (eq title 'message')}}<th class="message">Message</th>{{/if}}{{/headers}}
                                 </tr>
                                 {{#rows}}
                                 <tr class="line {{logLevel}}">
-                                    {{#cells}}{{#header.title-equals.pid}}<td>{{text}}</td>{{/header.title-equals.pid}}{{/cells}}
-                                    {{#cells}}{{#header.title-equals.tag}}<td>{{text}}</td>{{/header.title-equals.tag}}{{/cells}}
-                                    {{#cells}}{{#header.title-equals.logLevel}}<td>{{text}}</td>{{/header.title-equals.logLevel}}{{/cells}}
-                                    {{#cells}}{{#header.title-equals.time}}<td style="white-space:nowrap;">{{text}}</td>{{/header.title-equals.time}}{{/cells}}
-                                    {{#cells}}{{#header.title-equals.message}}<td>{{text}}</td>{{/header.title-equals.message}}{{/cells}}
+                                    {{#cells}}{{#if (eq header.title 'pid')}}<td>{{text}}</td>{{/if}}{{/cells}}
+                                    {{#cells}}{{#if (eq header.title 'tag')}}<td>{{text}}</td>{{/if}}{{/cells}}
+                                    {{#cells}}{{#if (eq header.title 'logLevel')}}<td>{{text}}</td>{{/if}}{{/cells}}
+                                    {{#cells}}{{#if (eq header.title 'time')}}<td style="white-space:nowrap;">{{text}}</td>{{/if}}{{/cells}}
+                                    {{#cells}}{{#if (eq header.title 'message')}}<td>{{text}}</td>{{/if}}{{/cells}}
                                 </tr>
                                 {{/rows}}
                             </table>
                         </div>
-                    {{/title-equals.Logcat}}
-                    {{^title-equals.Logcat}}
+                    {{else}}
                         <table class="table">
                             <tr>{{#headers}}<th>{{.}}</th>{{/headers}}</tr>
                             {{#rows}}
                             <tr class="line {{logLevel}}">{{#cells}}<td>{{.}}</td>{{/cells}}</tr>
                             {{/rows}}
                         </table>
-                    {{/title-equals.Logcat}}
+                    {{/if}}
                 {{/table}}
             </div>
             {{/linkedFilePath}}
             {{/data}}
             <a name="Stacktrace"><h1>Stacktrace</h1></a>
-            <pre class="test {{status-lowerCase}}">{{#stackTrace}}
+            <pre class="test {{lower status}}">{{#stackTrace}}
 {{.}}
 {{/stackTrace}}</pre>
         </div>
