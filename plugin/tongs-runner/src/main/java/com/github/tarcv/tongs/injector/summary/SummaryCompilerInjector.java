@@ -16,11 +16,11 @@ import com.github.tarcv.tongs.summary.SummaryCompiler;
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
 import static com.github.tarcv.tongs.injector.summary.DeviceTestFilesRetrieverInjector.deviceTestFilesRetriever;
 
-class SummaryCompilerInjector {
+public class SummaryCompilerInjector {
     private SummaryCompilerInjector() {
     }
 
-    static SummaryCompiler summaryCompiler() {
+    public static SummaryCompiler summaryCompiler() {
         return new SummaryCompiler(configuration(), deviceTestFilesRetriever());
     }
 }

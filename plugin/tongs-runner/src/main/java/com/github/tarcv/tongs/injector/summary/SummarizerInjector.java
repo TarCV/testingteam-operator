@@ -13,6 +13,7 @@ package com.github.tarcv.tongs.injector.summary;
 
 import com.github.tarcv.tongs.summary.Summarizer;
 
+import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
 import static com.github.tarcv.tongs.injector.summary.OutcomeAggregatorInjector.outcomeAggregator;
 import static com.github.tarcv.tongs.injector.summary.SummaryCompilerInjector.summaryCompiler;
 import static com.github.tarcv.tongs.injector.summary.SummaryPrinterInjector.summaryPrinter;
@@ -22,6 +23,6 @@ public class SummarizerInjector {
     private SummarizerInjector() {}
 
     public static Summarizer summarizer() {
-        return new Summarizer(summaryCompiler(), summaryPrinter(), outcomeAggregator());
+        return new Summarizer(configuration(), summaryCompiler(), summaryPrinter(), outcomeAggregator());
     }
 }

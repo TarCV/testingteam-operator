@@ -13,8 +13,8 @@
  */
 package com.github.tarcv.tongs.injector;
 
-import com.google.gson.*;
 import com.github.tarcv.tongs.ComputedPooling;
+import com.google.gson.*;
 
 import static com.github.tarcv.tongs.ComputedPooling.Characteristic.valueOf;
 

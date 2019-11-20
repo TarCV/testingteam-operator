@@ -86,10 +86,7 @@ class TestCaseFile(
  */
 sealed class TestReportData(
     val title: String
-) {
-    /** This property allows template to check this Data name */
-    val titleIs = mapOf(title to true)
-}
+)
 class HtmlReportData(title: String, val html: String): TestReportData(title)
 
 class TableReportData(title: String, val table: Table): TestReportData(title)
