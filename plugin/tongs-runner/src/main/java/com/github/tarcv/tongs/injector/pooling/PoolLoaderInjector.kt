@@ -13,14 +13,13 @@ package com.github.tarcv.tongs.injector.pooling
 
 import com.github.tarcv.tongs.Configuration
 import com.github.tarcv.tongs.injector.BaseRuleManager
-import com.github.tarcv.tongs.plugin.DeviceProvider
-import com.github.tarcv.tongs.pooling.PoolLoader
-
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
+import com.github.tarcv.tongs.plugin.DeviceProvider
 import com.github.tarcv.tongs.plugin.DeviceProviderContext
 import com.github.tarcv.tongs.plugin.DeviceProviderContextImpl
 import com.github.tarcv.tongs.plugin.DeviceProviderFactory
 import com.github.tarcv.tongs.plugin.android.LocalDeviceProviderFactory
+import com.github.tarcv.tongs.pooling.PoolLoader
 import com.github.tarcv.tongs.runner.rules.RuleFactory
 
 object PoolLoaderInjector {
@@ -47,6 +46,9 @@ class DeviceProviderManager(
         private val configuration: Configuration,
         private val ruleNames: Collection<String>,
         private val predefinedFactories: Collection<DeviceProviderFactory<DeviceProvider>>
-): BaseRuleManager<DeviceProviderContext, DeviceProvider, RuleFactory<DeviceProviderContext, DeviceProvider>>(ruleNames) {
+): BaseRuleManager<DeviceProviderContext, DeviceProvider, RuleFactory<DeviceProviderContext, DeviceProvider>>(
+        ruleNames,
+        predefinedFactories
+) {
     override fun ruleContextFactory(): DeviceProviderContext = DeviceProviderContextImpl(configuration)
 }
