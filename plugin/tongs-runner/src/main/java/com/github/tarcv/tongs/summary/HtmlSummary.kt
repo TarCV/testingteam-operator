@@ -11,17 +11,20 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.github.tarcv.tongs.summary;
+package com.github.tarcv.tongs.summary
 
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
-
-import java.util.Collection;
+import com.github.tarcv.tongs.runner.TestCaseRunResult
 
 /**
  * Plain bean class, to feed to Moustache markup files.
  */
-public class HtmlPoolSummary {
-    public String poolStatus; // TODO: replace strings with appropriate objects
-    public Collection<TestCaseRunResult> testResults;
-    public String poolName;
-}
+class HtmlSummary(
+    val pools: Collection<HtmlPoolSummary>,
+    val title: String,
+    val subtitle: String,
+    val ignoredTests: List<TestCaseRunResult>,
+    val overallStatus: String, // TODO: replace strings with appropriate objects
+    val failedTests: List<TestCaseRunResult>,
+    val fatalCrashedTests: List<TestCaseRunResult>,
+    val fatalErrors: List<String>
+)

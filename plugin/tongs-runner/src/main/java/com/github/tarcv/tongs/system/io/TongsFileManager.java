@@ -107,7 +107,7 @@ public class TongsFileManager implements FileManager {
     @Override
     public File getRelativeFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier) {
         File absoluteFile = getFile(fileType, pool, device, testIdentifier);
-        return absoluteFile.toPath().relativize(output.getAbsoluteFile().toPath()).toFile();
+        return output.getAbsoluteFile().toPath().relativize(absoluteFile.toPath()).toFile();
     }
 
     private Path createDirectory(FileType test, Pool pool, Device device) throws IOException {

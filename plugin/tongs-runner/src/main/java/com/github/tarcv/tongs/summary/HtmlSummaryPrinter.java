@@ -108,8 +108,8 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
     private void generatePoolHtml(HtmlSummary htmlSummary) {
         File poolsDir = new File(htmlOutput, "pools");
         poolsDir.mkdirs();
-        for (HtmlPoolSummary pool : htmlSummary.pools) {
-            String name = pool.poolName + ".html";
+        for (HtmlPoolSummary pool : htmlSummary.getPools()) {
+            String name = pool.getPoolName() + ".html";
             htmlGenerator.generateHtml("tongspages/pool.html", poolsDir, name, pool);
         }
     }
@@ -122,8 +122,8 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
 	 */
 	@SuppressWarnings("ResultOfMethodCallIgnored")
     private void generatePoolTestsHtml(Summary summary, HtmlSummary htmlSummary) {
-		Map<String, HtmlPoolSummary> namesToHtmlPools = htmlSummary.pools.stream()
-				.collect(Collectors.toMap(htmlPoolSummary -> htmlPoolSummary.poolName, identity()));
+		Map<String, HtmlPoolSummary> namesToHtmlPools = htmlSummary.getPools().stream()
+				.collect(Collectors.toMap(htmlPoolSummary -> htmlPoolSummary.getPoolName(), identity()));
 		for (TestCaseRunResult testResult : summary.getAllTests()) {
 			HtmlPoolSummary pool = namesToHtmlPools.get(testResult.getPool().getName());
 

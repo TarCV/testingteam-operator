@@ -24,15 +24,16 @@ import static com.google.common.collect.Collections2.transform;
 class HtmlConverters {
 
 	public static HtmlSummary toHtmlSummary(FileManager fileManager, Summary summary) {
-		HtmlSummary htmlSummary = new HtmlSummary();
-		htmlSummary.title = summary.getTitle();
-		htmlSummary.subtitle = summary.getSubtitle();
-		htmlSummary.pools = transform(summary.getPoolSummaries(), toHtmlPoolSummary(fileManager));
-		htmlSummary.ignoredTests = summary.getIgnoredTests();
-		htmlSummary.failedTests = summary.getFailedTests();
-        htmlSummary.fatalCrashedTests = summary.getFatalCrashedTests();
-        htmlSummary.fatalErrors = summary.getFatalErrors();
-        htmlSummary.overallStatus = new OutcomeAggregator().aggregate(summary) ? "pass" : "fail";
+		HtmlSummary htmlSummary = new HtmlSummary(
+				transform(summary.getPoolSummaries(), toHtmlPoolSummary(fileManager)),
+				summary.getTitle(),
+				summary.getSubtitle(),
+				summary.getIgnoredTests(),
+				new OutcomeAggregator().aggregate(summary) ? "pass" : "fail",
+				summary.getFailedTests(),
+        		summary.getFatalCrashedTests(),
+        		summary.getFatalErrors() // TODO: Add to template
+		);
 		return htmlSummary;
 	}
 
@@ -43,12 +44,11 @@ class HtmlConverters {
 			@Override
 			@Nullable
 			public HtmlPoolSummary apply(@Nullable PoolSummary poolSummary) {
-				HtmlPoolSummary htmlPoolSummary = new HtmlPoolSummary();
-                htmlPoolSummary.poolStatus = getPoolStatus(poolSummary);
-				String poolName = poolSummary.getPoolName();
-                htmlPoolSummary.poolName = poolName;
-                htmlPoolSummary.testResults = poolSummary.getTestResults();
-				return htmlPoolSummary;
+				return new HtmlPoolSummary(
+						getPoolStatus(poolSummary),
+						poolSummary.getTestResults(),
+						poolSummary.getPoolName()
+				);
 			}
 
             private String getPoolStatus(PoolSummary poolSummary) {

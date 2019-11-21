@@ -20,10 +20,10 @@
     <div class="birds-eye">
         <table class="table">
             {{#testResults}}
-            <tr class="test {{status}}">
+            <tr class="test {{lower status}}">
                 <td>{{device.serial}}</td>
                 <td>{{replace device.modelName ' ' '_'}}</td>
-                <td><a href="{{poolName}}/{{fileNameForTest}}html">{{simpleClassName testCase.testClass}} : {{readableMethodName testCase.testMethod}}</a></td>
+                <td><a href="{{poolName}}/{{filenameForTest .}}html">{{simpleClassName testCase.testClass}} : {{readableMethodName testCase.testMethod}}</a></td>
             </tr>
             {{/testResults}}
         </table>

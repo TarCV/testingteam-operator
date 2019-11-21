@@ -20,7 +20,7 @@
                 <p>
                     <a href="../{{pool.name}}.html">Other tests for this pool</a>
                     {{#data}}{{#linkedFilePath}}
-                    - <a href="{{unixPath linkedFilePath}}">{{title}}</a>
+                    - <a href="../../../{{unixPath linkedFilePath}}">{{title}}</a>
                     {{/linkedFilePath}}{{/data}}
                 </p>
             </div>
@@ -29,12 +29,12 @@
             <div>
                 <a name="{{replace title ' ' '_'}}"><h1>{{title}}</h1></a>
                 {{#videoPath}}
-                <video class="diagnostic {{lower status}}" width="35%" height="35%" controls src="../../../screenrecord/{{unixPath .}}" type="video/mp4">
+                <video class="diagnostic {{lower status}}" width="35%" height="35%" controls src="../../../{{unixPath .}}" type="video/mp4">
                     Is video supported in this browser?
                 </video>
                 {{/videoPath}}
                 {{#imagePath}}
-                <img class="diagnostic {{lower status}}" width="35%" height="35%" src="../../../animation/{{unixPath .}}"  />
+                <img class="diagnostic {{lower status}}" width="35%" height="35%" src="../../../{{unixPath .}}"  />
                 {{/imagePath}}
                 {{#table}}
                     {{#if (eq title 'Logcat')}}

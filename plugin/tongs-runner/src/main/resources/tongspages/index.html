@@ -30,8 +30,8 @@
                             </tr>
                             <tr class="result">
                                 {{#testResults}}
-                                <td class="test {{status}}">
-                                    <a href="pools/{{poolName}}/{{fileNameForTest}}html" id="testMethod" data-original-title="{{simpleClassName testCase.testClass}}" data-content="{{prettyMethodName}} ({{replace device.modelName ' ' '_'}}) [{{device.serial}}]">&nbsp;</a>
+                                <td class="test {{lower status}}">
+                                    <a href="pools/{{poolName}}/{{filenameForTest .}}html" id="testMethod" data-original-title="{{simpleClassName testCase.testClass}}" data-content="{{prettyMethodName}} ({{replace device.modelName ' ' '_'}}) [{{device.serial}}]">&nbsp;</a>
                                 </td>
                                 {{/testResults}}
                             </tr>
