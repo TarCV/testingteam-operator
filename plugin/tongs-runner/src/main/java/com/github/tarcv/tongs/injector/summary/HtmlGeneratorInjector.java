@@ -14,6 +14,7 @@ package com.github.tarcv.tongs.injector.summary;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Helper;
 import com.github.jknack.handlebars.HumanizeHelper;
+import com.github.jknack.handlebars.cache.ConcurrentMapTemplateCache;
 import com.github.jknack.handlebars.helper.ConditionalHelpers;
 import com.github.jknack.handlebars.helper.StringHelpers;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
@@ -26,14 +27,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class HtmlGeneratorInjector {
+    private final static ConcurrentMapTemplateCache CACHE = new ConcurrentMapTemplateCache();
+
     private HtmlGeneratorInjector() {}
 
     public static HtmlGenerator htmlGenerator() {
         TemplateLoader loader = new ClassPathTemplateLoader();
         loader.setSuffix("");
 
-        Handlebars handlebars = new Handlebars(loader);
+        Handlebars handlebars = new Handlebars(loader).with(CACHE);
         registerHelpers(handlebars);
+
         return new HtmlGenerator(handlebars);
     }
 
