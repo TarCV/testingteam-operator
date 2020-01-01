@@ -12,7 +12,6 @@
 package com.github.tarcv.tongs.model
 
 import com.google.common.base.Objects
-import com.google.gson.JsonObject
 import java.util.*
 import java.util.Collections.emptyList
 
@@ -60,7 +59,7 @@ class TestCaseEvent private constructor(
     companion object {
 
         @JvmStatic
-        fun newTestCase(testMethod: String, testClass: String, permissionsToGrant: List<String>, properties: Map<String, String>, info: JsonObject?, excludedDevices: Collection<Device>): TestCaseEvent {
+        fun newTestCase(testMethod: String, testClass: String, permissionsToGrant: List<String>, properties: Map<String, String>, info: List<AnnotationInfo>, excludedDevices: Collection<Device>): TestCaseEvent {
             val testCase = TestCase(testMethod, testClass, properties)
             return TestCaseEvent(testCase, permissionsToGrant, excludedDevices)
         }

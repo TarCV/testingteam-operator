@@ -18,15 +18,14 @@ import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.Utils.namedExecutor
 import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
 import com.github.tarcv.tongs.model.AndroidDevice
+import com.github.tarcv.tongs.model.AnnotationInfo
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.runner.AndroidTestRunFactory
 import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.google.gson.JsonParseException
-import com.google.gson.JsonParser
+import com.google.gson.*
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -125,15 +124,11 @@ public class JUnitTestSuiteLoader(
         }
     }
 
-    private class AnnotationInfo(
+    private class ExtraInfo(
             val permissionsToGrant: List<String>,
             val properties:Map<String, String>,
-            val info: JsonObject?
-    ) {
-        override fun toString(): String {
-            return "AnnotationInfo(permissionsToGrant=$permissionsToGrant, properties=$properties, info=$info)"
-        }
-    }
+            val info: List<AnnotationInfo>
+    )
 
     internal class TestInfoCatCollector : Collector<LogCatMessage, ArrayList<TestInfoCatCollector.MessageTriple>, List<JsonObject>> {
         override fun supplier(): Supplier<ArrayList<MessageTriple>> {
@@ -217,11 +212,11 @@ public class JUnitTestSuiteLoader(
         private fun joinTestInfo(
                 allTestsSet: Set<TestIdentifier>,
                 excludes: Map<TestIdentifier, Collection<Device>>,
-                infos: Map<TestIdentifier, AnnotationInfo>
+                infos: Map<TestIdentifier, ExtraInfo>
         ): Collection<TestCaseEvent> {
             return allTestsSet.map {
                 val excludedDevices = excludes[it] ?: emptyList()
-                val info = infos[it] ?: AnnotationInfo(emptyList(), emptyMap(), null)
+                val info = infos[it] ?: ExtraInfo(emptyList(), emptyMap(), emptyList())
                 TestCaseEvent.newTestCase(
                         it.testName,
                         it.className,
@@ -259,7 +254,7 @@ public class JUnitTestSuiteLoader(
             }
         }
 
-        private fun calculateAnnotatedInfo(tests: Set<TestIdentifier>, testInfos: MutableList<Map.Entry<TestIdentifier, JsonObject>>): Map<TestIdentifier, AnnotationInfo> {
+        private fun calculateAnnotatedInfo(tests: Set<TestIdentifier>, testInfos: MutableList<Map.Entry<TestIdentifier, JsonObject>>): Map<TestIdentifier, ExtraInfo> {
             val testInfoMap = testInfos.associateBy { it.key }
             return tests
                     .map { testIdentifier ->
@@ -269,31 +264,78 @@ public class JUnitTestSuiteLoader(
                             val properties = HashMap<String, String>()
 
                             val annotations = info.value.get("annotations")
-                            if (annotations != null) {
-                                for (annotationElement in annotations.asJsonArray) {
+                            val annotationInfos = if (annotations != null) {
+                                val classNameKey = "annotationType"
+                                val annotationInfos = annotations.asJsonArray.map { annotationElement ->
                                     val annotation = annotationElement.asJsonObject
-                                    val annotationType = annotation.get("annotationType").asString
-                                    when (annotationType) {
-                                        "com.github.tarcv.tongs.GrantPermission" -> annotation.getAsJsonArray("value")
-                                                .forEach { jsonElement -> permissionsToGrant.add(jsonElement.asString) }
+                                    val annotationType = annotation.get(classNameKey).asString
+                                    val properties = (convertToJava(annotation) as Map<String, Any?>)
+                                            .filter { it.key != classNameKey }
+                                    AnnotationInfo(
+                                            annotationType,
+                                            properties
+                                    )
+                                }
+
+                                // TODO: move these to permission and properties plugins
+                                annotationInfos.forEach {
+                                    when (it.fullyQualifiedName) {
+                                        "com.github.tarcv.tongs.GrantPermission" -> {
+                                            (it.properties["value"] as List<String>)
+                                                    .forEach { permission -> permissionsToGrant.add(permission) }
+                                        }
                                         "com.github.tarcv.tongs.TestProperties" -> {
-                                            val keys = toStringList(annotation.getAsJsonArray("keys"))
-                                            val values = toStringList(annotation.getAsJsonArray("values"))
+                                            val keys = it.properties["keys"] as List<String>
+                                            val values = it.properties["values"] as List<String>
                                             keyValueArraysToProperties(properties, keys, values)
                                         }
                                         "com.github.tarcv.tongs.TestPropertyPairs" -> {
-                                            val values = toStringList(annotation.getAsJsonArray("value"))
+                                            val values = it.properties["value"] as List<String>
                                             keyValuePairsToProperties(properties, values)
                                         }
                                     }
                                 }
+                                annotationInfos
+                            } else {
+                                emptyList<AnnotationInfo>()
                             }
-                            testIdentifier to AnnotationInfo(permissionsToGrant, properties, info.value)
+                            testIdentifier to ExtraInfo(permissionsToGrant, properties, annotationInfos)
                         } else {
-                            testIdentifier to AnnotationInfo(emptyList(), emptyMap(), null)
+                            testIdentifier to ExtraInfo(emptyList(), emptyMap(), emptyList())
                         }
                     }
                     .toMap()
+        }
+
+        private fun convertToJava(value: JsonElement?): Any? {
+            return when {
+                value == null || value.isJsonNull -> {
+                    null
+                }
+                value.isJsonArray -> {
+                    value.asJsonArray
+                            .map { convertToJava(it) }
+                            .toList()
+                }
+                value.isJsonObject -> {
+                    value.asJsonObject
+                            .entrySet()
+                            .associateBy({ it.key }, { convertToJava(it.value) })
+                }
+                value.isJsonPrimitive -> {
+                    val primitive = value.asJsonPrimitive
+                    return if (primitive.isNumber) {
+                        primitive.asNumber
+                    } else if (primitive.isString) {
+                        primitive.asString
+                    } else {
+                        throw IllegalStateException("Got unknown type of JSON Element: ${value}")
+                    }
+                }
+                else -> {
+                    throw IllegalStateException("Got unknown type of JSON Element: ${value}")
+                }
+            }
         }
 
         fun allTestsFromPoolTests(poolTests: List<Pair<Device, Set<TestIdentifier>>>): HashSet<TestIdentifier> {
