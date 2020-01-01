@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.github.tarcv.tongs.summary.ResultStatus;
 import com.github.tarcv.tongs.system.PermissionGrantingManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -52,7 +53,11 @@ public class AndroidTestRunFactory {
         ResultProducer resultProducer = new ResultProducer(testRunContext, workCountdownLatch);
         testRunListeners.addAll(resultProducer.requestListeners());
 
-        List<TestRuleFactory> testRuleFactories = Collections.singletonList(new AndroidCleanupTestRuleFactory());
+        // TODO: Replace this init with general routine for all rules
+        List<TestRuleFactory> testRuleFactories = Arrays.asList(
+                new AndroidCleanupTestRuleFactory(),
+                new AndroidPermissionGrantingTestRuleFactory() // must be executed AFTER the clean rule
+        );
         List<TestRule> testRules = testRuleFactories.stream()
                 .map(factory -> factory.create(testRunContext))
                 .collect(Collectors.toList());

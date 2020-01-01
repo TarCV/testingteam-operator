@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -17,7 +17,8 @@ import java.util.Collections.emptyMap
 data class TestCase @JvmOverloads constructor(
         val testMethod: String,
         val testClass: String,
-        val properties: Map<String, String> = emptyMap()
+        val properties: Map<String, String> = emptyMap(),
+        val annotations: List<AnnotationInfo> = emptyList()
 ) {
     /**
      * Returns a readable string uniquely identifying a test case for use in logs and file names.

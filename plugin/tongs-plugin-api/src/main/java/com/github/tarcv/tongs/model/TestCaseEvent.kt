@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import java.util.Collections.emptyList
 
 class TestCaseEvent private constructor(
         val testCase: TestCase,
-        val permissionsToGrant: List<String>,
         excludedDevices: Collection<Device>) {
 
     val testMethod: String
@@ -59,14 +58,14 @@ class TestCaseEvent private constructor(
     companion object {
 
         @JvmStatic
-        fun newTestCase(testMethod: String, testClass: String, permissionsToGrant: List<String>, properties: Map<String, String>, info: List<AnnotationInfo>, excludedDevices: Collection<Device>): TestCaseEvent {
-            val testCase = TestCase(testMethod, testClass, properties)
-            return TestCaseEvent(testCase, permissionsToGrant, excludedDevices)
+        fun newTestCase(testMethod: String, testClass: String, properties: Map<String, String>, annotations: List<AnnotationInfo>, excludedDevices: Collection<Device>): TestCaseEvent {
+            val testCase = TestCase(testMethod, testClass, properties, annotations)
+            return TestCaseEvent(testCase, excludedDevices)
         }
 
         @JvmStatic
         fun newTestCase(testIdentifier: TestCase): TestCaseEvent {
-            return TestCaseEvent(testIdentifier, emptyList(), emptyList())
+            return TestCaseEvent(testIdentifier, emptyList())
         }
     }
 }

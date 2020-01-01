@@ -1,7 +1,7 @@
 package com.github.tarcv.tongs.suite
 
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -125,8 +125,7 @@ public class JUnitTestSuiteLoader(
     }
 
     private class ExtraInfo(
-            val permissionsToGrant: List<String>,
-            val properties:Map<String, String>,
+            val properties: Map<String, String>,
             val info: List<AnnotationInfo>
     )
 
@@ -216,11 +215,10 @@ public class JUnitTestSuiteLoader(
         ): Collection<TestCaseEvent> {
             return allTestsSet.map {
                 val excludedDevices = excludes[it] ?: emptyList()
-                val info = infos[it] ?: ExtraInfo(emptyList(), emptyMap(), emptyList())
+                val info = infos[it] ?: ExtraInfo(emptyMap(), emptyList())
                 TestCaseEvent.newTestCase(
                         it.testName,
                         it.className,
-                        info.permissionsToGrant,
                         info.properties,
                         info.info,
                         excludedDevices
@@ -260,7 +258,6 @@ public class JUnitTestSuiteLoader(
                     .map { testIdentifier ->
                         val info = testInfoMap[testIdentifier]
                         if (info != null) {
-                            val permissionsToGrant = ArrayList<String>()
                             val properties = HashMap<String, String>()
 
                             val annotations = info.value.get("annotations")
@@ -280,10 +277,6 @@ public class JUnitTestSuiteLoader(
                                 // TODO: move these to permission and properties plugins
                                 annotationInfos.forEach {
                                     when (it.fullyQualifiedName) {
-                                        "com.github.tarcv.tongs.GrantPermission" -> {
-                                            (it.properties["value"] as List<String>)
-                                                    .forEach { permission -> permissionsToGrant.add(permission) }
-                                        }
                                         "com.github.tarcv.tongs.TestProperties" -> {
                                             val keys = it.properties["keys"] as List<String>
                                             val values = it.properties["values"] as List<String>
@@ -299,9 +292,9 @@ public class JUnitTestSuiteLoader(
                             } else {
                                 emptyList<AnnotationInfo>()
                             }
-                            testIdentifier to ExtraInfo(permissionsToGrant, properties, annotationInfos)
+                            testIdentifier to ExtraInfo(properties, annotationInfos)
                         } else {
-                            testIdentifier to ExtraInfo(emptyList(), emptyMap(), emptyList())
+                            testIdentifier to ExtraInfo(emptyMap(), emptyList())
                         }
                     }
                     .toMap()

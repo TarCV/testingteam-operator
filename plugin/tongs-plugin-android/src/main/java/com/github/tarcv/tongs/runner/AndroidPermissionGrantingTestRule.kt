@@ -1,0 +1,57 @@
+/*
+ * Copyright 2020 TarCV
+ * Copyright 2016 Shazam Entertainment Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package com.github.tarcv.tongs.runner
+
+import com.android.ddmlib.IDevice
+import com.github.tarcv.tongs.TongsConfiguration
+import com.github.tarcv.tongs.model.AndroidDevice
+import com.github.tarcv.tongs.runner.rules.TestRule
+import com.github.tarcv.tongs.runner.rules.TestRuleContext
+import com.github.tarcv.tongs.runner.rules.TestRuleFactory
+import com.github.tarcv.tongs.system.PermissionGrantingManager
+
+class AndroidPermissionGrantingTestRuleFactory : TestRuleFactory<AndroidDevice, AndroidPermissionGrantingTestRule> {
+    override fun create(context: TestRuleContext<AndroidDevice>): AndroidPermissionGrantingTestRule {
+        val permissionsToGrant = context.testCaseEvent.testCase.annotations
+                .firstOrNull { it.fullyQualifiedName == "com.github.tarcv.tongs.GrantPermission" }
+                .let {
+                    if (it != null) {
+                        it.properties["value"] as List<String>
+                    } else {
+                        emptyList()
+                    }
+                }
+        return AndroidPermissionGrantingTestRule(context.configuration, context.device.deviceInterface, permissionsToGrant)
+    }
+}
+
+class AndroidPermissionGrantingTestRule(
+        private val configuration: TongsConfiguration,
+        private val deviceInterface: IDevice,
+        private val permissionsToGrant: List<String>
+) : TestRule<AndroidDevice> {
+    private val permissionGrantingManager = PermissionGrantingManager(configuration)
+
+    override fun before() {
+        permissionGrantingManager.grantPermissions(configuration.applicationPackage,
+                deviceInterface, permissionsToGrant)
+        permissionGrantingManager.grantPermissions(configuration.instrumentationPackage,
+                deviceInterface, permissionsToGrant)
+    }
+
+    override fun after() {
+        permissionGrantingManager.revokePermissions(configuration.applicationPackage,
+                deviceInterface, permissionsToGrant)
+    }
+}

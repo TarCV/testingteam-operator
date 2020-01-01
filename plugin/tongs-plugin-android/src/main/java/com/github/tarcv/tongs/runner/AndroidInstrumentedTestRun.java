@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -111,16 +111,6 @@ public class AndroidInstrumentedTestRun {
 
 		testRules.forEach(TestRule::before);
 
-		List<String> permissionsToGrant;
-		if (test != null) {
-			// TODO: Implement as a TestRule
-			permissionsToGrant = test.getPermissionsToGrant();
-			permissionGrantingManager.grantPermissions(applicationPackage, device, permissionsToGrant);
-			permissionGrantingManager.grantPermissions(testPackage, device, permissionsToGrant);
-		} else {
-			permissionsToGrant = Collections.emptyList();
-		}
-
 		try {
 			logger.info("Cmd: " + runner.getAmInstrumentCommand());
 			runner.run(testRunListeners.toArray(new ITestRunListener[0]));
@@ -129,10 +119,6 @@ public class AndroidInstrumentedTestRun {
 		} catch (AdbCommandRejectedException | IOException e) {
 			throw new RuntimeException(format("Error while running test %s %s", testClassName, testMethodName), e);
 		} finally {
-			if (test != null) {
-				permissionGrantingManager.revokePermissions(applicationPackage, device, permissionsToGrant);
-			}
-
 			testRules.forEach(TestRule::after);
 		}
 
