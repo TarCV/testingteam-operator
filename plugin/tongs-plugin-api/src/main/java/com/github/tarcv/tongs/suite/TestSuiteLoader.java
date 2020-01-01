@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -8,20 +8,13 @@
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
-package com.github.tarcv.tongs.device;
 
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.DisplayGeometry;
+package com.github.tarcv.tongs.suite;
 
-/**
- * Determines a display geometry for a device.
- */
-public interface DisplayGeometryRetrievalStrategy {
+import com.github.tarcv.tongs.model.TestCaseEvent;
 
-    /**
-     * Detect the geometry of a device after applying a strategy.
-     * @param device the connected device
-     * @return the resolved geometry
-     */
-	DisplayGeometry retrieveGeometry(Device device);
+import java.util.Collection;
+
+public interface TestSuiteLoader {
+    Collection<TestCaseEvent> loadTestSuite() throws NoTestCasesFoundException;
 }

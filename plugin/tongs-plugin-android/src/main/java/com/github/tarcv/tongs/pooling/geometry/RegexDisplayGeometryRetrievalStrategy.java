@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -31,7 +31,6 @@ import java.util.regex.PatternSyntaxException;
 /**
  * Runs a command on a device and sniffs its output for geometry by regex. Main aim is to determine shortest width.
  */
-// TODO: connect to plugin infrastructure
 public class RegexDisplayGeometryRetrievalStrategy implements DisplayGeometryRetrievalStrategy {
     private static final Logger logger = LoggerFactory.getLogger(RegexDisplayGeometryRetrievalStrategy.class);
     private final String command;
@@ -45,19 +44,18 @@ public class RegexDisplayGeometryRetrievalStrategy implements DisplayGeometryRet
     }
 
     @Override
-    public DisplayGeometry retrieveGeometry(Device device) {
+    public DisplayGeometry retrieveGeometry(IDevice device) {
         return getDisplayGeometry(device, commandOutputLogger);
     }
 
     //TODO Ugly method. Break this up.
-    DisplayGeometry getDisplayGeometry(Device device, CommandOutputLogger commandOutputLogger) {
-        IDevice deviceInterface = ((AndroidDevice)device).getDeviceInterface();
+    DisplayGeometry getDisplayGeometry(IDevice device, CommandOutputLogger commandOutputLogger) {
         DisplayGeometry displayGeometry = null;
         CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
-        String serial = deviceInterface.getSerialNumber();
+        String serial = device.getSerialNumber();
 
         try {
-            deviceInterface.executeShellCommand(command, receiver);
+            device.executeShellCommand(command, receiver);
             String commandOutput = receiver.getOutput();
             commandOutputLogger.logCommandOutput(serial, commandOutput);
             Pattern xxnnn = Pattern.compile("(\\w+?)(\\d+)");
