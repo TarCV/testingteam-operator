@@ -168,15 +168,15 @@ class FunctionalSummaryTest {
         assert(poolSummaries.length() == 1)
         val testResults = getTestResults() as Iterable<JSONObject>
 
-        val normalPropertiesTest = testResults.single { it.getString("testMethod") == "normalPropertiesTest" }
-        with(normalPropertiesTest.getJSONObject("testMetrics")) {
+        val normalPropertiesTest = testResults.single { it.getJSONObject("testCase").getString("testMethod") == "normalPropertiesTest" }
+        with(normalPropertiesTest.getJSONObject("metrics")) {
             assert(getString("x") == "1")
             assert(getString("y") == "2")
             assert(keySet() == setOf("x", "y"))
         }
 
         val normalPropertyPairsTest = testResults.single { it.getString("testMethod") == "normalPropertyPairsTest" }
-        with(normalPropertyPairsTest.getJSONObject("testMetrics")) {
+        with(normalPropertyPairsTest.getJSONObject("metrics")) {
             assert(getString("v") == "1")
             assert(getString("w") == "2")
             assert(keySet() == setOf("v", "w"))
@@ -274,8 +274,9 @@ private fun getSimplifiedResults(): List<Pair<String, String>> {
     val simplifiedResults = getTestResults().map {
         val result = it as JSONObject
         val serial = result.getJSONObject("device").getString("serial")
-        val testClass = result.getString("testClass")
-        val testMethod = result.getString("testMethod")
+        val testCase = result.getJSONObject("testCase")
+        val testClass = testCase.getString("testClass")
+        val testMethod = testCase.getString("testMethod")
         "$testClass#$testMethod" to serial
     }
     return simplifiedResults
