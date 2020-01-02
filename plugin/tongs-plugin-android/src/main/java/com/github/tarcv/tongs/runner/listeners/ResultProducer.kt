@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -16,7 +16,7 @@ import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.injector.GsonInjector.gson
 import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.runner.*
-import com.github.tarcv.tongs.runner.rules.TestRuleContext
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.summary.DeviceTestFilesRetrieverImpl
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
@@ -43,7 +43,7 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
 }
 
 class ResultProducer(
-        private val context: TestRuleContext<AndroidDevice>,
+        private val context: TestCaseRunRuleContext<AndroidDevice>,
         private val latch: PreregisteringLatch
 ) : IResultProducer {
     private val testStatus = AtomicReference<ResultStatus>(ResultStatus.UNKNOWN)

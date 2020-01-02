@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -17,7 +17,12 @@ class Plugins(
     var deviceProviders: Collection<String> = emptyList(),
 
     /**
-     * FQCNs of RunRule classes
+     * Rules that are executed before and after a test case execution
      */
-    var runRules: Collection<String> = emptyList()
+    var runRules: Collection<String> = emptyList(),
+
+    /**
+     * Rules that modify test cases loading
+     */
+    var testCaseRules: Collection<String> = emptyList()
 )

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,22 +14,24 @@
 package com.github.tarcv.tongs;
 
 import com.github.tarcv.tongs.injector.BaseRuleManager;
+import com.github.tarcv.tongs.injector.RuleCollection;
 import com.github.tarcv.tongs.runner.rules.RuleFactory;
 import com.github.tarcv.tongs.runner.rules.RunRule;
 import com.github.tarcv.tongs.runner.rules.RunRuleContext;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.setConfiguration;
 import static com.github.tarcv.tongs.injector.TongsRunnerInjector.tongsRunner;
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
-import static java.util.Collections.emptyList;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.commons.lang3.time.DurationFormatUtils.formatPeriod;
 
@@ -49,11 +51,9 @@ public final class Tongs {
 
     public boolean run() {
 		long startOfTestsMs = nanoTime();
-        RunRuleManager runRulesManager = new RunRuleManager(runRuleNames);
-        runRulesManager.forEach(runRule -> {
-            runRule.before();
-            return null;
-        });
+        List<RunRule> runRules = new RunRuleManager(runRuleNames)
+                .createRulesFrom(() -> new RunRuleContext(configuration()));
+        runRules.forEach(runRule -> runRule.before());
 		try {
             deleteDirectory(output);
             //noinspection ResultOfMethodCallIgnored
@@ -65,21 +65,14 @@ public final class Tongs {
 		} finally {
             long duration = millisSinceNanoTime(startOfTestsMs);
             logger.info(formatPeriod(0, duration, "'Total time taken:' H 'hours' m 'minutes' s 'seconds'"));
-            runRulesManager.forEachReversed(runRule -> {
-                runRule.after();
-                return null;
-            });
+            Lists.reverse(runRules)
+                    .forEach(runRule -> runRule.after());
         }
 	}
 
     private static class RunRuleManager extends BaseRuleManager<RunRuleContext, RunRule, RuleFactory<RunRuleContext, RunRule>> {
         public RunRuleManager(@NotNull Collection<String> ruleClassNames) {
             super(ruleClassNames);
-        }
-
-        @Override
-        public RunRuleContext ruleContextFactory() {
-            return new RunRuleContext(configuration());
         }
     }
 }

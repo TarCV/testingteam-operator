@@ -19,9 +19,9 @@ import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.ResultProducer;
 import com.github.tarcv.tongs.runner.listeners.TestCollectorResultProducer;
-import com.github.tarcv.tongs.runner.rules.TestRule;
-import com.github.tarcv.tongs.runner.rules.TestRuleContext;
-import com.github.tarcv.tongs.runner.rules.TestRuleFactory;
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRule;
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext;
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory;
 import com.github.tarcv.tongs.suite.TestCollectingListener;
 import com.github.tarcv.tongs.summary.ResultStatus;
 import com.github.tarcv.tongs.system.PermissionGrantingManager;
@@ -42,7 +42,7 @@ public class AndroidTestRunFactory {
         this.configuration = configuration;
     }
 
-    public AndroidInstrumentedTestRun createTestRun(TestRuleContext testRunContext, TestCaseEvent testCase,
+    public AndroidInstrumentedTestRun createTestRun(TestCaseRunRuleContext testRunContext, TestCaseEvent testCase,
                                                     AndroidDevice device,
                                                     Pool pool,
                                                     AtomicReference<ResultStatus> testStatus,
@@ -54,11 +54,11 @@ public class AndroidTestRunFactory {
         testRunListeners.addAll(resultProducer.requestListeners());
 
         // TODO: Replace this init with general routine for all rules
-        List<TestRuleFactory> testRuleFactories = Arrays.asList(
-                new AndroidCleanupTestRuleFactory(),
-                new AndroidPermissionGrantingTestRuleFactory() // must be executed AFTER the clean rule
+        List<TestCaseRunRuleFactory> testRuleFactories = Arrays.asList(
+                new AndroidCleanupTestCaseRunRuleFactory(),
+                new AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
         );
-        List<TestRule> testRules = testRuleFactories.stream()
+        List<TestCaseRunRule> testCaseRunRules = testRuleFactories.stream()
                 .map(factory -> factory.create(testRunContext))
                 .collect(Collectors.toList());
 
@@ -67,7 +67,7 @@ public class AndroidTestRunFactory {
                 testRunParameters,
                 testRunListeners,
                 resultProducer,
-                testRules,
+                testCaseRunRules,
                 new PermissionGrantingManager(configuration),
                 RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration)
         );
@@ -82,14 +82,14 @@ public class AndroidTestRunFactory {
         List<BaseListener> testRunListeners = new ArrayList<>();
         testRunListeners.add(testCollectingListener);
 
-        TestRule collectingTestRule = new AndroidCollectingTestRule(device, testCollectingListener, latch);
+        TestCaseRunRule collectingTestCaseRunRule = new AndroidCollectingTestCaseRunRule(device, testCollectingListener, latch);
 
         return new AndroidInstrumentedTestRun(
                 pool.getName(),
                 testRunParameters,
                 testRunListeners,
                 new TestCollectorResultProducer(pool, device),
-                Collections.singletonList(collectingTestRule),
+                Collections.singletonList(collectingTestCaseRunRule),
                 null,
                 RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration)
         );

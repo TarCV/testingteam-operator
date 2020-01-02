@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -49,6 +49,4 @@ class DeviceProviderManager(
 ): BaseRuleManager<DeviceProviderContext, DeviceProvider, RuleFactory<DeviceProviderContext, DeviceProvider>>(
         ruleNames,
         predefinedFactories
-) {
-    override fun ruleContextFactory(): DeviceProviderContext = DeviceProviderContextImpl(configuration)
-}
+)
