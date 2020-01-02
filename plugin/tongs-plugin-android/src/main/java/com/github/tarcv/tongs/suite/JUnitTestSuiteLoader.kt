@@ -232,26 +232,6 @@ public class JUnitTestSuiteLoader(
             return output
         }
 
-        private fun keyValueArraysToProperties(properties: MutableMap<String, String>, keys: List<String>, values: List<String>) {
-            if (keys.size != values.size) {
-                throw RuntimeException("Numbers of key and values in test properties annotations should be the same")
-            }
-            for (i in keys.indices) {
-                properties[keys[i]] = values[i]
-            }
-        }
-
-        private fun keyValuePairsToProperties(properties: MutableMap<String, String>, values: List<String>) {
-            if (values.size != values.size / 2 * 2) {
-                throw RuntimeException("Number of values in test property pairs annotations should be even")
-            }
-            var i = 0
-            while (i < values.size) {
-                properties[values[i]] = values[i + 1]
-                i += 2
-            }
-        }
-
         private fun calculateAnnotatedInfo(tests: Set<TestIdentifier>, testInfos: MutableList<Map.Entry<TestIdentifier, JsonObject>>): Map<TestIdentifier, ExtraInfo> {
             val testInfoMap = testInfos.associateBy { it.key }
             return tests
@@ -263,7 +243,8 @@ public class JUnitTestSuiteLoader(
                             val annotations = info.value.get("annotations")
                             val annotationInfos = if (annotations != null) {
                                 val classNameKey = "annotationType"
-                                val annotationInfos = annotations.asJsonArray.map { annotationElement ->
+
+                                annotations.asJsonArray.map { annotationElement ->
                                     val annotation = annotationElement.asJsonObject
                                     val annotationType = annotation.get(classNameKey).asString
                                     val properties = (convertToJava(annotation) as Map<String, Any?>)
@@ -273,22 +254,6 @@ public class JUnitTestSuiteLoader(
                                             properties
                                     )
                                 }
-
-                                // TODO: move these to permission and properties plugins
-                                annotationInfos.forEach {
-                                    when (it.fullyQualifiedName) {
-                                        "com.github.tarcv.tongs.TestProperties" -> {
-                                            val keys = it.properties["keys"] as List<String>
-                                            val values = it.properties["values"] as List<String>
-                                            keyValueArraysToProperties(properties, keys, values)
-                                        }
-                                        "com.github.tarcv.tongs.TestPropertyPairs" -> {
-                                            val values = it.properties["value"] as List<String>
-                                            keyValuePairsToProperties(properties, values)
-                                        }
-                                    }
-                                }
-                                annotationInfos
                             } else {
                                 emptyList<AnnotationInfo>()
                             }

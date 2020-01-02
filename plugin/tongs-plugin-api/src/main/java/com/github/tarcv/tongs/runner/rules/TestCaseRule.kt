@@ -15,19 +15,18 @@ package com.github.tarcv.tongs.runner.rules
 import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCase
+import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
 class TestCaseRuleContext(
         val configuration: TongsConfiguration,
-        val pool: Pool,
-        val testCase: TestCase
+        val pool: Pool
 )
 
-interface TestRuleFactory<T: TestCaseRule>: RuleFactory<TestCaseRuleContext, T> {
+interface TestCaseRuleFactory<T: TestCaseRule>: RuleFactory<TestCaseRuleContext, T> {
     override fun create(context: TestCaseRuleContext): T
 }
 
 interface TestCaseRule {
-    fun before()
-    fun after()
+    fun transform(testCaseEvent: TestCaseEvent): TestCaseEvent
 }

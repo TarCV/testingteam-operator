@@ -26,14 +26,17 @@ class TestCaseEvent private constructor(
     val properties: Map<String, String>
         get() = testCase.properties
 
-    private val excludedDevices: HashSet<Device>
+    val excludedDevices: Set<Device>
+        get() = Collections.unmodifiableSet(_excludedDevices)
+
+    private val _excludedDevices: HashSet<Device>
 
     init {
-        this.excludedDevices = HashSet(excludedDevices)
+        this._excludedDevices = HashSet(excludedDevices)
     }
 
     fun isExcluded(device: Device): Boolean {
-        return excludedDevices.contains(device)
+        return _excludedDevices.contains(device)
     }
 
     override fun hashCode(): Int {
@@ -56,6 +59,7 @@ class TestCaseEvent private constructor(
     }
 
     companion object {
+        // TODO: Refactor to usual constructors
 
         @JvmStatic
         fun newTestCase(testMethod: String, testClass: String, properties: Map<String, String>, annotations: List<AnnotationInfo>, excludedDevices: Collection<Device>): TestCaseEvent {
