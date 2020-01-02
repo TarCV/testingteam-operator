@@ -77,7 +77,7 @@ class TemplateTest {
                 VideoReportData("Screen recording", TestCaseFile(manager, SCREENRECORD, ""))
         ))
         htmlGenerator().generateHtml("tongspages/pooltest.html",
-                temporaryFolder.root, "test.html")
+                temporaryFolder.root, "test.html", model)
     }
 
     @Test

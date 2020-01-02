@@ -207,6 +207,8 @@ public class SummaryCompiler {
     }
 
     private static final Device NO_DEVICE = new Device() {
+        private final Object uniqueIdentifier = new Object();
+
         @Override
         public String getSerial() {
             return "N/A";
@@ -255,7 +257,7 @@ public class SummaryCompiler {
 
         @Override
         protected Object getUniqueIdentifier() {
-            return new Object();
+            return uniqueIdentifier;
         }
     };
 }

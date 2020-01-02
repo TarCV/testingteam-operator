@@ -66,6 +66,8 @@ public abstract class Device {
     }
 
     public static final Device TEST_DEVICE = new Device() {
+        private final Object uniqueIdentifier = new Object();
+
         @Override
         public String getSerial() {
             return "DeviceSerial";
@@ -114,7 +116,7 @@ public abstract class Device {
 
         @Override
         protected Object getUniqueIdentifier() {
-            return new Object();
+            return uniqueIdentifier;
         }
     };
 }
