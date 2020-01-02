@@ -1,17 +1,29 @@
+/*
+ * Copyright 2020 TarCV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.*
 import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.runner.rules.TestRule
-import com.github.tarcv.tongs.runner.rules.TestRuleContext
-import com.github.tarcv.tongs.runner.rules.TestRuleFactory
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.String.format
 
-class AndroidCleanupTestRuleFactory : TestRuleFactory<AndroidDevice, AndroidCleanupTestRule> {
-    override fun create(context: TestRuleContext<AndroidDevice>): AndroidCleanupTestRule {
-        return AndroidCleanupTestRule(
+class AndroidCleanupTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidDevice, AndroidCleanupTestCaseRunRule> {
+    override fun create(context: TestCaseRunRuleContext<AndroidDevice>): AndroidCleanupTestCaseRunRule {
+        return AndroidCleanupTestCaseRunRule(
                 context.device,
                 context.configuration.applicationPackage,
                 context.configuration.instrumentationPackage
@@ -19,11 +31,11 @@ class AndroidCleanupTestRuleFactory : TestRuleFactory<AndroidDevice, AndroidClea
     }
 }
 
-class AndroidCleanupTestRule(
+class AndroidCleanupTestCaseRunRule(
         device: AndroidDevice,
         private val applicationPackage: String,
         private val testPackage: String
-) : TestRule<AndroidDevice> {
+) : TestCaseRunRule<AndroidDevice> {
     private val logger = LoggerFactory.getLogger(AndroidInstrumentedTestRun::class.java)
     private val device: IDevice = device.deviceInterface
 

@@ -16,13 +16,13 @@ package com.github.tarcv.tongs.runner
 import com.android.ddmlib.IDevice
 import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.runner.rules.TestRule
-import com.github.tarcv.tongs.runner.rules.TestRuleContext
-import com.github.tarcv.tongs.runner.rules.TestRuleFactory
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import com.github.tarcv.tongs.system.PermissionGrantingManager
 
-class AndroidPermissionGrantingTestRuleFactory : TestRuleFactory<AndroidDevice, AndroidPermissionGrantingTestRule> {
-    override fun create(context: TestRuleContext<AndroidDevice>): AndroidPermissionGrantingTestRule {
+class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidDevice, AndroidPermissionGrantingTestCaseRunRule> {
+    override fun create(context: TestCaseRunRuleContext<AndroidDevice>): AndroidPermissionGrantingTestCaseRunRule {
         val permissionsToGrant = context.testCaseEvent.testCase.annotations
                 .firstOrNull { it.fullyQualifiedName == "com.github.tarcv.tongs.GrantPermission" }
                 .let {
@@ -32,15 +32,15 @@ class AndroidPermissionGrantingTestRuleFactory : TestRuleFactory<AndroidDevice, 
                         emptyList()
                     }
                 }
-        return AndroidPermissionGrantingTestRule(context.configuration, context.device.deviceInterface, permissionsToGrant)
+        return AndroidPermissionGrantingTestCaseRunRule(context.configuration, context.device.deviceInterface, permissionsToGrant)
     }
 }
 
-class AndroidPermissionGrantingTestRule(
+class AndroidPermissionGrantingTestCaseRunRule(
         private val configuration: TongsConfiguration,
         private val deviceInterface: IDevice,
         private val permissionsToGrant: List<String>
-) : TestRule<AndroidDevice> {
+) : TestCaseRunRule<AndroidDevice> {
     private val permissionGrantingManager = PermissionGrantingManager(configuration)
 
     override fun before() {

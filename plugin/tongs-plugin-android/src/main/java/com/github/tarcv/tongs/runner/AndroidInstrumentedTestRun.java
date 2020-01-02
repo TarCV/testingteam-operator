@@ -20,7 +20,7 @@ import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
-import com.github.tarcv.tongs.runner.rules.TestRule;
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRule;
 import com.github.tarcv.tongs.system.PermissionGrantingManager;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 import com.google.common.base.Strings;
@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -41,7 +40,7 @@ public class AndroidInstrumentedTestRun {
 	private final String poolName;
 	private final TestRunParameters testRunParameters;
 	private final List<BaseListener> testRunListeners;
-	private final List<TestRule> testRules;
+	private final List<TestCaseRunRule> testCaseRunRules;
 	private final PermissionGrantingManager permissionGrantingManager;
 	private final IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory;
 	private final IResultProducer resultProducer;
@@ -50,14 +49,14 @@ public class AndroidInstrumentedTestRun {
                                       TestRunParameters testRunParameters,
                                       List<BaseListener> testRunListeners,
                                       IResultProducer resultProducer,
-                                      List<TestRule> testRules,
+                                      List<TestCaseRunRule> testCaseRunRules,
                                       PermissionGrantingManager permissionGrantingManager,
                                       IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory) {
         this.poolName = poolName;
 		this.testRunParameters = testRunParameters;
 		this.testRunListeners = testRunListeners;
 		this.resultProducer = resultProducer;
-		this.testRules = testRules;
+		this.testCaseRunRules = testCaseRunRules;
 		this.permissionGrantingManager = permissionGrantingManager;
 		this.remoteAndroidTestRunnerFactory = remoteAndroidTestRunnerFactory;
 	}
@@ -109,7 +108,7 @@ public class AndroidInstrumentedTestRun {
 			logger.info("No excluding any test based on annotations");
 		}
 
-		testRules.forEach(TestRule::before);
+		testCaseRunRules.forEach(TestCaseRunRule::before);
 
 		try {
 			logger.info("Cmd: " + runner.getAmInstrumentCommand());
@@ -119,7 +118,7 @@ public class AndroidInstrumentedTestRun {
 		} catch (AdbCommandRejectedException | IOException e) {
 			throw new RuntimeException(format("Error while running test %s %s", testClassName, testMethodName), e);
 		} finally {
-			testRules.forEach(TestRule::after);
+			testCaseRunRules.forEach(TestCaseRunRule::after);
 		}
 
         return resultProducer.getResult();

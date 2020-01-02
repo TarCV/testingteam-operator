@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -14,8 +14,8 @@ import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEvent
-import com.github.tarcv.tongs.runner.rules.TestRule
-import com.github.tarcv.tongs.runner.rules.TestRuleContext
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
 class TongsTestCaseContext<T: Device>(
@@ -26,8 +26,8 @@ class TongsTestCaseContext<T: Device>(
         val testCaseEvent: TestCaseEvent
 )
 
-interface TestRuleFactory<D: Device, T: TestRule<D>> {
-    fun create(context: TestRuleContext<D>): T
+interface TestRuleFactory<D: Device, T: TestCaseRunRule<D>> {
+    fun create(context: TestCaseRunRuleContext<D>): T
 }
 
 interface TestRule<D: Device> {
