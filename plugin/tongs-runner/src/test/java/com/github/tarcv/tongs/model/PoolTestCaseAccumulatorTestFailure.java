@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ public class PoolTestCaseAccumulatorTestFailure {
             .addDevice(ANOTHER_DEVICE)
             .build();
     
-    private final TestCaseEvent A_TEST_CASE = newTestCase("a_method", "a_class", emptyList(), emptyMap(), new JsonObject(), emptyList());
-    private final TestCaseEvent ANOTHER_TEST_CASE = newTestCase("another_method", "a_class", emptyList(), emptyMap(), new JsonObject(), emptyList());
+    private final TestCaseEvent A_TEST_CASE = newTestCase("a_method", "a_class", emptyMap(), emptyList(), emptyList());
+    private final TestCaseEvent ANOTHER_TEST_CASE = newTestCase("another_method", "a_class", emptyMap(), emptyList(), emptyList());
 
     PoolTestCaseFailureAccumulator subject;
 

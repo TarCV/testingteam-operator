@@ -89,7 +89,7 @@ public class SummaryCompilerTest {
                 newTestCase(new TestCase("doesJobProperly", "com.example.CompletedClassTest")),
                 newTestCase(new TestCase("doesJobProperly", "com.example.CompletedClassTest2")),
                 newTestCase("doesJobProperly", "com.example.FailedClassTest",
-                        emptyList(), testMetricsForFailedTest, new JsonObject(), emptyList()),
+                        testMetricsForFailedTest, emptyList(), emptyList()),
                 newTestCase(new TestCase("doesJobProperly", "com.example.IgnoredClassTest")),
                 newTestCase(new TestCase("doesJobProperly", "com.example.SkippedClassTest"))
             )).build();
