@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -12,15 +12,12 @@
 package com.github.tarcv.tongs.pooling
 
 import com.github.tarcv.tongs.Configuration
-import com.github.tarcv.tongs.PoolingStrategy
 import com.github.tarcv.tongs.injector.pooling.DeviceProviderManager
-import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
-import org.slf4j.Logger
+import com.github.tarcv.tongs.plugin.DeviceProviderContextImpl
 import org.slf4j.LoggerFactory
 
 import java.util.*
-import java.util.stream.Collectors
 
 import java.lang.String.format
 
@@ -29,7 +26,11 @@ class PoolLoader(private val configuration: Configuration, private val devicePro
     @Throws(NoDevicesForPoolException::class, NoPoolLoaderConfiguredException::class)
     fun loadPools(): Collection<Pool> {
         val devices = deviceProviderManager
-                .mapSequence { deviceProvider ->
+                .createRulesFrom {
+                    DeviceProviderContextImpl(configuration)
+                }
+                .asSequence()
+                .map { deviceProvider ->
                     val deviceList = ArrayList(deviceProvider.provideDevices())
                     logger.info("Got {} devices from {}", deviceList.size, deviceProvider.javaClass.simpleName)
                     deviceList

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,7 +13,9 @@
  */
 package com.github.tarcv.tongs;
 
+import com.github.tarcv.tongs.injector.BaseRuleManager;
 import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.pooling.NoDevicesForPoolException;
 import com.github.tarcv.tongs.pooling.NoPoolLoaderConfiguredException;
@@ -21,10 +23,14 @@ import com.github.tarcv.tongs.pooling.PoolLoader;
 import com.github.tarcv.tongs.runner.PoolTestRunnerFactory;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.runner.rules.RuleFactory;
+import com.github.tarcv.tongs.runner.rules.TestCaseRule;
+import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext;
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader;
 import com.github.tarcv.tongs.suite.NoTestCasesFoundException;
 import com.github.tarcv.tongs.suite.TestSuiteLoaderContext;
 import com.github.tarcv.tongs.summary.SummaryGeneratorHook;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,5 +116,16 @@ public class TongsRunner {
         TestSuiteLoaderContext testSuiteLoaderContext = new TestSuiteLoaderContext(configuration, pool);
         return new JUnitTestSuiteLoader(testSuiteLoaderContext, testRunFactory(configuration), remoteAndroidTestRunnerFactory(configuration))
                 .loadTestSuite();
+    }
+
+    private static class TestCaseRuleManager extends BaseRuleManager<TestCaseRuleContext, TestCaseRule, RuleFactory<TestCaseRuleContext, TestCaseRule>> {
+        private final Pool pool;
+        private final TestCase testCase;
+
+        public TestCaseRuleManager(@NotNull Collection<String> ruleClassNames, Pool pool, TestCase testCase) {
+            super(ruleClassNames);
+            this.pool = pool;
+            this.testCase = testCase;
+        }
     }
 }
