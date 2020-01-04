@@ -30,7 +30,7 @@ internal class AndroidCollectingTestCaseRunRule(
         private val device: Device,
         private val testCollectingListener: TestCollectingListener,
         private val latch: CountDownLatch
-): TestCaseRunRule<AndroidDevice> {
+): TestCaseRunRule {
     var logCatCollector: LogcatReceiver = LogcatReceiver(device)
 
     override fun before() {

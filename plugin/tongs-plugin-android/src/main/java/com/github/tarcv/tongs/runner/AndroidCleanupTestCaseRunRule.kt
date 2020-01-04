@@ -35,7 +35,7 @@ class AndroidCleanupTestCaseRunRule(
         device: AndroidDevice,
         private val applicationPackage: String,
         private val testPackage: String
-) : TestCaseRunRule<AndroidDevice> {
+) : TestCaseRunRule {
     private val logger = LoggerFactory.getLogger(AndroidInstrumentedTestRun::class.java)
     private val device: IDevice = device.deviceInterface
 

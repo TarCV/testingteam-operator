@@ -18,7 +18,7 @@ import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
-class TestCaseRunRuleContext<T: Device>(
+class TestCaseRunRuleContext<out T: Device>(
         val configuration: TongsConfiguration,
         val fileManager: TestCaseFileManager,
         val pool: Pool,
@@ -26,11 +26,11 @@ class TestCaseRunRuleContext<T: Device>(
         val testCaseEvent: TestCaseEvent
 )
 
-interface TestCaseRunRuleFactory<D: Device, T: TestCaseRunRule<D>>: RuleFactory<TestCaseRunRuleContext<D>, T> {
+interface TestCaseRunRuleFactory<D: Device, out T: TestCaseRunRule>: RuleFactory<TestCaseRunRuleContext<D>, T> {
     override fun create(context: TestCaseRunRuleContext<D>): T
 }
 
-interface TestCaseRunRule<D: Device> {
+interface TestCaseRunRule {
     fun before()
     fun after()
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -19,7 +19,7 @@ import com.github.tarcv.tongs.system.io.TestCaseFileManager
 class RunRuleContext(
         val configuration: TongsConfiguration
 )
-interface RunRuleFactory<T: RunRule> {
+interface RunRuleFactory<out T: RunRule> {
     fun create(context: RunRuleContext): T
 }
 interface RunRule {

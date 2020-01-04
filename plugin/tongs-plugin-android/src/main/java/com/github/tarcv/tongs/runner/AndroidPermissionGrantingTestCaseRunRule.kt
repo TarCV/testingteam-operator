@@ -40,7 +40,7 @@ class AndroidPermissionGrantingTestCaseRunRule(
         private val configuration: TongsConfiguration,
         private val deviceInterface: IDevice,
         private val permissionsToGrant: List<String>
-) : TestCaseRunRule<AndroidDevice> {
+) : TestCaseRunRule {
     private val permissionGrantingManager = PermissionGrantingManager(configuration)
 
     override fun before() {
