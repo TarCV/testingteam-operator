@@ -21,10 +21,10 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.String.format
 
-class AndroidCleanupTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidDevice, AndroidCleanupTestCaseRunRule> {
-    override fun create(context: TestCaseRunRuleContext<AndroidDevice>): AndroidCleanupTestCaseRunRule {
+class AndroidCleanupTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidCleanupTestCaseRunRule> {
+    override fun create(context: TestCaseRunRuleContext): AndroidCleanupTestCaseRunRule {
         return AndroidCleanupTestCaseRunRule(
-                context.device,
+                context.device as AndroidDevice,
                 context.configuration.applicationPackage,
                 context.configuration.instrumentationPackage
         )

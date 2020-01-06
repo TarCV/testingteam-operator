@@ -43,16 +43,17 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
 }
 
 class ResultProducer(
-        private val context: TestCaseRunRuleContext<AndroidDevice>,
+        private val context: TestCaseRunRuleContext,
         private val latch: PreregisteringLatch
 ) : IResultProducer {
+    private val androidDevice = context.device as AndroidDevice
     private val testStatus = AtomicReference<ResultStatus>(ResultStatus.UNKNOWN)
     private val resultListener = ResultListener(context.testCaseEvent, testStatus, latch)
     private val xmlReportListener = AndroidXmlTestRunListener(context.fileManager)
     private val wrappedXmlReportListener = BaseListenerWrapper(latch, xmlReportListener)
-    private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, context.device, latch)
-    private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, context.pool, context.device, latch)
-    private val coverageListener = getCoverageTestRunListener(context.configuration, context.device, context.fileManager, context.pool, context.testCaseEvent, latch)
+    private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, androidDevice, latch)
+    private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, context.pool, androidDevice, latch)
+    private val coverageListener = getCoverageTestRunListener(context.configuration, androidDevice, context.fileManager, context.pool, context.testCaseEvent, latch)
 
     override fun requestListeners(): List<BaseListener> {
         if (testStatus.get() != ResultStatus.UNKNOWN) {
@@ -68,7 +69,7 @@ class ResultProducer(
 
     override fun getResult(): TestCaseRunResult {
         val xmlResults = DeviceTestFilesRetrieverImpl(null, Persister())
-                .parseTestResultsFromFile(xmlReportListener.file.toFile(), context.device)
+                .parseTestResultsFromFile(xmlReportListener.file.toFile(), androidDevice)
         val xmlResult = xmlResults.single()
 
         val runStatus = testStatus.get()
@@ -97,7 +98,7 @@ class ResultProducer(
         }
 
         return TestCaseRunResult(
-                context.pool, context.device,
+                context.pool, androidDevice,
                 context.testCaseEvent.testCase,
                 status,
                 xmlResult.trace,

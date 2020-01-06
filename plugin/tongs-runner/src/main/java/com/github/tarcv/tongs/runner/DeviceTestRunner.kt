@@ -13,12 +13,15 @@
  */
 package com.github.tarcv.tongs.runner
 
+import com.github.tarcv.tongs.injector.BaseRuleManager
 import com.github.tarcv.tongs.injector.ConfigurationInjector
+import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.runner.listeners.TongsTestListener
+import com.github.tarcv.tongs.runner.rules.RuleFactory
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
@@ -27,7 +30,6 @@ import org.slf4j.LoggerFactory
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
-import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -47,7 +49,7 @@ class DeviceTestRunner(private val pool: Pool,
                     testCaseTask.doWork { testCaseEvent: TestCaseEvent ->
                         val testCaseFileManager: TestCaseFileManager = TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.testCase)
                         val configuration = ConfigurationInjector.configuration()
-                        val context = TestCaseRunRuleContext<Device>(
+                        val context = TestCaseRunRuleContext(
                                 configuration, testCaseFileManager,
                                 pool, device, testCaseEvent)
 
@@ -62,29 +64,37 @@ class DeviceTestRunner(private val pool: Pool,
 
                         // TODO: Add some defensive code
                         testRunListeners.forEach { baseListener -> baseListener.onTestStarted() }
-                        val result = executeTestCase(context)
 
-                        var fixedStatus = result.status
-                        if (fixedStatus == ResultStatus.UNKNOWN) { // TODO: Report as a fatal crashed test
-                            fixedStatus = ResultStatus.ERROR
-                        }
+                        val ruleManager = TestCaseRunRuleManager(
+                                configuration().plugins.runRules,
+                                listOf(
+                                        AndroidCleanupTestCaseRunRuleFactory(),
+                                        AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
+                                )
+                        )
+                        val testCaseRunRules = ruleManager.createRulesFrom { context }
 
-                        val fixedResult = result.copy(pool, device, testCaseEvent.testCase, fixedStatus)
+                        testCaseRunRules.forEach { it.before() }
+
+                        val result = fixRunResult(executeTestCase(context), testCaseEvent)
+
+                        testCaseRunRules.forEach { it.after() }
+
                         testRunListeners.forEach { baseListener ->
-                            val status = fixedResult.status
+                            val status = result.status
                             if (status == ResultStatus.PASS) {
                                 baseListener.onTestSuccessful()
                             } else if (status == ResultStatus.IGNORED) {
-                                baseListener.onTestSkipped(fixedResult)
+                                baseListener.onTestSkipped(result)
                             } else if (status == ResultStatus.ASSUMPTION_FAILED) {
-                                baseListener.onTestAssumptionFailure(fixedResult)
+                                baseListener.onTestAssumptionFailure(result)
                             } else if (status == ResultStatus.FAIL || status == ResultStatus.ERROR) {
-                                baseListener.onTestFailed(fixedResult)
+                                baseListener.onTestFailed(result)
                             } else {
                                 throw IllegalStateException("Got unknown status:$status")
                             }
                         }
-                        fixedResult
+                        result
                     }
                 } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
                     break
@@ -96,14 +106,25 @@ class DeviceTestRunner(private val pool: Pool,
         }
     }
 
+    private fun fixRunResult(result: TestCaseRunResult, testCaseEvent: TestCaseEvent): TestCaseRunResult {
+        var fixedStatus = result.status
+        if (fixedStatus == ResultStatus.UNKNOWN) { // TODO: Report as a fatal crashed test
+            fixedStatus = ResultStatus.ERROR
+        }
+
+        val fixedResult = result.copy(pool, device, testCaseEvent.testCase, fixedStatus)
+        return fixedResult
+    }
+
     companion object {
         private val logger = LoggerFactory.getLogger(DeviceTestRunner::class.java)
 
-        private fun executeTestCase(context: TestCaseRunRuleContext<*>): TestCaseRunResult {
+        private fun executeTestCase(context: TestCaseRunRuleContext): TestCaseRunResult {
             val androidTestRunFactory = TestRunFactoryInjector.testRunFactory(context.configuration)
             val workCountdownLatch = PreregisteringLatch()
             return try {
                 val testStatus = AtomicReference(ResultStatus.UNKNOWN)
+
                 try {
                     val testRun = androidTestRunFactory.createTestRun(context, context.testCaseEvent,
                             context.device as AndroidDevice,
@@ -138,3 +159,9 @@ class DeviceTestRunner(private val pool: Pool,
     }
 
 }
+
+class TestCaseRunRuleManager(ruleClassNames: Collection<String>, predefinedFactories: Collection<RuleFactory<TestCaseRunRuleContext, TestCaseRunRule>>)
+    : BaseRuleManager<TestCaseRunRuleContext, TestCaseRunRule, RuleFactory<TestCaseRunRuleContext, TestCaseRunRule>>(
+        ruleClassNames,
+        predefinedFactories
+)

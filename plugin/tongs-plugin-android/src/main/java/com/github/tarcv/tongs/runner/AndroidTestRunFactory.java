@@ -53,22 +53,11 @@ public class AndroidTestRunFactory {
         ResultProducer resultProducer = new ResultProducer(testRunContext, workCountdownLatch);
         testRunListeners.addAll(resultProducer.requestListeners());
 
-        // TODO: Replace this init with general routine for all rules
-        List<TestCaseRunRuleFactory> testRuleFactories = Arrays.asList(
-                new AndroidCleanupTestCaseRunRuleFactory(),
-                new AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
-        );
-        List<TestCaseRunRule> testCaseRunRules = testRuleFactories.stream()
-                .map(factory -> factory.create(testRunContext))
-                .collect(Collectors.toList());
-
         return new AndroidInstrumentedTestRun(
                 pool.getName(),
                 testRunParameters,
                 testRunListeners,
                 resultProducer,
-                testCaseRunRules,
-                new PermissionGrantingManager(configuration),
                 RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration)
         );
     }
@@ -82,15 +71,11 @@ public class AndroidTestRunFactory {
         List<BaseListener> testRunListeners = new ArrayList<>();
         testRunListeners.add(testCollectingListener);
 
-        TestCaseRunRule collectingTestCaseRunRule = new AndroidCollectingTestCaseRunRule(device, testCollectingListener, latch);
-
         return new AndroidInstrumentedTestRun(
                 pool.getName(),
                 testRunParameters,
                 testRunListeners,
                 new TestCollectorResultProducer(pool, device),
-                Collections.singletonList(collectingTestCaseRunRule),
-                null,
                 RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration)
         );
     }
