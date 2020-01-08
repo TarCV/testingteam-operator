@@ -17,6 +17,7 @@ import com.android.ddmlib.IDevice
 import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import com.github.tarcv.tongs.system.PermissionGrantingManager
@@ -51,7 +52,7 @@ class AndroidPermissionGrantingTestCaseRunRule(
                 deviceInterface, permissionsToGrant)
     }
 
-    override fun after() {
+    override fun after(arguments: TestCaseRunRuleAfterArguments) {
         permissionGrantingManager.revokePermissions(configuration.applicationPackage,
                 deviceInterface, permissionsToGrant)
     }

@@ -15,6 +15,7 @@ package com.github.tarcv.tongs.runner
 import com.android.ddmlib.*
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import org.slf4j.LoggerFactory
@@ -45,7 +46,7 @@ class AndroidCleanupTestCaseRunRule(
         resetToHomeScreen()
     }
 
-    override fun after() {
+    override fun after(arguments: TestCaseRunRuleAfterArguments) {
     }
 
     /**

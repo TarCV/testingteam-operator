@@ -19,6 +19,7 @@ import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader.Companion.logcatWaiterSleep
 import com.github.tarcv.tongs.suite.TestCollectingListener
@@ -38,7 +39,7 @@ internal class AndroidCollectingTestCaseRunRule(
         logCatCollector.start("TestSuiteLoader")
     }
 
-    override fun after() {
+    override fun after(arguments: TestCaseRunRuleAfterArguments) {
         try {
             sleep(logcatWaiterSleep) // make sure all logcat messages are read
         } finally {

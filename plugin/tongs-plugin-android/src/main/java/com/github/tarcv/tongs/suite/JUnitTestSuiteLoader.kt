@@ -24,6 +24,9 @@ import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.runner.AndroidCollectingTestCaseRunRule
 import com.github.tarcv.tongs.runner.AndroidTestRunFactory
 import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
+import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
+import com.github.tarcv.tongs.summary.ResultStatus
 import com.google.gson.*
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -88,7 +91,8 @@ public class JUnitTestSuiteLoader(
                                 collectingRule.before()
                                 collectingTestRun.execute()
                             } finally {
-                                collectingRule.after()
+                                val stubResult = TestCaseRunResult.Companion.aTestResult("", "", ResultStatus.PASS, "")
+                                collectingRule.after(TestCaseRunRuleAfterArguments(stubResult))
                             }
 
                             collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)

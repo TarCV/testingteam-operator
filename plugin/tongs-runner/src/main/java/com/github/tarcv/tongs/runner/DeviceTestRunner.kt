@@ -22,6 +22,7 @@ import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.runner.rules.RuleFactory
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
@@ -76,9 +77,15 @@ class DeviceTestRunner(private val pool: Pool,
 
                         testCaseRunRules.forEach { it.before() }
 
-                        val result = fixRunResult(executeTestCase(context), testCaseEvent)
-
-                        testCaseRunRules.forEach { it.after() }
+                        val result = executeTestCase(context)
+                                .let {
+                                    fixRunResult(it, testCaseEvent.testCase, "Test case runner")
+                                }
+                                .let {
+                                    val transormedArgs =
+                                            applyRulesAfters(TestCaseRunRuleAfterArguments(it), testCaseRunRules)
+                                    transormedArgs.result
+                                }
 
                         testRunListeners.forEach { baseListener ->
                             val status = result.status
@@ -106,13 +113,36 @@ class DeviceTestRunner(private val pool: Pool,
         }
     }
 
-    private fun fixRunResult(result: TestCaseRunResult, testCaseEvent: TestCaseEvent): TestCaseRunResult {
+    private fun applyRulesAfters(arguments: TestCaseRunRuleAfterArguments, rules: List<TestCaseRunRule>): TestCaseRunRuleAfterArguments {
+        val originalResult = arguments.result
+
+        val finalArgs = rules
+                .asReversed()
+                .fold(arguments) { args, rule ->
+                    rule.after(args)
+
+                    args.result = fixRunResult(args.result, originalResult.testCase, "Rule ${rule.javaClass.name}")
+
+                    args
+                }
+        return finalArgs
+    }
+
+    private fun fixRunResult(result: TestCaseRunResult, testCase: TestCase, changer: String): TestCaseRunResult {
         var fixedStatus = result.status
+
+        if (result.pool != pool
+                || result.device != device
+                || result.testCase != testCase) {
+            throw RuntimeException(
+                    "$changer attempted to change pool, device or testCase field of a run result")
+        }
+
         if (fixedStatus == ResultStatus.UNKNOWN) { // TODO: Report as a fatal crashed test
             fixedStatus = ResultStatus.ERROR
         }
 
-        val fixedResult = result.copy(pool, device, testCaseEvent.testCase, fixedStatus)
+        val fixedResult = result.copy(pool, device, testCase, fixedStatus)
         return fixedResult
     }
 
