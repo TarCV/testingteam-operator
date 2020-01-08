@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -15,7 +15,7 @@ import com.github.tarcv.tongs.runner.TestCaseRunResult
 import java.io.File
 import java.io.FileWriter
 
-class RecordingTestRunListener(device: Device, val runName: String, isLogOnly: Boolean) : TongsTestListener {
+class RecordingTestRunListener(device: Device, val runName: String, isLogOnly: Boolean) : TongsTestListener() {
     private val deviceSerial = device.serial
     private val writer: FileWriter by lazy {
         val filename = if (isLogOnly) {

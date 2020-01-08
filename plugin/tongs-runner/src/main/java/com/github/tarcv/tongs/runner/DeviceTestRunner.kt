@@ -63,9 +63,6 @@ class DeviceTestRunner(private val pool: Pool,
                                 configuration.tongsIntegrationTestRunType)
                                 .toList()
 
-                        // TODO: Add some defensive code
-                        testRunListeners.forEach { baseListener -> baseListener.onTestStarted() }
-
                         val ruleManager = TestCaseRunRuleManager(
                                 configuration().plugins.runRules,
                                 listOf(
@@ -75,33 +72,24 @@ class DeviceTestRunner(private val pool: Pool,
                         )
                         val testCaseRunRules = ruleManager.createRulesFrom { context }
 
+                        // TODO: Add some defensive code
+                        testRunListeners.forEach { it.before() }
+
                         testCaseRunRules.forEach { it.before() }
 
-                        val result = executeTestCase(context)
-                                .let {
-                                    fixRunResult(it, testCaseEvent.testCase, "Test case runner")
-                                }
+                        val initialResult = executeTestCase(context)
+
+                        return@doWork fixRunResult(initialResult, testCaseEvent.testCase, "Test case runner")
                                 .let {
                                     val transormedArgs =
                                             applyRulesAfters(TestCaseRunRuleAfterArguments(it), testCaseRunRules)
                                     transormedArgs.result
                                 }
-
-                        testRunListeners.forEach { baseListener ->
-                            val status = result.status
-                            if (status == ResultStatus.PASS) {
-                                baseListener.onTestSuccessful()
-                            } else if (status == ResultStatus.IGNORED) {
-                                baseListener.onTestSkipped(result)
-                            } else if (status == ResultStatus.ASSUMPTION_FAILED) {
-                                baseListener.onTestAssumptionFailure(result)
-                            } else if (status == ResultStatus.FAIL || status == ResultStatus.ERROR) {
-                                baseListener.onTestFailed(result)
-                            } else {
-                                throw IllegalStateException("Got unknown status:$status")
-                            }
-                        }
-                        result
+                                .let {
+                                    val transormedArgs =
+                                            applyRulesAfters(TestCaseRunRuleAfterArguments(it), testRunListeners)
+                                    transormedArgs.result
+                                }
                     }
                 } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
                     break
@@ -129,8 +117,6 @@ class DeviceTestRunner(private val pool: Pool,
     }
 
     private fun fixRunResult(result: TestCaseRunResult, testCase: TestCase, changer: String): TestCaseRunResult {
-        var fixedStatus = result.status
-
         if (result.pool != pool
                 || result.device != device
                 || result.testCase != testCase) {
@@ -138,12 +124,11 @@ class DeviceTestRunner(private val pool: Pool,
                     "$changer attempted to change pool, device or testCase field of a run result")
         }
 
-        if (fixedStatus == ResultStatus.UNKNOWN) { // TODO: Report as a fatal crashed test
-            fixedStatus = ResultStatus.ERROR
+        return if (result.status == ResultStatus.UNKNOWN) { // TODO: Report as a fatal crashed test
+            result.copy(pool, device, testCase, status = ResultStatus.ERROR)
+        } else {
+            result
         }
-
-        val fixedResult = result.copy(pool, device, testCase, fixedStatus)
-        return fixedResult
     }
 
     companion object {

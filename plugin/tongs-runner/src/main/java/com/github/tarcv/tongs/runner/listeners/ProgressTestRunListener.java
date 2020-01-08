@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@ import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.*;
 import org.jetbrains.annotations.NotNull;
 
-class ProgressTestRunListener implements TongsTestListener {
+class ProgressTestRunListener extends TongsTestListener {
 
     private final PoolProgressTracker poolProgressTracker;
 
