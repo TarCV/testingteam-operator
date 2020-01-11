@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -43,7 +43,7 @@ class FunctionalSummaryTest {
             2 * 4
         }
         // Numbers are test case counts per classes in alphabetical order
-        asserter.assertEquals("All tests should be executed", 11+filteredNum+2+2+2+2+1+8+8+2+4, simplifiedResults.size)
+        asserter.assertEquals("All tests should be executed", 12+filteredNum+2+2+2+2+1+8+8+2+4, simplifiedResults.size)
     }
 
     @Test
@@ -61,7 +61,7 @@ class FunctionalSummaryTest {
     @Test
     fun testDangerousNamesTestExecutedCorrectly() {
         doAssertionsForParameterizedTests(
-                """$packageForRegex\.DangerousNamesTest#test\[\s*param = .+]""".toRegex(), 11)
+                """$packageForRegex\.DangerousNamesTest#test\[\s*param = .+]""".toRegex(), 12)
     }
 
     @Test

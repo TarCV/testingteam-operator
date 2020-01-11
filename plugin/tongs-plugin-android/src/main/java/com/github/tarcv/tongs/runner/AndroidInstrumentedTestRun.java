@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -76,8 +78,11 @@ public class AndroidInstrumentedTestRun {
 			testMethodName = test.getTestMethod();
 			testCase = new TestCase(testMethodName, testClassName);
 
-			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", testClassName);
-			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", testMethodName);
+			String encodedClassName = remoteAndroidTestRunnerFactory.encodeTestName(testClassName);
+			String encodedMethodName = remoteAndroidTestRunnerFactory.encodeTestName(testMethodName);
+
+			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", encodedClassName);
+			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", encodedMethodName);
 
 			addFilterAndCustomArgs(runner, TESTCASE_FILTER);
 
