@@ -15,16 +15,17 @@ package com.github.tarcv.tongs.runner
 import com.android.ddmlib.*
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.String.format
 
-class AndroidCleanupTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidDevice, AndroidCleanupTestCaseRunRule> {
-    override fun create(context: TestCaseRunRuleContext<AndroidDevice>): AndroidCleanupTestCaseRunRule {
+class AndroidCleanupTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidCleanupTestCaseRunRule> {
+    override fun create(context: TestCaseRunRuleContext): AndroidCleanupTestCaseRunRule {
         return AndroidCleanupTestCaseRunRule(
-                context.device,
+                context.device as AndroidDevice,
                 context.configuration.applicationPackage,
                 context.configuration.instrumentationPackage
         )
@@ -35,7 +36,7 @@ class AndroidCleanupTestCaseRunRule(
         device: AndroidDevice,
         private val applicationPackage: String,
         private val testPackage: String
-) : TestCaseRunRule<AndroidDevice> {
+) : TestCaseRunRule {
     private val logger = LoggerFactory.getLogger(AndroidInstrumentedTestRun::class.java)
     private val device: IDevice = device.deviceInterface
 
@@ -45,7 +46,7 @@ class AndroidCleanupTestCaseRunRule(
         resetToHomeScreen()
     }
 
-    override fun after() {
+    override fun after(arguments: TestCaseRunRuleAfterArguments) {
     }
 
     /**

@@ -17,12 +17,13 @@ import com.android.ddmlib.IDevice
 import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import com.github.tarcv.tongs.system.PermissionGrantingManager
 
-class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidDevice, AndroidPermissionGrantingTestCaseRunRule> {
-    override fun create(context: TestCaseRunRuleContext<AndroidDevice>): AndroidPermissionGrantingTestCaseRunRule {
+class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidPermissionGrantingTestCaseRunRule> {
+    override fun create(context: TestCaseRunRuleContext): AndroidPermissionGrantingTestCaseRunRule {
         val permissionsToGrant = context.testCaseEvent.testCase.annotations
                 .firstOrNull { it.fullyQualifiedName == "com.github.tarcv.tongs.GrantPermission" }
                 .let {
@@ -32,7 +33,8 @@ class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<A
                         emptyList()
                     }
                 }
-        return AndroidPermissionGrantingTestCaseRunRule(context.configuration, context.device.deviceInterface, permissionsToGrant)
+        val device = context.device as AndroidDevice
+        return AndroidPermissionGrantingTestCaseRunRule(context.configuration, device.deviceInterface, permissionsToGrant)
     }
 }
 
@@ -40,7 +42,7 @@ class AndroidPermissionGrantingTestCaseRunRule(
         private val configuration: TongsConfiguration,
         private val deviceInterface: IDevice,
         private val permissionsToGrant: List<String>
-) : TestCaseRunRule<AndroidDevice> {
+) : TestCaseRunRule {
     private val permissionGrantingManager = PermissionGrantingManager(configuration)
 
     override fun before() {
@@ -50,7 +52,7 @@ class AndroidPermissionGrantingTestCaseRunRule(
                 deviceInterface, permissionsToGrant)
     }
 
-    override fun after() {
+    override fun after(arguments: TestCaseRunRuleAfterArguments) {
         permissionGrantingManager.revokePermissions(configuration.applicationPackage,
                 deviceInterface, permissionsToGrant)
     }

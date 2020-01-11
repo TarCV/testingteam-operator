@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -11,11 +11,30 @@
 package com.github.tarcv.tongs.runner.listeners
 
 import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
+import com.github.tarcv.tongs.summary.ResultStatus
 
-interface TongsTestListener {
-    fun onTestStarted()
-    fun onTestSuccessful()
-    fun onTestSkipped(skipResult: TestCaseRunResult)
-    fun onTestFailed(failureResult: TestCaseRunResult)
-    fun onTestAssumptionFailure(skipResult: TestCaseRunResult)
+abstract class TongsTestListener: TestCaseRunRule {
+    abstract fun onTestStarted()
+    abstract fun onTestSuccessful()
+    abstract fun onTestSkipped(skipResult: TestCaseRunResult)
+    abstract fun onTestFailed(failureResult: TestCaseRunResult)
+    abstract fun onTestAssumptionFailure(skipResult: TestCaseRunResult)
+
+    override fun before() {
+        onTestStarted()
+    }
+
+    override fun after(arguments: TestCaseRunRuleAfterArguments) {
+        val result = arguments.result
+        val status = result.status
+        when (status) {
+            ResultStatus.PASS -> onTestSuccessful()
+            ResultStatus.IGNORED -> onTestSkipped(result)
+            ResultStatus.ASSUMPTION_FAILED -> onTestAssumptionFailure(result)
+            ResultStatus.FAIL, ResultStatus.ERROR -> onTestFailed(result)
+            else -> throw IllegalStateException("Got unknown status:$status")
+        }
+    }
 }

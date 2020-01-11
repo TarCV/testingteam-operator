@@ -40,8 +40,6 @@ public class AndroidInstrumentedTestRun {
 	private final String poolName;
 	private final TestRunParameters testRunParameters;
 	private final List<BaseListener> testRunListeners;
-	private final List<TestCaseRunRule> testCaseRunRules;
-	private final PermissionGrantingManager permissionGrantingManager;
 	private final IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory;
 	private final IResultProducer resultProducer;
 
@@ -49,15 +47,11 @@ public class AndroidInstrumentedTestRun {
                                       TestRunParameters testRunParameters,
                                       List<BaseListener> testRunListeners,
                                       IResultProducer resultProducer,
-                                      List<TestCaseRunRule> testCaseRunRules,
-                                      PermissionGrantingManager permissionGrantingManager,
                                       IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory) {
         this.poolName = poolName;
 		this.testRunParameters = testRunParameters;
 		this.testRunListeners = testRunListeners;
 		this.resultProducer = resultProducer;
-		this.testCaseRunRules = testCaseRunRules;
-		this.permissionGrantingManager = permissionGrantingManager;
 		this.remoteAndroidTestRunnerFactory = remoteAndroidTestRunnerFactory;
 	}
 
@@ -108,8 +102,6 @@ public class AndroidInstrumentedTestRun {
 			logger.info("No excluding any test based on annotations");
 		}
 
-		testCaseRunRules.forEach(TestCaseRunRule::before);
-
 		try {
 			logger.info("Cmd: " + runner.getAmInstrumentCommand());
 			runner.run(testRunListeners.toArray(new ITestRunListener[0]));
@@ -117,8 +109,6 @@ public class AndroidInstrumentedTestRun {
 			logger.warn("Test: " + testClassName + " got stuck. You can increase the timeout in settings if it's too strict");
 		} catch (AdbCommandRejectedException | IOException e) {
 			throw new RuntimeException(format("Error while running test %s %s", testClassName, testMethodName), e);
-		} finally {
-			testCaseRunRules.forEach(TestCaseRunRule::after);
 		}
 
         return resultProducer.getResult();

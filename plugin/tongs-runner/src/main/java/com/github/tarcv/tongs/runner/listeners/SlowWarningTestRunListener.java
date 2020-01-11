@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
 
-class SlowWarningTestRunListener implements TongsTestListener {
+class SlowWarningTestRunListener extends TongsTestListener {
     private static final Logger logger = LoggerFactory.getLogger(SlowWarningTestRunListener.class);
     private static final long TEST_LENGTH_THRESHOLD_MILLIS = 30 * 1000;
     private long startTime;

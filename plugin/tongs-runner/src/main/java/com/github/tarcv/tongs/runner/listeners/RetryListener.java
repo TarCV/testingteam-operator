@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class RetryListener implements TongsTestListener {
+public class RetryListener extends TongsTestListener {
     private static final Logger logger = LoggerFactory.getLogger(RetryListener.class);
     private final Device device;
     private final TestCaseEvent currentTestCaseEvent;

@@ -70,6 +70,7 @@ class TestCaseEventQueueTest {
 }
 
 private fun withTimeout(block: () -> Unit) {
+    // TODO: propagate exceptions to the parent thread
     thread(start = true, block = block).join(1000)
 }
 

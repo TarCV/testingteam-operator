@@ -21,11 +21,14 @@ import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.AnnotationInfo
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.TestCaseEvent
+import com.github.tarcv.tongs.runner.AndroidCollectingTestCaseRunRule
 import com.github.tarcv.tongs.runner.AndroidTestRunFactory
 import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
+import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
+import com.github.tarcv.tongs.summary.ResultStatus
 import com.google.gson.*
 import org.slf4j.LoggerFactory
-import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -81,9 +84,16 @@ public class JUnitTestSuiteLoader(
 
                             val collectionLatch = CountDownLatch(1)
 
+                            val collectingRule = AndroidCollectingTestCaseRunRule(device, testCollector, collectionLatch)
                             val collectingTestRun = testRunFactory.createCollectingRun(
                                     device as AndroidDevice, context.pool, testCollector, collectionLatch)
-                            collectingTestRun.execute()
+                            try {
+                                collectingRule.before()
+                                collectingTestRun.execute()
+                            } finally {
+                                val stubResult = TestCaseRunResult.Companion.aTestResult("", "", ResultStatus.PASS, "")
+                                collectingRule.after(TestCaseRunRuleAfterArguments(stubResult))
+                            }
 
                             collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)
                             testInfoMessages.addAll(testCollector.infos)
