@@ -16,7 +16,6 @@ package com.github.tarcv.tongs.injector;
 import com.github.tarcv.tongs.TongsRunner;
 
 import com.github.tarcv.tongs.plugin.android.PropertiesTestCaseRuleFactory;
-import com.github.tarcv.tongs.runner.rules.RuleFactory;
 import com.github.tarcv.tongs.runner.rules.TestCaseRule;
 import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext;
 import com.github.tarcv.tongs.runner.rules.TestCaseRuleFactory;
@@ -64,11 +63,14 @@ public class TongsRunnerInjector {
 
     public static class TestCaseRuleManager
             extends BaseRuleManager<TestCaseRuleContext, TestCaseRule,
-            RuleFactory<? super TestCaseRuleContext, ? extends TestCaseRule>> {
+            TestCaseRuleFactory<? extends TestCaseRule>> {
         public TestCaseRuleManager(
                 Collection<String> ruleClassNames,
-                Collection<RuleFactory<? super TestCaseRuleContext, ? extends TestCaseRule>> predefinedFactories) {
-            super(ruleClassNames,predefinedFactories);
+                Collection<TestCaseRuleFactory<? extends TestCaseRule>> predefinedFactories) {
+            super(ruleClassNames,predefinedFactories,
+                    (factory, context) -> {
+                        return factory.testCaseRules(context);
+                    });
         }
     }
 }

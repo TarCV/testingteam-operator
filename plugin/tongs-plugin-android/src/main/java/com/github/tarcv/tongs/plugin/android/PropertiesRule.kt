@@ -18,8 +18,8 @@ import com.github.tarcv.tongs.runner.rules.TestCaseRuleFactory
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
 
 class PropertiesTestCaseRuleFactory: TestCaseRuleFactory<PropertiesTestCaseRule> {
-    override fun create(context: TestCaseRuleContext): PropertiesTestCaseRule {
-        return PropertiesTestCaseRule()
+    override fun testCaseRules(context: TestCaseRuleContext): Array<out PropertiesTestCaseRule> {
+        return arrayOf(PropertiesTestCaseRule())
     }
 }
 

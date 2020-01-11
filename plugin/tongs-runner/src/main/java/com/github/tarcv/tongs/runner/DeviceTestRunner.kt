@@ -20,10 +20,10 @@ import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInj
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.runner.rules.RuleFactory
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
@@ -175,8 +175,9 @@ class DeviceTestRunner(private val pool: Pool,
 
 }
 
-class TestCaseRunRuleManager(ruleClassNames: Collection<String>, predefinedFactories: Collection<RuleFactory<TestCaseRunRuleContext, TestCaseRunRule>>)
-    : BaseRuleManager<TestCaseRunRuleContext, TestCaseRunRule, RuleFactory<TestCaseRunRuleContext, TestCaseRunRule>>(
+class TestCaseRunRuleManager(ruleClassNames: Collection<String>, predefinedFactories: Collection<TestCaseRunRuleFactory<TestCaseRunRule>>)
+    : BaseRuleManager<TestCaseRunRuleContext, TestCaseRunRule, TestCaseRunRuleFactory<TestCaseRunRule>>(
         ruleClassNames,
-        predefinedFactories
+        predefinedFactories,
+        { factory, context -> factory.testCaseRunRules(context) }
 )

@@ -23,7 +23,7 @@ import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import com.github.tarcv.tongs.system.PermissionGrantingManager
 
 class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidPermissionGrantingTestCaseRunRule> {
-    override fun create(context: TestCaseRunRuleContext): AndroidPermissionGrantingTestCaseRunRule {
+    override fun testCaseRunRules(context: TestCaseRunRuleContext): Array<out AndroidPermissionGrantingTestCaseRunRule> {
         val permissionsToGrant = context.testCaseEvent.testCase.annotations
                 .firstOrNull { it.fullyQualifiedName == "com.github.tarcv.tongs.GrantPermission" }
                 .let {
@@ -34,7 +34,9 @@ class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<A
                     }
                 }
         val device = context.device as AndroidDevice
-        return AndroidPermissionGrantingTestCaseRunRule(context.configuration, device.deviceInterface, permissionsToGrant)
+        return arrayOf(
+                AndroidPermissionGrantingTestCaseRunRule(context.configuration, device.deviceInterface, permissionsToGrant)
+        )
     }
 }
 

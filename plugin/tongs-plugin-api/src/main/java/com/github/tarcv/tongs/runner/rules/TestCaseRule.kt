@@ -23,8 +23,8 @@ class TestCaseRuleContext(
         val pool: Pool
 )
 
-interface TestCaseRuleFactory<out T: TestCaseRule>: RuleFactory<TestCaseRuleContext, T> {
-    override fun create(context: TestCaseRuleContext): T
+interface TestCaseRuleFactory<out T: TestCaseRule> {
+    fun testCaseRules(context: TestCaseRuleContext): Array<out T>
 }
 
 interface TestCaseRule {

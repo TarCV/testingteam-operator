@@ -9,12 +9,12 @@
  */
 package com.github.tarcv.tongs.injector
 
-import com.github.tarcv.tongs.runner.rules.RuleFactory
 import java.lang.reflect.InvocationTargetException
 
-abstract class BaseRuleManager<C, out R, T: RuleFactory<C, R>> @JvmOverloads constructor(
+abstract class BaseRuleManager<C, out R, F> @JvmOverloads constructor(
         private val ruleClassNames: Collection<String>,
-        private val predefinedFactories: Collection<T> = emptyList()
+        private val predefinedFactories: Collection<F> = emptyList(),
+        private val factoryInvoker: (F, C) -> Array<out R>
 ) {
     fun createRulesFrom(contextProvider: () -> C): List<R> {
         val instances = ArrayList<R>()
@@ -22,7 +22,7 @@ abstract class BaseRuleManager<C, out R, T: RuleFactory<C, R>> @JvmOverloads con
         ruleInstancesFromFactories(predefinedFactories.asSequence(), contextProvider).toCollection(instances)
         factoryInstancesForRuleNames(ruleClassNames)
                 .let {
-                    ruleInstancesFromFactories(it as Sequence<T>, contextProvider)
+                    ruleInstancesFromFactories(it as Sequence<F>, contextProvider)
                 }
                 .toCollection(instances)
 
@@ -30,25 +30,25 @@ abstract class BaseRuleManager<C, out R, T: RuleFactory<C, R>> @JvmOverloads con
     }
 
     fun ruleInstancesFromFactories(
-            factories: Sequence<T>,
+            factories: Sequence<F>,
             contextProvider: () -> C
     ): Sequence<R> {
         return factories
-                .map { factory ->
+                .flatMap { factory ->
                     try {
                         val ruleContext = contextProvider()
-                        factory.create(ruleContext)
+                        factoryInvoker(factory, ruleContext).asSequence()
                     } catch (e: InvocationTargetException) {
                         throw RuntimeException(e.targetException) //TODO
                     }
                 }
     }
 
-    private fun factoryInstancesForRuleNames(ruleClassNames: Collection<String>): Sequence<T> {
+    private fun factoryInstancesForRuleNames(ruleClassNames: Collection<String>): Sequence<F> {
         return ruleClassNames
                 .asSequence()
                 .map { className ->
-                    Class.forName(className + "Factory") as Class<T>
+                    Class.forName(className + "Factory") as Class<F>
                 }
                 .map { clazz ->
                     try {

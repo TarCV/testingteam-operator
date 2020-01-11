@@ -27,7 +27,6 @@ import com.github.tarcv.tongs.pooling.PoolLoader
 import com.github.tarcv.tongs.runner.PoolTestRunnerFactory
 import com.github.tarcv.tongs.runner.ProgressReporter
 import com.github.tarcv.tongs.runner.TestCaseRunResult
-import com.github.tarcv.tongs.runner.rules.RuleFactory
 import com.github.tarcv.tongs.runner.rules.TestCaseRule
 import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader

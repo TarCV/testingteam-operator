@@ -15,9 +15,9 @@ package com.github.tarcv.tongs;
 
 import com.github.tarcv.tongs.injector.BaseRuleManager;
 import com.github.tarcv.tongs.injector.RuleCollection;
-import com.github.tarcv.tongs.runner.rules.RuleFactory;
 import com.github.tarcv.tongs.runner.rules.RunRule;
 import com.github.tarcv.tongs.runner.rules.RunRuleContext;
+import com.github.tarcv.tongs.runner.rules.RunRuleFactory;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -70,9 +70,11 @@ public final class Tongs {
         }
 	}
 
-    private static class RunRuleManager extends BaseRuleManager<RunRuleContext, RunRule, RuleFactory<RunRuleContext, RunRule>> {
+    private static class RunRuleManager extends BaseRuleManager<RunRuleContext, RunRule, RunRuleFactory<? extends RunRule>> {
         public RunRuleManager(@NotNull Collection<String> ruleClassNames) {
-            super(ruleClassNames);
+            super(ruleClassNames, (runRuleFactory, runRuleContext) -> {
+                return runRuleFactory.runRules(runRuleContext);
+            });
         }
     }
 }

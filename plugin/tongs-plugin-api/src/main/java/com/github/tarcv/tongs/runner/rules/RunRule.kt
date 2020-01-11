@@ -20,7 +20,7 @@ class RunRuleContext(
         val configuration: TongsConfiguration
 )
 interface RunRuleFactory<out T: RunRule> {
-    fun create(context: RunRuleContext): T
+    fun runRules(context: RunRuleContext): Array<out T>
 }
 interface RunRule {
     fun before()

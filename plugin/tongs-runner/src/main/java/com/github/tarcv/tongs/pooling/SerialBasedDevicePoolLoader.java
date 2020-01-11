@@ -43,7 +43,7 @@ public class SerialBasedDevicePoolLoader implements DevicePoolLoader {
                 Device device = devices.stream()
                         .filter(d -> d.getSerial().equals(serial))
                         .findFirst()
-                        .orElseThrow(RuntimeException::new);
+                        .orElseThrow(RuntimeException::new); // TODO: add message
                 if (device != null) {
                     poolBuilder.addDevice(device);
                 }

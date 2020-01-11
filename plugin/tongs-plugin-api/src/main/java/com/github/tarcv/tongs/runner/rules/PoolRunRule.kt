@@ -13,19 +13,18 @@
 package com.github.tarcv.tongs.runner.rules
 
 import com.github.tarcv.tongs.TongsConfiguration
-import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
-class PoolRuleContext (
+class PoolRunRuleContext (
         val configuration: TongsConfiguration,
         val fileManager: TestCaseFileManager,
         val pool: Pool
 )
-interface PoolRuleFactory<out T: PoolRule>: RuleFactory<PoolRuleContext, T> {
-    override fun create(context: PoolRuleContext): T
+interface PoolRunRuleFactory<out T: PoolRunRule> {
+    fun poolRules(context: PoolRunRuleContext): Array<out T>
 }
-interface PoolRule {
+interface PoolRunRule {
     fun before()
-    fun after()
+    fun after() // TODO: consider providing results
 }
