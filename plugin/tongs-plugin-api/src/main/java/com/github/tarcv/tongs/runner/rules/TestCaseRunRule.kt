@@ -29,6 +29,7 @@ class TestCaseRunRuleContext(
 
 class TestCaseRunRuleAfterArguments(
         var result: TestCaseRunResult
+    // TODO: add indicator whether this test case will be retried
 )
 
 interface TestCaseRunRuleFactory<out T: TestCaseRunRule> {

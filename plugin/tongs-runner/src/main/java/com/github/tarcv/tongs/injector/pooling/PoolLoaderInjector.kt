@@ -12,7 +12,7 @@
 package com.github.tarcv.tongs.injector.pooling
 
 import com.github.tarcv.tongs.Configuration
-import com.github.tarcv.tongs.injector.BaseRuleManager
+import com.github.tarcv.tongs.injector.RuleManager
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.plugin.DeviceProvider
 import com.github.tarcv.tongs.plugin.DeviceProviderContext
@@ -37,15 +37,15 @@ private fun createProviders(configuration: Configuration): DeviceProviderManager
     val defaultProviderFactories: List<DeviceProviderFactory<DeviceProvider>> = listOf(
             LocalDeviceProviderFactory()
     )
-    return DeviceProviderManager(configuration, configuration.plugins.deviceProviders, defaultProviderFactories)
+    return DeviceProviderManager(defaultProviderFactories, configuration.pluginsInstances)
 }
 
 class DeviceProviderManager(
-        private val configuration: Configuration,
-        private val ruleNames: Collection<String>,
-        private val predefinedFactories: Collection<DeviceProviderFactory<DeviceProvider>>
-): BaseRuleManager<DeviceProviderContext, DeviceProvider, DeviceProviderFactory<DeviceProvider>>(
-        ruleNames,
+        predefinedFactories: List<DeviceProviderFactory<DeviceProvider>>,
+        userFactories: List<Any>
+): RuleManager<DeviceProviderContext, DeviceProvider, DeviceProviderFactory<DeviceProvider>>(
+        DeviceProviderFactory::class.java,
         predefinedFactories,
+        userFactories,
         { factory, context -> factory.deviceProviders(context) }
 )

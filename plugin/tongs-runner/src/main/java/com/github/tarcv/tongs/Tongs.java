@@ -13,8 +13,7 @@
  */
 package com.github.tarcv.tongs;
 
-import com.github.tarcv.tongs.injector.BaseRuleManager;
-import com.github.tarcv.tongs.injector.RuleCollection;
+import com.github.tarcv.tongs.injector.RuleManager;
 import com.github.tarcv.tongs.runner.rules.RunRule;
 import com.github.tarcv.tongs.runner.rules.RunRuleContext;
 import com.github.tarcv.tongs.runner.rules.RunRuleFactory;
@@ -24,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
@@ -40,18 +38,16 @@ public final class Tongs {
 
     private final TongsRunner tongsRunner;
     private final File output;
-    private final Collection<String> runRuleNames;
 
     public Tongs(Configuration configuration) {
         this.output = configuration.getOutput();
-        this.runRuleNames = configuration.getPlugins().getRunRules();
         setConfiguration(configuration);
         this.tongsRunner = tongsRunner();
     }
 
     public boolean run() {
 		long startOfTestsMs = nanoTime();
-        List<RunRule> runRules = new RunRuleManager(runRuleNames)
+        List<RunRule> runRules = new RunRuleManager(configuration().getPluginsInstances())
                 .createRulesFrom(() -> new RunRuleContext(configuration()));
         runRules.forEach(runRule -> runRule.before());
 		try {
@@ -70,11 +66,13 @@ public final class Tongs {
         }
 	}
 
-    private static class RunRuleManager extends BaseRuleManager<RunRuleContext, RunRule, RunRuleFactory<? extends RunRule>> {
-        public RunRuleManager(@NotNull Collection<String> ruleClassNames) {
-            super(ruleClassNames, (runRuleFactory, runRuleContext) -> {
-                return runRuleFactory.runRules(runRuleContext);
-            });
+    private static class RunRuleManager extends RuleManager<RunRuleContext, RunRule, RunRuleFactory<?>> {
+        public RunRuleManager(@NotNull List<Object> userFactories) {
+            super(fixGenericClass(RunRuleFactory.class),
+                userFactories,
+                (runRuleFactory, runRuleContext) -> {
+                    return runRuleFactory.runRules(runRuleContext);
+                });
         }
     }
 }

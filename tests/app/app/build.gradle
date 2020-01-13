@@ -78,10 +78,8 @@ tongs {
         }
     }
 
-    plugins {
-        if (Boolean.valueOf(System.getenv("CI_STUBBED"))) {
-            deviceProviders = ["com.github.tarcv.tongs.plugin.android.StubDeviceProvider"]
-        }
+    if (Boolean.valueOf(System.getenv("CI_STUBBED"))) {
+        plugins = ["com.github.tarcv.tongs.plugin.android.StubDeviceProviderFactory"]
     }
 
     tongsIntegrationTestRunType = Boolean.valueOf(System.getenv("CI_STUBBED")) ?

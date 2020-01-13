@@ -11,29 +11,28 @@ package com.github.tarcv.tongs.injector
 
 import java.lang.reflect.InvocationTargetException
 
-abstract class BaseRuleManager<C, out R, F> @JvmOverloads constructor(
-        private val ruleClassNames: Collection<String>,
-        private val predefinedFactories: Collection<F> = emptyList(),
+open class RuleManager<C, out R, F> @JvmOverloads constructor(
+        private val factoryClass: Class<F>,
+        private val predefinedFactories: List<F> = emptyList(),
+        allUserFactories: List<Any>,
         private val factoryInvoker: (F, C) -> Array<out R>
 ) {
+    private val userFactories = allUserFactories.filterIsInstance(factoryClass)
+
     fun createRulesFrom(contextProvider: () -> C): List<R> {
         val instances = ArrayList<R>()
 
-        ruleInstancesFromFactories(predefinedFactories.asSequence(), contextProvider).toCollection(instances)
-        factoryInstancesForRuleNames(ruleClassNames)
-                .let {
-                    ruleInstancesFromFactories(it as Sequence<F>, contextProvider)
-                }
-                .toCollection(instances)
+        ruleInstancesFromFactories(predefinedFactories, contextProvider).toCollection(instances)
+        ruleInstancesFromFactories(userFactories, contextProvider).toCollection(instances)
 
         return instances
     }
 
-    fun ruleInstancesFromFactories(
-            factories: Sequence<F>,
+    private fun ruleInstancesFromFactories(
+            factories: List<F>,
             contextProvider: () -> C
     ): Sequence<R> {
-        return factories
+        return factories.asSequence()
                 .flatMap { factory ->
                     try {
                         val ruleContext = contextProvider()
@@ -44,20 +43,30 @@ abstract class BaseRuleManager<C, out R, F> @JvmOverloads constructor(
                 }
     }
 
-    private fun factoryInstancesForRuleNames(ruleClassNames: Collection<String>): Sequence<F> {
-        return ruleClassNames
-                .asSequence()
-                .map { className ->
-                    Class.forName(className + "Factory") as Class<F>
-                }
-                .map { clazz ->
-                    try {
-                        val ctor = clazz.getConstructor()
-                        ctor.newInstance()
-                    } catch (e: InvocationTargetException) {
-                        throw RuntimeException(e.targetException) //TODO
+    companion object {
+        @JvmStatic
+        fun factoryInstancesForRuleNames(ruleClassNames: Collection<String>): List<Any> {
+            return ruleClassNames
+                    .asSequence()
+                    .map { className ->
+                        Class.forName(className) as Class<Any>
                     }
-                }
+                    .map { clazz ->
+                        try {
+                            val ctor = clazz.getConstructor()
+                            ctor.newInstance()
+                        } catch (e: InvocationTargetException) {
+                            throw RuntimeException(e.targetException) //TODO
+                        }
+                    }
+                    .toList()
+        }
+
+        @JvmStatic
+        fun <T> fixGenericClass(clazz: Class<in T>): Class<T> {
+            return clazz as Class<T>
+        }
+
     }
 }
 

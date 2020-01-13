@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -17,20 +17,9 @@ class TongsConfigurationGradleExtension extends TongsConfigurationExtension {
      */
     public GradlePoolingStrategy poolingStrategy;
 
-    /**
-     * Plugins configuration
-     */
-    public Plugins plugins;
-
     void poolingStrategy(Closure<?> poolingStrategyClosure) {
         poolingStrategy = new GradlePoolingStrategy()
         poolingStrategyClosure.setDelegate(poolingStrategy)
         poolingStrategyClosure.call()
-    }
-
-    void plugins(Closure<?> pluginsClosure) {
-        plugins = new Plugins()
-        pluginsClosure.setDelegate(plugins)
-        pluginsClosure.call()
     }
 }

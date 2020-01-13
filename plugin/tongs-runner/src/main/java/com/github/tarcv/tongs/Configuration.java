@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,15 +13,14 @@
  */
 package com.github.tarcv.tongs;
 
+import com.github.tarcv.tongs.injector.RuleManager;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +40,8 @@ public class Configuration implements TongsConfiguration {
     private final String applicationPackage;
     private final String instrumentationPackage;
     private final String testRunnerClass;
-    private final Plugins plugins;
+    private final List<String> pluginsClasses;
+    private final List<Object> pluginsInstances = Collections.synchronizedList(new ArrayList<>());
     private final Map<String, String> testRunnerArguments;
     private final File output;
     private final String title;
@@ -66,7 +66,7 @@ public class Configuration implements TongsConfiguration {
         instrumentationPackage = builder.instrumentationPackage;
         testRunnerClass = builder.testRunnerClass;
         testRunnerArguments = builder.testRunnerArguments;
-        plugins = builder.plugins;
+        pluginsClasses = builder.plugins;
         output = builder.output;
         title = builder.title;
         subtitle = builder.subtitle;
@@ -201,8 +201,15 @@ public class Configuration implements TongsConfiguration {
     }
 
     @Override
-    public Plugins getPlugins() {
-        return plugins;
+    public List<Object> getPluginsInstances() {
+        synchronized (pluginsInstances) {
+            if (pluginsInstances.isEmpty() && !pluginsClasses.isEmpty()) {
+                List<Object> instances = RuleManager.factoryInstancesForRuleNames(pluginsClasses);
+                pluginsInstances.addAll(instances);
+            }
+
+            return pluginsInstances;
+        }
     }
 
     public static class Builder {
@@ -213,7 +220,7 @@ public class Configuration implements TongsConfiguration {
         private String instrumentationPackage;
         private String testRunnerClass;
         private Map<String, String> testRunnerArguments;
-        private Plugins plugins;
+        private List<String> plugins;
         private File output;
         private String title;
         private String subtitle;
@@ -288,7 +295,7 @@ public class Configuration implements TongsConfiguration {
             return this;
         }
 
-        public Builder withPlugins(Plugins plugins) {
+        public Builder withPlugins(List<String> plugins) {
             this.plugins = plugins;
             return this;
         }
@@ -371,7 +378,7 @@ public class Configuration implements TongsConfiguration {
 
             checkNotNull(output, "Output path is required.");
 
-            plugins = assignValueOrDefaultIfNull(plugins, Defaults.PLUGINS);
+            plugins = assignValueOrDefaultIfNull(plugins, Collections.emptyList());
 
             title = assignValueOrDefaultIfNull(title, Defaults.TITLE);
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);

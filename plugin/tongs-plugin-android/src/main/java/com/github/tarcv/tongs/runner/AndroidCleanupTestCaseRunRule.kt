@@ -23,12 +23,12 @@ import java.io.IOException
 import java.lang.String.format
 
 class AndroidCleanupTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidCleanupTestCaseRunRule> {
-    override fun create(context: TestCaseRunRuleContext): AndroidCleanupTestCaseRunRule {
-        return AndroidCleanupTestCaseRunRule(
+    override fun testCaseRunRules(context: TestCaseRunRuleContext): Array<out AndroidCleanupTestCaseRunRule> {
+        return arrayOf(AndroidCleanupTestCaseRunRule(
                 context.device as AndroidDevice,
                 context.configuration.applicationPackage,
                 context.configuration.instrumentationPackage
-        )
+        ))
     }
 }
 

@@ -15,13 +15,13 @@ package com.github.tarcv.tongs.injector
 import org.junit.Assert
 import org.junit.Test
 
-class BaseRuleManagerTest {
+class RuleManagerTest {
     @Test
     fun example() {
         (0..1).forEach { num ->
             val ruleManager = RunRuleManager(
-                    listOf(DefaultActualRule::class.java.name),
-                    listOf(PredefinedActualRuleFactory()))
+                    listOf(PredefinedActualRuleFactory()),
+                    listOf(DefaultActualRuleFactory()))
             val ruleNames = ruleManager
                     .createRulesFrom { ActualRuleContext(num) }
                     .map {
@@ -35,10 +35,11 @@ class BaseRuleManagerTest {
         }
     }
 
-    private class RunRuleManager(ruleClassNames: Collection<String>, predefinedFactories: Collection<ActualRuleFactory<ActualRule>>)
-        : BaseRuleManager<ActualRuleContext, ActualRule, ActualRuleFactory<ActualRule>>(
-            ruleClassNames,
+    private class RunRuleManager(predefinedFactories: List<ActualRuleFactory<ActualRule>>, userFactories: List<Any>)
+        : RuleManager<ActualRuleContext, ActualRule, ActualRuleFactory<ActualRule>>(
+            ActualRuleFactory::class.java,
             predefinedFactories,
+            userFactories,
             { factory, context -> factory.actualRules(context) }
     )
 }
