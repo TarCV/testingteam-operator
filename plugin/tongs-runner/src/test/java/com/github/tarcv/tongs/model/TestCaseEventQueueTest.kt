@@ -10,9 +10,13 @@
 package com.github.tarcv.tongs.model
 
 import com.github.tarcv.tongs.pooling.StubDevice
+import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.summary.ResultStatus
 import org.junit.Assert
 import org.junit.Test
+import java.lang.RuntimeException
 import java.lang.Thread.sleep
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
 class TestCaseEventQueueTest {
@@ -28,8 +32,16 @@ class TestCaseEventQueueTest {
                 test2
         ), mutableListOf())
         withTimeout {
-            Assert.assertEquals(test1, queue.pollForDevice(device1))
-            Assert.assertEquals(test2, queue.pollForDevice(device2))
+            queue.pollForDevice(device1)!!.doWork {
+                Assert.assertEquals(test1, it)
+
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, "")
+            }
+            queue.pollForDevice(device2)!!.doWork {
+                Assert.assertEquals(test2, it)
+
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, "")
+            }
         }
     }
 
@@ -46,8 +58,16 @@ class TestCaseEventQueueTest {
                 test4
         ), mutableListOf())
         withTimeout {
-            Assert.assertEquals(test2, queue.pollForDevice(device1))
-            Assert.assertEquals(test1, queue.pollForDevice(device2))
+            queue.pollForDevice(device1)!!.doWork {
+                Assert.assertEquals(test2, it)
+
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, "")
+            }
+            queue.pollForDevice(device2)!!.doWork {
+                Assert.assertEquals(test1, it)
+
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, "")
+            }
         }
     }
 
@@ -60,7 +80,12 @@ class TestCaseEventQueueTest {
         ), mutableListOf())
         thread(start = true) {
             sleep(100)
-            queue.offer(test2)
+
+            try {
+                queue.offer(test2)
+            } catch (_: IllegalStateException) {
+                // intentional no-op
+            }
         }
 
         withTimeout {
@@ -70,8 +95,20 @@ class TestCaseEventQueueTest {
 }
 
 private fun withTimeout(block: () -> Unit) {
-    // TODO: propagate exceptions to the parent thread
-    thread(start = true, block = block).join(1000)
+    val exception = AtomicReference<Throwable>()
+    thread(start = true, block = {
+        try {
+            block()
+        } catch (t: Throwable) {
+            exception.set(t)
+        }
+    }).join(1000)
+
+    exception.get().let {
+        if (it != null) {
+            throw it
+        }
+    }
 }
 
 private fun createTestCaseEvent(name: String, excludes: List<Device>) =

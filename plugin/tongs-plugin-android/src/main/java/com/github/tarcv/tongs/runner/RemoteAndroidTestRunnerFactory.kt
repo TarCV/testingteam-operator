@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -17,10 +17,13 @@ import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.runner.listeners.BaseListener
 import com.github.tarcv.tongs.system.DdmsUtils
 import com.github.tarcv.tongs.system.DdmsUtils.unescapeInstrumentationArg
+import java.nio.charset.StandardCharsets
+import java.util.*
 
 interface IRemoteAndroidTestRunnerFactory {
     fun createRemoteAndroidTestRunner(testPackage: String, testRunner: String, device: IDevice): RemoteAndroidTestRunner
     fun properlyAddInstrumentationArg(runner: RemoteAndroidTestRunner, name: String, value: String)
+    fun encodeTestName(name: String): String
 }
 
 class RemoteAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
@@ -33,6 +36,13 @@ class RemoteAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
 
     override fun properlyAddInstrumentationArg(runner: RemoteAndroidTestRunner, name: String, value: String) {
         DdmsUtils.properlyAddInstrumentationArg(runner, name, value)
+    }
+
+    override fun encodeTestName(name: String): String {
+        return Base64.getEncoder()
+                .encodeToString(name.toByteArray(StandardCharsets.UTF_8))
+                .replace("=".toRegex(), "_")
+                .replace("\\r|\\n".toRegex(), "")
     }
 }
 
@@ -109,6 +119,8 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
         runner.addInstrumentationArg(name, value)
     }
 
+    override fun encodeTestName(name: String): String = name
+
     private fun ITestRunListener.fireTest(TestIdentifier: String, delayMillis: Long = 0) {
         val (className, testName) = TestIdentifier.split("#", limit = 2)
         testStarted(TestIdentifier(className, testName))
@@ -153,6 +165,7 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                 """com.github.tarcv.test.DangerousNamesTest#test[param = * *.* * *.* * *.* * *.* * *.* * *.* * *.* * *.* *]""",
                 """com.github.tarcv.test.DangerousNamesTest#test[param = . .. . .. . .. . .. . .. . .. . .. . .. . .. . ..]""",
                 """com.github.tarcv.test.DangerousNamesTest#test[param = |&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%]""",
+                """com.github.tarcv.test.DangerousNamesTest#test[param = Non-ASCII: ° © ± ¶ ½ » ѱ ∆]""",
                 """com.github.tarcv.test.DangerousNamesTest#test[param = ; function {}; while {}; for {}; do {}; done {}; exit]""",
                 """com.github.tarcv.test.FilteredTest#api22Only[1]""",
                 """com.github.tarcv.test.FilteredTest#api22Only[2]""",
