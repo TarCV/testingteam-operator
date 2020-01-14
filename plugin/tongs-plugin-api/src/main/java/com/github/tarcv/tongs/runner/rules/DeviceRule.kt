@@ -24,8 +24,8 @@ class DeviceRuleContext<out T: Device>(
         val device: T
 )
 
-interface DeviceRuleFactory<D: Device, out T: DeviceRule>: RuleFactory<DeviceRuleContext<D>, T> {
-    override fun create(context: DeviceRuleContext<D>): T
+interface DeviceRuleFactory<D: Device, out T: DeviceRule> {
+    fun deviceRules(context: DeviceRuleContext<D>): Array<out T>
 }
 
 interface DeviceRule {

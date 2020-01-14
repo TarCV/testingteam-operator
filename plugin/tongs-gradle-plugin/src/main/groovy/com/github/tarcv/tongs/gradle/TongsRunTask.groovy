@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,7 +14,6 @@
 package com.github.tarcv.tongs.gradle
 
 import com.github.tarcv.tongs.Configuration
-import com.github.tarcv.tongs.Plugins
 import com.github.tarcv.tongs.Tongs
 import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.PoolingStrategy
@@ -59,7 +58,7 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
 
     Map<String, String> testRunnerArguments
 
-    Plugins plugins
+    List<String> plugins
 
     boolean isCoverageEnabled
 

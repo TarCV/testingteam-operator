@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -19,9 +19,12 @@ import com.github.tarcv.tongs.plugin.DeviceProviderFactory
 import com.github.tarcv.tongs.pooling.StubDevice
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory.Companion.functionalTestTestIdentifierDuration
+import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext
 
 class StubDeviceProviderFactory: DeviceProviderFactory<StubDeviceProvider> {
-    override fun create(context: DeviceProviderContext): StubDeviceProvider = StubDeviceProvider()
+    override fun deviceProviders(context: DeviceProviderContext): Array<out StubDeviceProvider> {
+        return arrayOf(StubDeviceProvider())
+    }
 }
 
 class StubDeviceProvider() : DeviceProvider {

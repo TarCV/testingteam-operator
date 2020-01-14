@@ -26,8 +26,10 @@ import com.github.tarcv.tongs.runner.rules.DeviceRuleContext
 import com.github.tarcv.tongs.runner.rules.DeviceRuleFactory
 
 class AndroidSetupDeviceRuleFactory : DeviceRuleFactory<AndroidDevice, AndroidSetupDeviceRule> {
-    override fun create(context: DeviceRuleContext<AndroidDevice>): AndroidSetupDeviceRule {
-        return AndroidSetupDeviceRule(context.device.deviceInterface, installer(context.configuration))
+    override fun deviceRules(context: DeviceRuleContext<AndroidDevice>): Array<out AndroidSetupDeviceRule> {
+        return arrayOf(
+                AndroidSetupDeviceRule(context.device.deviceInterface, installer(context.configuration))
+        )
     }
 }
 

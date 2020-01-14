@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -12,14 +12,13 @@ package com.github.tarcv.tongs.plugin
 
 import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.runner.rules.RuleFactory
 
 interface DeviceProviderContext {
     val configuration: TongsConfiguration
 }
 
-interface DeviceProviderFactory<out T: DeviceProvider>: RuleFactory<DeviceProviderContext, T> {
-    override fun create(context: DeviceProviderContext): T
+interface DeviceProviderFactory<out T: DeviceProvider> {
+    fun deviceProviders(context: DeviceProviderContext): Array<out T>
 }
 
 interface DeviceProvider {

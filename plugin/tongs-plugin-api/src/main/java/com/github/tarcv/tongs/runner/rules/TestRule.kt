@@ -25,7 +25,7 @@ class TongsTestCaseContext(
 )
 
 interface TestRuleFactory<out T: TestCaseRunRule> {
-    fun create(context: TongsTestCaseContext): T
+    fun testCaseRules(context: TongsTestCaseContext): Array<out T>
 }
 
 interface TestRule {

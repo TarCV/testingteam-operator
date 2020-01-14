@@ -16,16 +16,14 @@ package com.github.tarcv.tongs.injector;
 import com.github.tarcv.tongs.TongsRunner;
 
 import com.github.tarcv.tongs.plugin.android.PropertiesTestCaseRuleFactory;
-import com.github.tarcv.tongs.runner.rules.RuleFactory;
 import com.github.tarcv.tongs.runner.rules.TestCaseRule;
 import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext;
 import com.github.tarcv.tongs.runner.rules.TestCaseRuleFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
 import static com.github.tarcv.tongs.injector.pooling.PoolLoaderInjector.poolLoader;
@@ -34,7 +32,6 @@ import static com.github.tarcv.tongs.injector.runner.ProgressReporterInjector.pr
 import static com.github.tarcv.tongs.injector.summary.SummaryGeneratorHookInjector.summaryGeneratorHook;
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
-import static java.util.Collections.emptyList;
 
 public class TongsRunnerInjector {
 
@@ -46,8 +43,8 @@ public class TongsRunnerInjector {
         long startNanos = nanoTime();
 
         TestCaseRuleManager ruleManager = new TestCaseRuleManager(
-                configuration().getPlugins().getTestCaseRules(),
-                Collections.singletonList(new PropertiesTestCaseRuleFactory())
+                Collections.singletonList(new PropertiesTestCaseRuleFactory()),
+                configuration().getPluginsInstances()
         );
         TongsRunner tongsRunner = new TongsRunner(
                 poolLoader(),
@@ -63,12 +60,15 @@ public class TongsRunnerInjector {
     }
 
     public static class TestCaseRuleManager
-            extends BaseRuleManager<TestCaseRuleContext, TestCaseRule,
-            RuleFactory<? super TestCaseRuleContext, ? extends TestCaseRule>> {
+            extends RuleManager<TestCaseRuleContext, TestCaseRule,
+            TestCaseRuleFactory<? extends TestCaseRule>> {
         public TestCaseRuleManager(
-                Collection<String> ruleClassNames,
-                Collection<RuleFactory<? super TestCaseRuleContext, ? extends TestCaseRule>> predefinedFactories) {
-            super(ruleClassNames,predefinedFactories);
+                List<TestCaseRuleFactory<? extends TestCaseRule>> predefinedFactories, List<Object> userFactories) {
+            super(fixGenericClass(TestCaseRuleFactory.class),
+                    predefinedFactories, userFactories,
+                    (factory, context) -> {
+                        return factory.testCaseRules(context);
+                    });
         }
     }
 }

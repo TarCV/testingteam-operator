@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ class Defaults {
     static final Map<String, String> TEST_RUNNER_ARGUMENTS = Collections.emptyMap();
     static final long TEST_OUTPUT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(1);
     static final String TONGS_OUTPUT = "tongs-output";
-    static final Plugins PLUGINS = new Plugins();
     static final int STRATEGY_LIMIT = 1;
     static final String TITLE = "Tongs Report";
     static final String SUBTITLE = "";

@@ -9,55 +9,64 @@
  */
 package com.github.tarcv.tongs.injector
 
-import com.github.tarcv.tongs.runner.rules.RuleFactory
 import java.lang.reflect.InvocationTargetException
 
-abstract class BaseRuleManager<C, out R, T: RuleFactory<C, R>> @JvmOverloads constructor(
-        private val ruleClassNames: Collection<String>,
-        private val predefinedFactories: Collection<T> = emptyList()
+open class RuleManager<C, out R, F> @JvmOverloads constructor(
+        private val factoryClass: Class<F>,
+        private val predefinedFactories: List<F> = emptyList(),
+        allUserFactories: List<Any>,
+        private val factoryInvoker: (F, C) -> Array<out R>
 ) {
+    private val userFactories = allUserFactories.filterIsInstance(factoryClass)
+
     fun createRulesFrom(contextProvider: () -> C): List<R> {
         val instances = ArrayList<R>()
 
-        ruleInstancesFromFactories(predefinedFactories.asSequence(), contextProvider).toCollection(instances)
-        factoryInstancesForRuleNames(ruleClassNames)
-                .let {
-                    ruleInstancesFromFactories(it as Sequence<T>, contextProvider)
-                }
-                .toCollection(instances)
+        ruleInstancesFromFactories(predefinedFactories, contextProvider).toCollection(instances)
+        ruleInstancesFromFactories(userFactories, contextProvider).toCollection(instances)
 
         return instances
     }
 
-    fun ruleInstancesFromFactories(
-            factories: Sequence<T>,
+    private fun ruleInstancesFromFactories(
+            factories: List<F>,
             contextProvider: () -> C
     ): Sequence<R> {
-        return factories
-                .map { factory ->
+        return factories.asSequence()
+                .flatMap { factory ->
                     try {
                         val ruleContext = contextProvider()
-                        factory.create(ruleContext)
+                        factoryInvoker(factory, ruleContext).asSequence()
                     } catch (e: InvocationTargetException) {
                         throw RuntimeException(e.targetException) //TODO
                     }
                 }
     }
 
-    private fun factoryInstancesForRuleNames(ruleClassNames: Collection<String>): Sequence<T> {
-        return ruleClassNames
-                .asSequence()
-                .map { className ->
-                    Class.forName(className + "Factory") as Class<T>
-                }
-                .map { clazz ->
-                    try {
-                        val ctor = clazz.getConstructor()
-                        ctor.newInstance()
-                    } catch (e: InvocationTargetException) {
-                        throw RuntimeException(e.targetException) //TODO
+    companion object {
+        @JvmStatic
+        fun factoryInstancesForRuleNames(ruleClassNames: Collection<String>): List<Any> {
+            return ruleClassNames
+                    .asSequence()
+                    .map { className ->
+                        Class.forName(className) as Class<Any>
                     }
-                }
+                    .map { clazz ->
+                        try {
+                            val ctor = clazz.getConstructor()
+                            ctor.newInstance()
+                        } catch (e: InvocationTargetException) {
+                            throw RuntimeException(e.targetException) //TODO
+                        }
+                    }
+                    .toList()
+        }
+
+        @JvmStatic
+        fun <T> fixGenericClass(clazz: Class<in T>): Class<T> {
+            return clazz as Class<T>
+        }
+
     }
 }
 

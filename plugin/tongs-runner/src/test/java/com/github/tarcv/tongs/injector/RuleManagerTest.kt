@@ -12,17 +12,16 @@
  */
 package com.github.tarcv.tongs.injector
 
-import com.github.tarcv.tongs.runner.rules.RuleFactory
 import org.junit.Assert
 import org.junit.Test
 
-class BaseRuleManagerTest {
+class RuleManagerTest {
     @Test
     fun example() {
         (0..1).forEach { num ->
             val ruleManager = RunRuleManager(
-                    listOf(DefaultActualRule::class.java.name),
-                    listOf(PredefinedActualRuleFactory()))
+                    listOf(PredefinedActualRuleFactory()),
+                    listOf(DefaultActualRuleFactory()))
             val ruleNames = ruleManager
                     .createRulesFrom { ActualRuleContext(num) }
                     .map {
@@ -36,33 +35,33 @@ class BaseRuleManagerTest {
         }
     }
 
-    private class RunRuleManager(ruleClassNames: Collection<String>, predefinedFactories: Collection<RuleFactory<ActualRuleContext, ActualRule>>)
-        : BaseRuleManager<
-            ActualRuleContext,
-            ActualRule,
-            RuleFactory<ActualRuleContext, ActualRule>>(ruleClassNames, predefinedFactories)
+    private class RunRuleManager(predefinedFactories: List<ActualRuleFactory<ActualRule>>, userFactories: List<Any>)
+        : RuleManager<ActualRuleContext, ActualRule, ActualRuleFactory<ActualRule>>(
+            ActualRuleFactory::class.java,
+            predefinedFactories,
+            userFactories,
+            { factory, context -> factory.actualRules(context) }
+    )
 }
 
 class PredefinedActualRuleFactory: ActualRuleFactory<PredefinedActualRule> {
-    override fun create(context: ActualRuleContext): PredefinedActualRule {
-        return PredefinedActualRule()
+    override fun actualRules(context: ActualRuleContext): Array<out PredefinedActualRule> {
+        return arrayOf(PredefinedActualRule())
     }
-
 }
 class PredefinedActualRule: ActualRule
 
 class DefaultActualRuleFactory: ActualRuleFactory<DefaultActualRule> {
-    override fun create(context: ActualRuleContext): DefaultActualRule {
-        return DefaultActualRule()
+    override fun actualRules(context: ActualRuleContext): Array<out DefaultActualRule> {
+        return arrayOf(DefaultActualRule())
     }
-
 }
 class DefaultActualRule: ActualRule
 
 class ActualRuleContext(someDependency: Int)
 
-private interface ActualRuleFactory<T: ActualRule>: RuleFactory<ActualRuleContext, T> {
-    override fun create(context: ActualRuleContext): T
+private interface ActualRuleFactory<out T: ActualRule> {
+    fun actualRules(context: ActualRuleContext): Array<out T>
 }
 
 private interface ActualRule

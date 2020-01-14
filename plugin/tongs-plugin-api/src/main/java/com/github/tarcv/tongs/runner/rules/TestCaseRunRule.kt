@@ -29,13 +29,15 @@ class TestCaseRunRuleContext(
 
 class TestCaseRunRuleAfterArguments(
         var result: TestCaseRunResult
+    // TODO: add indicator whether this test case will be retried
 )
 
-interface TestCaseRunRuleFactory<out T: TestCaseRunRule>: RuleFactory<TestCaseRunRuleContext, T> {
-    override fun create(context: TestCaseRunRuleContext): T
+interface TestCaseRunRuleFactory<out T: TestCaseRunRule> {
+    fun testCaseRunRules(context: TestCaseRunRuleContext): Array<out T>
 }
 
 interface TestCaseRunRule {
     fun before()
     fun after(arguments: TestCaseRunRuleAfterArguments)
+    // TODO: consider adding a separate method for transforming results and making after nonmutating
 }

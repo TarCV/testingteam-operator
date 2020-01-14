@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ import com.github.tarcv.tongs.system.adb.ConnectedDeviceProvider
 import java.util.stream.Collectors
 
 class LocalDeviceProviderFactory: DeviceProviderFactory<LocalDeviceProvider> {
-    override fun create(context: DeviceProviderContext): LocalDeviceProvider {
-        return LocalDeviceProvider(
+    override fun deviceProviders(context: DeviceProviderContext): Array<out LocalDeviceProvider> {
+        return arrayOf(LocalDeviceProvider(
                 ConnectedDeviceProviderInjector.connectedDeviceProvider(),
                 HashSet(context.configuration.excludedSerials)
-        )
+        ))
     }
 }
 
