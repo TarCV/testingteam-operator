@@ -14,8 +14,13 @@
 package com.github.tarcv.tongs.runner
 
 import com.github.tarcv.tongs.Utils
+import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
+import com.github.tarcv.tongs.injector.RuleManager
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEventQueue
+import com.github.tarcv.tongs.runner.rules.PoolRunRule
+import com.github.tarcv.tongs.runner.rules.PoolRunRuleContext
+import com.github.tarcv.tongs.runner.rules.PoolRunRuleFactory
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -32,14 +37,8 @@ class PoolTestRunner(
         val devicesInPool = pool.size()
         val concurrentDeviceExecutor: ExecutorService = Utils.namedExecutor(devicesInPool, "DeviceExecutor-%d")
         try {
-            val deviceCountDownLatch = CountDownLatch(devicesInPool)
             logger.info("Pool {} started", poolName)
-            for (device in pool.devices) {
-                val deviceTestRunner = deviceTestRunnerFactory.createDeviceTestRunner(pool, testCases,
-                        deviceCountDownLatch, device, progressReporter)
-                concurrentDeviceExecutor.execute(deviceTestRunner)
-            }
-            deviceCountDownLatch.await()
+            runTestsAndRules(devicesInPool, concurrentDeviceExecutor)
         } catch (e: InterruptedException) {
             logger.warn("Pool {} was interrupted while running", poolName)
         } finally {
@@ -47,6 +46,28 @@ class PoolTestRunner(
             logger.info("Pool {} finished", poolName)
             poolCountDownLatch.countDown()
             logger.info("Pools remaining: {}", poolCountDownLatch.count)
+        }
+    }
+
+    private fun runTestsAndRules(devicesInPool: Int, concurrentDeviceExecutor: ExecutorService) {
+        val deviceCountDownLatch = CountDownLatch(devicesInPool)
+        val rules = RuleManager(PoolRunRuleFactory::class.java,
+                emptyList(), configuration().pluginsInstances,
+                { factory, context: PoolRunRuleContext -> factory.poolRules(context) })
+                .createRulesFrom { PoolRunRuleContext(configuration(), pool) }
+        try {
+            rules.forEach { it.before() }
+
+            for (device in pool.devices) {
+                val deviceTestRunner = deviceTestRunnerFactory.createDeviceTestRunner(pool, testCases,
+                        deviceCountDownLatch, device, progressReporter)
+                concurrentDeviceExecutor.execute(deviceTestRunner)
+            }
+            deviceCountDownLatch.await()
+        } finally {
+            rules
+                    .asReversed()
+                    .forEach { it.after() }
         }
     }
 
