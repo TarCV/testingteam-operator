@@ -28,14 +28,14 @@ import java.lang.Thread.sleep
 import java.util.concurrent.CountDownLatch
 
 internal class AndroidCollectingTestCaseRunRule(
-        private val device: Device,
+        private val device: AndroidDevice,
         private val testCollectingListener: TestCollectingListener,
         private val latch: CountDownLatch
 ): TestCaseRunRule {
     var logCatCollector: LogcatReceiver = LogcatReceiver(device)
 
     override fun before() {
-        clearLogcat((device as AndroidDevice).deviceInterface)
+        clearLogcat(device.deviceInterface)
         logCatCollector.start("TestSuiteLoader")
     }
 

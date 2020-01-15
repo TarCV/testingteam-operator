@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -15,6 +15,7 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
@@ -38,14 +39,14 @@ class LogCatTestRunListener extends BaseListener {
 	private final LogcatReceiver logcatReceiver;
     private final TestCaseFileManager fileManager;
     private final Pool pool;
-	private final Device device;
+	private final AndroidDevice device;
     private final Gson gson;
     private final List<LogCatMessage> messages = Collections.synchronizedList(new ArrayList<LogCatMessage>());
 
 	private final TestCaseFile jsonFile;
 	private final TestCaseFile rawFile;
 
-	public LogCatTestRunListener(Gson gson, TestCaseFileManager fileManager, Pool pool, Device device, PreregisteringLatch latch) {
+	public LogCatTestRunListener(Gson gson, TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
 		super(latch);
 		this.logcatReceiver = new LogcatReceiver(device);
         this.gson = gson;

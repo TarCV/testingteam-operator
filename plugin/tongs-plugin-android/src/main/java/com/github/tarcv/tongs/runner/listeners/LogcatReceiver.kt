@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class LogcatReceiver(
-        private val device: Device
+        private val device: AndroidDevice
 ) {
-    private val logCatReceiverTask = LogCatReceiverTask((device as AndroidDevice).deviceInterface)
+    private val logCatReceiverTask = LogCatReceiverTask(device.deviceInterface)
     private val logCatMessages = Collections.synchronizedList(ArrayList<LogCatMessage>())
     private val logCatListener = MessageCollectingLogCatListener(logCatMessages)
 
