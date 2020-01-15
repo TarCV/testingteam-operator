@@ -20,10 +20,7 @@ import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInj
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
+import com.github.tarcv.tongs.runner.rules.*
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
@@ -42,60 +39,72 @@ class DeviceTestRunner(private val pool: Pool,
                        private val progressReporter: ProgressReporter) : Runnable {
     override fun run() {
         try {
-            // TODO: call DeviceRule incl. AndroidSetupDeviceRule
+            val rules = RuleManager(DeviceRunRuleFactory::class.java,
+                    listOf(AndroidSetupDeviceRuleFactory()),
+                    configuration().pluginsInstances,
+                    { factory, context: DeviceRunRuleContext -> factory.deviceRules(context) }
+            ).createRulesFrom { DeviceRunRuleContext(configuration(), pool, device) }
 
-            while (true) {
-                val testCaseTask = queueOfTestsInPool.pollForDevice(device, 10)
-                if (testCaseTask != null) {
-                    testCaseTask.doWork { testCaseEvent: TestCaseEvent ->
-                        val testCaseFileManager: TestCaseFileManager = TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.testCase)
-                        val configuration = ConfigurationInjector.configuration()
-                        val context = TestCaseRunRuleContext(
-                                configuration, testCaseFileManager,
-                                pool, device, testCaseEvent)
+            try {
+                rules.forEach { it.before() }
 
-                        val testRunListeners = TestRunListenersTongsFactoryInjector.testRunListenersTongsFactory(configuration).createTongsListners(
-                                testCaseEvent,
-                                device,
-                                pool,
-                                progressReporter,
-                                queueOfTestsInPool,
-                                configuration.tongsIntegrationTestRunType)
-                                .toList()
+                while (true) {
+                    val testCaseTask = queueOfTestsInPool.pollForDevice(device, 10)
+                    if (testCaseTask != null) {
+                        testCaseTask.doWork { testCaseEvent: TestCaseEvent ->
+                            val testCaseFileManager: TestCaseFileManager = TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.testCase)
+                            val configuration = ConfigurationInjector.configuration()
+                            val context = TestCaseRunRuleContext(
+                                    configuration, testCaseFileManager,
+                                    pool, device, testCaseEvent)
 
-                        val ruleManager = RuleManager(
-                                TestCaseRunRuleFactory::class.java,
-                                listOf(
-                                        AndroidCleanupTestCaseRunRuleFactory(),
-                                        AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
-                                ),
-                                configuration().pluginsInstances,
-                                { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
-                        )
-                        val testCaseRunRules = ruleManager.createRulesFrom { context }
+                            val testRunListeners = TestRunListenersTongsFactoryInjector.testRunListenersTongsFactory(configuration).createTongsListners(
+                                    testCaseEvent,
+                                    device,
+                                    pool,
+                                    progressReporter,
+                                    queueOfTestsInPool,
+                                    configuration.tongsIntegrationTestRunType)
+                                    .toList()
 
-                        // TODO: Add some defensive code
-                        testRunListeners.forEach { it.before() }
+                            val ruleManager = RuleManager(
+                                    TestCaseRunRuleFactory::class.java,
+                                    listOf(
+                                            AndroidCleanupTestCaseRunRuleFactory(),
+                                            AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
+                                    ),
+                                    configuration().pluginsInstances,
+                                    { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
+                            )
+                            val testCaseRunRules = ruleManager.createRulesFrom { context }
 
-                        testCaseRunRules.forEach { it.before() }
+                            // TODO: Add some defensive code
+                            testRunListeners.forEach { it.before() }
 
-                        val initialResult = executeTestCase(context)
+                            testCaseRunRules.forEach { it.before() }
 
-                        return@doWork fixRunResult(initialResult, testCaseEvent.testCase, "Test case runner")
-                                .let {
-                                    val transormedArgs =
-                                            applyRulesAfters(TestCaseRunRuleAfterArguments(it), testCaseRunRules)
-                                    transormedArgs.result
-                                }
-                                .let {
-                                    val transormedArgs =
-                                            applyRulesAfters(TestCaseRunRuleAfterArguments(it), testRunListeners)
-                                    transormedArgs.result
-                                }
+                            val initialResult = executeTestCase(context)
+
+                            return@doWork fixRunResult(initialResult, testCaseEvent.testCase, "Test case runner")
+                                    .let {
+                                        val transormedArgs =
+                                                applyRulesAfters(TestCaseRunRuleAfterArguments(it), testCaseRunRules)
+                                        transormedArgs.result
+                                    }
+                                    .let {
+                                        val transormedArgs =
+                                                applyRulesAfters(TestCaseRunRuleAfterArguments(it), testRunListeners)
+                                        transormedArgs.result
+                                    }
+                        }
+                    } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
+                        break
                     }
-                } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
-                    break
                 }
+            } finally {
+                rules
+                        .asReversed()
+                        .forEach { it.after() }
             }
         } finally {
             logger.info("Device {} from pool {} finished", device.serial, pool.name)
