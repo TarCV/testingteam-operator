@@ -9,38 +9,106 @@
  */
 package com.github.tarcv.tongs.injector
 
+import com.github.tarcv.tongs.Configuration
+import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
+import com.github.tarcv.tongs.runner.rules.HasConfiguration
 import java.lang.reflect.InvocationTargetException
+import java.util.*
+import kotlin.collections.ArrayList
 
-open class RuleManager<C, out R, F> @JvmOverloads constructor(
-        private val factoryClass: Class<F>,
-        private val predefinedFactories: List<F> = emptyList(),
-        allUserFactories: List<Any>,
-        private val factoryInvoker: (F, C) -> Array<out R>
+@get:JvmName("ruleManagerFactory")
+val ruleManagerFactory by lazy {
+    val configuration = configuration()
+    RuleManagerFactory(configuration, configuration.pluginsInstances)
+}
+
+class RuleManagerFactory(
+        private val configuration: Configuration,
+        private val allUserFactories: List<Any>
 ) {
-    private val userFactories = allUserFactories.filterIsInstance(factoryClass)
+    private val configurationSectionsMap: IdentityHashMap<HasConfiguration, Map<String, String>> = buildConfigurationSectionsMap(allUserFactories)
 
-    fun createRulesFrom(contextProvider: () -> C): List<R> {
-        val instances = ArrayList<R>()
-
-        ruleInstancesFromFactories(predefinedFactories, contextProvider).toCollection(instances)
-        ruleInstancesFromFactories(userFactories, contextProvider).toCollection(instances)
-
-        return instances
+    @JvmOverloads
+    fun <C, R, F> create(
+            factoryClass: Class<F>,
+            predefinedFactories: List<F> = emptyList(),
+            factoryInvoker: (F, C) -> Array<out R>
+    ): RuleManager<C, R, F> {
+        val userFactories = allUserFactories.filterIsInstance(factoryClass)
+        return RuleManager(factoryClass, predefinedFactories, userFactories, factoryInvoker)
     }
 
-    private fun ruleInstancesFromFactories(
-            factories: List<F>,
-            contextProvider: () -> C
-    ): Sequence<R> {
-        return factories.asSequence()
-                .flatMap { factory ->
-                    try {
-                        val ruleContext = contextProvider()
-                        factoryInvoker(factory, ruleContext).asSequence()
-                    } catch (e: InvocationTargetException) {
-                        throw RuntimeException(e.targetException) //TODO
+    internal fun <F> configurationForFactory(factory: F): Configuration {
+        val expectedSections: Map<String, String> = if (factory is HasConfiguration) {
+            configurationSectionsMap[factory] ?: emptyMap()
+        } else {
+            emptyMap()
+        }
+
+        val pluginConfigurationSections = configuration.pluginConfiguration
+                .map { configurationSection ->
+                    val originalName = expectedSections[configurationSection.key]
+                    if (originalName == null) {
+                        null
+                    } else {
+                        originalName to configurationSection.value
                     }
                 }
+                .filterNotNull()
+                .toMap()
+        return configuration.withPluginConfiguration(pluginConfigurationSections)
+    }
+
+    private fun buildConfigurationSectionsMap(allUserFactories: List<Any>): IdentityHashMap<HasConfiguration, Map<String, String>> {
+        return allUserFactories
+                .asSequence()
+                .flatMap { factory ->
+                    if (factory is HasConfiguration) {
+                        val simpleNamesSections = factory.configurationSections
+                        val simpleNamesSectionPairs = simpleNamesSections
+                                .asSequence()
+                                .map { section -> SectionInfo(section, section, factory) }
+                        val fqNamesSectionPairs = simpleNamesSections
+                                .asSequence()
+                                .map { section -> SectionInfo(section, "$section/${factory.javaClass.name}", factory) }
+
+                        (simpleNamesSectionPairs + fqNamesSectionPairs)
+                    } else {
+                        emptySequence()
+                    }
+                }
+                .distinctBy { it.candidateName } // now all candidateNames are unique (and, if possible, are simple)
+
+                .groupByTo(
+                        IdentityHashMap(),
+                        { it.consumingFactory }
+                )
+                .mapValuesTo(
+                        IdentityHashMap(),
+                        { (_, v) ->
+                            v
+                                    .associateBy(
+                                            { it.candidateName },
+                                            { it.originalName }
+                                    )
+                        }
+                )
+    }
+
+    private class SectionInfo(
+            val originalName: String,
+            val candidateName: String,
+            val consumingFactory: HasConfiguration
+    ) {
+        fun withConfigurationName(configurationName: String): SectionInfo {
+            assert(this.candidateName.isEmpty())
+
+            return SectionInfo(
+                    originalName = this.originalName,
+                    candidateName = configurationName,
+                    consumingFactory = this.consumingFactory
+            )
+        }
     }
 
     companion object {
@@ -66,7 +134,39 @@ open class RuleManager<C, out R, F> @JvmOverloads constructor(
         fun <T> fixGenericClass(clazz: Class<in T>): Class<T> {
             return clazz as Class<T>
         }
+    }
 
+    inner class RuleManager<C, out R, F> internal constructor(
+            private val factoryClass: Class<F>,
+            private val predefinedFactories: List<F> = emptyList(),
+            private val userFactories: List<F>,
+            private val factoryInvoker: (F, C) -> Array<out R>
+    ) {
+
+        fun createRulesFrom(contextProvider: (Configuration) -> C): List<R> {
+            val instances = ArrayList<R>()
+
+            ruleInstancesFromFactories(predefinedFactories, contextProvider).toCollection(instances)
+            ruleInstancesFromFactories(userFactories, contextProvider).toCollection(instances)
+
+            return instances
+        }
+
+        private fun ruleInstancesFromFactories(
+                factories: List<F>,
+                contextProvider: (Configuration) -> C
+        ): Sequence<R> {
+            return factories.asSequence()
+                    .flatMap { factory ->
+                        try {
+                            val factoryConfiguration = configurationForFactory(factory)
+                            val ruleContext = contextProvider(factoryConfiguration)
+                            factoryInvoker(factory, ruleContext).asSequence()
+                        } catch (e: InvocationTargetException) {
+                            throw RuntimeException(e.targetException) //TODO
+                        }
+                    }
+        }
     }
 }
 

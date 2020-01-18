@@ -13,10 +13,10 @@
  */
 package com.github.tarcv.tongs.runner
 
-import com.github.tarcv.tongs.injector.RuleManager
 import com.github.tarcv.tongs.injector.ConfigurationInjector
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector
+import com.github.tarcv.tongs.injector.ruleManagerFactory
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
@@ -63,13 +63,12 @@ class DeviceTestRunner(private val pool: Pool,
                                 configuration.tongsIntegrationTestRunType)
                                 .toList()
 
-                        val ruleManager = RuleManager(
+                        val ruleManager = ruleManagerFactory.create(
                                 TestCaseRunRuleFactory::class.java,
                                 listOf(
                                         AndroidCleanupTestCaseRunRuleFactory(),
                                         AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
                                 ),
-                                configuration().pluginsInstances,
                                 { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
                         )
                         val testCaseRunRules = ruleManager.createRulesFrom { context }

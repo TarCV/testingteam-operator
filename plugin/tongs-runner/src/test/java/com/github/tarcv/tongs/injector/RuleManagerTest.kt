@@ -12,16 +12,53 @@
  */
 package com.github.tarcv.tongs.injector
 
+import com.github.tarcv.tongs.Configuration
+import com.github.tarcv.tongs.runner.rules.HasConfiguration
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert
 import org.junit.Test
+import kotlin.reflect.jvm.jvmName
 
 class RuleManagerTest {
     @Test
     fun example() {
+        abstract class ActualRule
+
+        class PredefinedActualRule : ActualRule()
+
+        class DefaultActualRule : ActualRule()
+
+        class ActualRuleContext(someDependency: Int)
+
+        abstract class ActualRuleFactory<out T : ActualRule> {
+            abstract fun actualRules(context: ActualRuleContext): Array<out T>
+        }
+
+        class DefaultActualRuleFactory : ActualRuleFactory<DefaultActualRule>() {
+            override fun actualRules(context: ActualRuleContext): Array<out DefaultActualRule> {
+                return arrayOf(DefaultActualRule())
+            }
+        }
+
+        class PredefinedActualRuleFactory : ActualRuleFactory<PredefinedActualRule>() {
+            override fun actualRules(context: ActualRuleContext): Array<out PredefinedActualRule> {
+                return arrayOf(PredefinedActualRule())
+            }
+        }
+
+        val ruleManagerFactory = RuleManagerFactory(
+                Configuration.aConfigurationBuilder().build(),
+                listOf(DefaultActualRuleFactory())
+        )
+
         (0..1).forEach { num ->
-            val ruleManager = RunRuleManager(
+            val ruleManager = ruleManagerFactory.create(
+                    ActualRuleFactory::class.java,
                     listOf(PredefinedActualRuleFactory()),
-                    listOf(DefaultActualRuleFactory()))
+                    { factory, context: ActualRuleContext -> factory.actualRules(context) }
+            )
+
             val ruleNames = ruleManager
                     .createRulesFrom { ActualRuleContext(num) }
                     .map {
@@ -35,33 +72,89 @@ class RuleManagerTest {
         }
     }
 
-    private class RunRuleManager(predefinedFactories: List<ActualRuleFactory<ActualRule>>, userFactories: List<Any>)
-        : RuleManager<ActualRuleContext, ActualRule, ActualRuleFactory<ActualRule>>(
-            ActualRuleFactory::class.java,
-            predefinedFactories,
-            userFactories,
-            { factory, context -> factory.actualRules(context) }
-    )
-}
+    @Test
+    fun factoriesGetExpectedConfigurations() {
+        val uniqueSectionName = "UniqueSection"
+        val conflictingName = "ConflictingSection"
 
-class PredefinedActualRuleFactory: ActualRuleFactory<PredefinedActualRule> {
-    override fun actualRules(context: ActualRuleContext): Array<out PredefinedActualRule> {
-        return arrayOf(PredefinedActualRule())
+        class RuleContext(val configuration: Configuration)
+
+        class Rule(val factoryName: String, context: RuleContext) {
+            val pluginConfiguration = context.configuration.pluginConfiguration
+        }
+
+        open class RuleFactory {
+            fun create(context: RuleContext) = Rule(this.javaClass.simpleName, context)
+        }
+
+        class RuleFactoryWithEmptyConfiguration : RuleFactory(), HasConfiguration {
+            override val configurationSections: Array<String> = emptyArray()
+        }
+
+        class RuleFactoryWithNoConfiguration : RuleFactory(), HasConfiguration {
+            override val configurationSections: Array<String> = emptyArray()
+        }
+
+        class RuleFactoryWithUniqueConfigurationSection : RuleFactory(), HasConfiguration {
+            override val configurationSections: Array<String> = arrayOf(uniqueSectionName)
+        }
+
+        class RuleFactoryWithConflictingConfigurationSection1 : RuleFactory(), HasConfiguration {
+            override val configurationSections: Array<String> = arrayOf(conflictingName)
+        }
+
+        class RuleFactoryWithConflictingConfigurationSection2 : RuleFactory(), HasConfiguration {
+            override val configurationSections: Array<String> = arrayOf(conflictingName)
+        }
+
+        val globalConfiguration = Configuration.aConfigurationBuilder()
+                .withPluginConfiguration(mapOf(
+                        uniqueSectionName to "${uniqueSectionName}Value",
+                        conflictingName to "${conflictingName}Value1",
+                        "${conflictingName}/${RuleFactoryWithConflictingConfigurationSection1::class.jvmName}" to
+                                "${conflictingName}Value1 under qualified section",
+                        "${conflictingName}/${RuleFactoryWithConflictingConfigurationSection2::class.jvmName}" to
+                                "${conflictingName}Value2"
+                ))
+                .build()
+
+        val ruleManagerFactory = RuleManagerFactory(
+                globalConfiguration,
+                listOf(
+                        RuleFactoryWithEmptyConfiguration(),
+                        RuleFactoryWithNoConfiguration(),
+                        RuleFactoryWithUniqueConfigurationSection(),
+                        RuleFactoryWithConflictingConfigurationSection1(),
+                        RuleFactoryWithConflictingConfigurationSection2()
+                ))
+        val rules = ruleManagerFactory
+                .create(
+                        RuleFactory::class.java,
+                        emptyList(),
+                        { factory, context: RuleContext ->
+                            arrayOf(factory.create(context))
+                        }
+                ).createRulesFrom { configuration ->
+                    RuleContext(configuration)
+                }
+
+        fun ruleFromFactory(name: String): Rule {
+            return rules.single {
+                val factoryName = it.factoryName.takeLastWhile { it != '$' }
+                factoryName == name
+            }
+        }
+
+        assertThat(ruleFromFactory("RuleFactoryWithEmptyConfiguration").pluginConfiguration, `is`(emptyMap()))
+        assertThat(ruleFromFactory("RuleFactoryWithNoConfiguration").pluginConfiguration, `is`(emptyMap()))
+        assertThat(ruleFromFactory("RuleFactoryWithUniqueConfigurationSection").pluginConfiguration.entries,
+                `is`(mapOf<String, Any>(uniqueSectionName to "${uniqueSectionName}Value").entries))
+        assertThat(ruleFromFactory("RuleFactoryWithConflictingConfigurationSection1").pluginConfiguration.entries,
+                `is`(mapOf<String, Any>(
+                        conflictingName to "${conflictingName}Value1",
+                        conflictingName to "${conflictingName}Value1 under qualified section"
+                ).entries))
+        assertThat(ruleFromFactory("RuleFactoryWithConflictingConfigurationSection2").pluginConfiguration.entries,
+                `is`(mapOf<String, Any>(conflictingName to "${conflictingName}Value2").entries))
     }
 }
-class PredefinedActualRule: ActualRule
-
-class DefaultActualRuleFactory: ActualRuleFactory<DefaultActualRule> {
-    override fun actualRules(context: ActualRuleContext): Array<out DefaultActualRule> {
-        return arrayOf(DefaultActualRule())
-    }
-}
-class DefaultActualRule: ActualRule
-
-class ActualRuleContext(someDependency: Int)
-
-private interface ActualRuleFactory<out T: ActualRule> {
-    fun actualRules(context: ActualRuleContext): Array<out T>
-}
-
-private interface ActualRule

@@ -76,6 +76,8 @@ public interface TongsConfiguration {
 
     List<Object> getPluginsInstances();
 
+    Map<String, Object> getPluginConfiguration();
+
     enum TongsIntegrationTestRunType {
         NONE,
         STUB_PARALLEL_TESTRUN,

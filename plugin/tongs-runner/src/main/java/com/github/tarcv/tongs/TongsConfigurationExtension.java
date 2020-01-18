@@ -12,7 +12,9 @@ package com.github.tarcv.tongs;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.NONE;
 
@@ -85,6 +87,11 @@ public abstract class TongsConfigurationExtension {
      * Plugins to load
      */
     public List<String> plugins = new ArrayList<>();
+
+    /**
+     * Misc. configuration options
+     */
+    public Map<String, Object> configuration = new HashMap<>();
 
     /**
      * Specifies that Tongs should run using one of "under integration test" modes
