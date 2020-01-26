@@ -10,8 +10,10 @@
 package com.github.tarcv.tongs.injector
 
 import com.github.tarcv.tongs.Configuration
+import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.runner.rules.HasConfiguration
+import com.github.tarcv.tongs.runner.rules.RunConfiguration
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 import kotlin.collections.ArrayList
@@ -143,7 +145,7 @@ class RuleManagerFactory(
             private val factoryInvoker: (F, C) -> Array<out R>
     ) {
 
-        fun createRulesFrom(contextProvider: (Configuration) -> C): List<R> {
+        fun createRulesFrom(contextProvider: (RunConfiguration) -> C): List<R> {
             val instances = ArrayList<R>()
 
             ruleInstancesFromFactories(predefinedFactories, contextProvider).toCollection(instances)
@@ -154,12 +156,12 @@ class RuleManagerFactory(
 
         private fun ruleInstancesFromFactories(
                 factories: List<F>,
-                contextProvider: (Configuration) -> C
+                contextProvider: (RunConfiguration) -> C
         ): Sequence<R> {
             return factories.asSequence()
                     .flatMap { factory ->
                         try {
-                            val factoryConfiguration = configurationForFactory(factory)
+                            val factoryConfiguration = ActualConfiguration(configurationForFactory(factory))
                             val ruleContext = contextProvider(factoryConfiguration)
                             factoryInvoker(factory, ruleContext).asSequence()
                         } catch (e: InvocationTargetException) {
@@ -169,6 +171,10 @@ class RuleManagerFactory(
         }
     }
 }
+
+class ActualConfiguration(configuration: Configuration)
+    : com.github.tarcv.tongs.runner.rules.RunConfiguration,
+        TongsConfiguration by configuration
 
 class RuleCollection<out R>(val rules: Collection<R>) {
     inline fun forEach(block: (R) -> Unit) {

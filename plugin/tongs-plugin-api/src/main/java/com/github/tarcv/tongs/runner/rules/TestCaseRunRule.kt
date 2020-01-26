@@ -20,7 +20,7 @@ import com.github.tarcv.tongs.runner.TestCaseRunResult
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
 class TestCaseRunRuleContext(
-        val configuration: TongsConfiguration,
+        val configuration: RunConfiguration,
         val fileManager: TestCaseFileManager,
         val pool: Pool,
         val device: Device,

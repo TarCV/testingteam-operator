@@ -14,6 +14,7 @@ package com.github.tarcv.tongs.injector
 
 import com.github.tarcv.tongs.Configuration
 import com.github.tarcv.tongs.runner.rules.HasConfiguration
+import com.github.tarcv.tongs.runner.rules.RunConfiguration
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert
@@ -77,7 +78,7 @@ class RuleManagerTest {
         val uniqueSectionName = "UniqueSection"
         val conflictingName = "ConflictingSection"
 
-        class RuleContext(val configuration: Configuration)
+        class RuleContext(val configuration: RunConfiguration)
 
         class Rule(val factoryName: String, context: RuleContext) {
             val pluginConfiguration = context.configuration.pluginConfiguration

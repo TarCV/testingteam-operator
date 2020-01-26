@@ -17,7 +17,7 @@ import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
 class RunRuleContext(
-        val configuration: TongsConfiguration
+        val configuration: RunConfiguration
 )
 interface RunRuleFactory<out T: RunRule> {
     fun runRules(context: RunRuleContext): Array<out T>

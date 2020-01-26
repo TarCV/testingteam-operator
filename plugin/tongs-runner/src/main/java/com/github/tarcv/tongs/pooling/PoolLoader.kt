@@ -27,7 +27,7 @@ class PoolLoader(private val configuration: Configuration, private val devicePro
     fun loadPools(): Collection<Pool> {
         val devices = deviceProviderManager
                 .createRulesFrom {
-                    DeviceProviderContextImpl(configuration)
+                    configuration -> DeviceProviderContextImpl(configuration)
                 }
                 .asSequence()
                 .map { deviceProvider ->

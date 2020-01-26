@@ -18,7 +18,7 @@ import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
 class DeviceRuleContext<out T: Device>(
-        val configuration: TongsConfiguration,
+        val configuration: RunConfiguration,
         val fileManager: TestCaseFileManager,
         val pool: Pool,
         val device: T
