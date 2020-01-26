@@ -77,6 +77,7 @@ class TongsPlugin implements Plugin<Project> {
                 testRunnerClass = variant.mergedFlavor.testInstrumentationRunner
                 testRunnerArguments = variant.mergedFlavor.testInstrumentationRunnerArguments
                 plugins = config.plugins
+                pluginsConfiguration = config.configuration
                 excludedSerials = config.excludedSerials
                 fallbackToScreenshots = config.fallbackToScreenshots
                 totalAllowedRetryQuota = config.totalAllowedRetryQuota
