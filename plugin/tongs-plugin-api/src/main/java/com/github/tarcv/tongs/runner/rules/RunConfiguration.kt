@@ -13,20 +13,5 @@
 package com.github.tarcv.tongs.runner.rules
 
 import com.github.tarcv.tongs.TongsConfiguration
-import com.github.tarcv.tongs.model.Pool
-import com.github.tarcv.tongs.model.TestCase
-import com.github.tarcv.tongs.model.TestCaseEvent
-import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
-class TestCaseRuleContext(
-        val configuration: RunConfiguration,
-        val pool: Pool
-)
-
-interface TestCaseRuleFactory<out T: TestCaseRule> {
-    fun testCaseRules(context: TestCaseRuleContext): Array<out T>
-}
-
-interface TestCaseRule {
-    fun transform(testCaseEvent: TestCaseEvent): TestCaseEvent
-}
+interface RunConfiguration: TongsConfiguration

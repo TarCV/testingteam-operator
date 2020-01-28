@@ -17,7 +17,7 @@ import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
 class PoolRunRuleContext (
-        val configuration: TongsConfiguration,
+        val configuration: RunConfiguration,
         val pool: Pool
 )
 interface PoolRunRuleFactory<out T: PoolRunRule> {

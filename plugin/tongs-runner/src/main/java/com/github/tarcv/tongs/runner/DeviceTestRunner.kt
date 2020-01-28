@@ -13,14 +13,18 @@
  */
 package com.github.tarcv.tongs.runner
 
-import com.github.tarcv.tongs.injector.RuleManager
+import com.github.tarcv.tongs.injector.ActualConfiguration
 import com.github.tarcv.tongs.injector.ConfigurationInjector
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector
+import com.github.tarcv.tongs.injector.ruleManagerFactory
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.runner.rules.*
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
@@ -54,9 +58,6 @@ class DeviceTestRunner(private val pool: Pool,
                         testCaseTask.doWork { testCaseEvent: TestCaseEvent ->
                             val testCaseFileManager: TestCaseFileManager = TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.testCase)
                             val configuration = ConfigurationInjector.configuration()
-                            val context = TestCaseRunRuleContext(
-                                    configuration, testCaseFileManager,
-                                    pool, device, testCaseEvent)
 
                             val testRunListeners = TestRunListenersTongsFactoryInjector.testRunListenersTongsFactory(configuration).createTongsListners(
                                     testCaseEvent,
@@ -67,23 +68,29 @@ class DeviceTestRunner(private val pool: Pool,
                                     configuration.tongsIntegrationTestRunType)
                                     .toList()
 
-                            val ruleManager = RuleManager(
-                                    TestCaseRunRuleFactory::class.java,
-                                    listOf(
-                                            AndroidCleanupTestCaseRunRuleFactory(),
-                                            AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
-                                    ),
-                                    configuration().pluginsInstances,
-                                    { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
-                            )
-                            val testCaseRunRules = ruleManager.createRulesFrom { context }
+                        val ruleManager = ruleManagerFactory.create(
+                                TestCaseRunRuleFactory::class.java,
+                                listOf(
+                                        AndroidCleanupTestCaseRunRuleFactory(),
+                                        AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
+                                ),
+                                { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
+                        )
+                        val testCaseRunRules = ruleManager.createRulesFrom { configuration ->
+                            TestCaseRunRuleContext(
+                                    configuration, testCaseFileManager,
+                                    pool, device, testCaseEvent)
+                        }
 
                             // TODO: Add some defensive code
                             testRunListeners.forEach { it.before() }
 
                             testCaseRunRules.forEach { it.before() }
 
-                            val initialResult = executeTestCase(context)
+                            val executeContext = TestCaseRunRuleContext(
+                                    ActualConfiguration(configuration), testCaseFileManager,
+                                    pool, device, testCaseEvent)
+                            val initialResult = executeTestCase(executeContext)
 
                             return@doWork fixRunResult(initialResult, testCaseEvent.testCase, "Test case runner")
                                     .let {

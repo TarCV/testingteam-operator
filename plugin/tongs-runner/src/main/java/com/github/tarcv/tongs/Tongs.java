@@ -13,7 +13,8 @@
  */
 package com.github.tarcv.tongs;
 
-import com.github.tarcv.tongs.injector.RuleManager;
+import com.github.tarcv.tongs.injector.RuleHelpersKt;
+import com.github.tarcv.tongs.injector.TongsRunnerInjector;
 import com.github.tarcv.tongs.runner.rules.RunRule;
 import com.github.tarcv.tongs.runner.rules.RunRuleContext;
 import com.github.tarcv.tongs.runner.rules.RunRuleFactory;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.setConfiguration;
+import static com.github.tarcv.tongs.injector.RuleManagerFactory.fixGenericClass;
 import static com.github.tarcv.tongs.injector.TongsRunnerInjector.tongsRunner;
 import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
@@ -42,13 +44,19 @@ public final class Tongs {
     public Tongs(Configuration configuration) {
         this.output = configuration.getOutput();
         setConfiguration(configuration);
-        this.tongsRunner = tongsRunner();
+        this.tongsRunner = TongsRunnerInjector.tongsRunner();
     }
 
     public boolean run() {
 		long startOfTestsMs = nanoTime();
-        List<RunRule> runRules = new RunRuleManager(configuration().getPluginsInstances())
-                .createRulesFrom(() -> new RunRuleContext(configuration()));
+        List<RunRule> runRules = RuleHelpersKt.ruleManagerFactory()
+                .<RunRuleContext, RunRule, RunRuleFactory<RunRule>>create(
+                        fixGenericClass(RunRuleFactory.class),
+                        (runRuleFactory, runRuleContext) -> {
+                            return runRuleFactory.runRules(runRuleContext);
+                        }
+                )
+                .createRulesFrom((configuration) -> new RunRuleContext(configuration));
         runRules.forEach(runRule -> runRule.before());
 		try {
             deleteDirectory(output);
@@ -65,14 +73,4 @@ public final class Tongs {
                     .forEach(runRule -> runRule.after());
         }
 	}
-
-    private static class RunRuleManager extends RuleManager<RunRuleContext, RunRule, RunRuleFactory<?>> {
-        public RunRuleManager(@NotNull List<Object> userFactories) {
-            super(fixGenericClass(RunRuleFactory.class),
-                userFactories,
-                (runRuleFactory, runRuleContext) -> {
-                    return runRuleFactory.runRules(runRuleContext);
-                });
-        }
-    }
 }

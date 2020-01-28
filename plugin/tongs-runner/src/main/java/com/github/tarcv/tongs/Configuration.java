@@ -13,7 +13,7 @@
  */
 package com.github.tarcv.tongs;
 
-import com.github.tarcv.tongs.injector.RuleManager;
+import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
 
 import org.slf4j.Logger;
@@ -57,6 +57,7 @@ public class Configuration implements TongsConfiguration {
     private final String excludedAnnotation;
     private final TongsIntegrationTestRunType tongsIntegrationTestRunType;
     private final boolean terminateDdm;
+    private final Map<String, Object> pluginConfiguration;
 
     private Configuration(Builder builder) {
         androidSdk = builder.androidSdk;
@@ -67,6 +68,7 @@ public class Configuration implements TongsConfiguration {
         testRunnerClass = builder.testRunnerClass;
         testRunnerArguments = builder.testRunnerArguments;
         pluginsClasses = builder.plugins;
+        pluginConfiguration = builder.pluginConfiguration;
         output = builder.output;
         title = builder.title;
         subtitle = builder.subtitle;
@@ -81,6 +83,34 @@ public class Configuration implements TongsConfiguration {
         this.excludedAnnotation = builder.excludedAnnotation;
         this.tongsIntegrationTestRunType = builder.tongsIntegrationTestRunType;
         this.terminateDdm = builder.terminateDdm;
+    }
+
+    private Builder newBuilder() {
+        Builder builder = new Builder();
+        builder.androidSdk = androidSdk;
+        builder.applicationApk = applicationApk;
+        builder.instrumentationApk = instrumentationApk;
+        builder.applicationPackage = applicationPackage;
+        builder.instrumentationPackage = instrumentationPackage;
+        builder.testRunnerClass = testRunnerClass;
+        builder.testRunnerArguments = testRunnerArguments;
+        builder.plugins = pluginsClasses;
+        builder.pluginConfiguration = pluginConfiguration;
+        builder.output = output;
+        builder.title = title;
+        builder.subtitle = subtitle;
+        builder.testPackage = testPackage;
+        builder.testOutputTimeout = testOutputTimeout;
+        builder.excludedSerials = excludedSerials;
+        builder.fallbackToScreenshots = fallbackToScreenshots;
+        builder.totalAllowedRetryQuota = totalAllowedRetryQuota;
+        builder.retryPerTestCaseQuota = retryPerTestCaseQuota;
+        builder.isCoverageEnabled = isCoverageEnabled;
+        builder.poolingStrategy = poolingStrategy;
+        builder.excludedAnnotation = this.excludedAnnotation;
+        builder.tongsIntegrationTestRunType = this.tongsIntegrationTestRunType;
+        builder.terminateDdm = this.terminateDdm;
+        return builder;
     }
 
     @Override
@@ -204,12 +234,23 @@ public class Configuration implements TongsConfiguration {
     public List<Object> getPluginsInstances() {
         synchronized (pluginsInstances) {
             if (pluginsInstances.isEmpty() && !pluginsClasses.isEmpty()) {
-                List<Object> instances = RuleManager.factoryInstancesForRuleNames(pluginsClasses);
+                List<Object> instances = RuleManagerFactory.factoryInstancesForRuleNames(pluginsClasses);
                 pluginsInstances.addAll(instances);
             }
 
             return pluginsInstances;
         }
+    }
+
+    @Override
+    public Map<String, Object> getPluginConfiguration() {
+        return pluginConfiguration;
+    }
+
+    public Configuration withPluginConfiguration(Map<String, Object> pluginConfiguration) {
+        return newBuilder()
+                .withPluginConfiguration(pluginConfiguration)
+                .build();
     }
 
     public static class Builder {
@@ -235,6 +276,7 @@ public class Configuration implements TongsConfiguration {
         private String excludedAnnotation;
         private TongsIntegrationTestRunType tongsIntegrationTestRunType = NONE;
         private boolean terminateDdm = true;
+        private Map<String, Object> pluginConfiguration;
 
         public static Builder configuration() {
             return new Builder();
@@ -350,6 +392,11 @@ public class Configuration implements TongsConfiguration {
             return this;
         }
 
+        public Builder withPluginConfiguration(Map<String, Object> configuration) {
+            this.pluginConfiguration = configuration;
+            return this;
+        }
+
         public Configuration build() {
             checkNotNull(androidSdk, "SDK is required.");
             checkArgument(androidSdk.exists(), "SDK directory does not exist.");
@@ -379,6 +426,7 @@ public class Configuration implements TongsConfiguration {
             checkNotNull(output, "Output path is required.");
 
             plugins = assignValueOrDefaultIfNull(plugins, Collections.emptyList());
+            pluginConfiguration = assignValueOrDefaultIfNull(pluginConfiguration, Collections.emptyMap());
 
             title = assignValueOrDefaultIfNull(title, Defaults.TITLE);
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);
@@ -435,5 +483,17 @@ public class Configuration implements TongsConfiguration {
 
             return poolingStrategy;
         }
+    }
+
+    public static Builder aConfigurationBuilder() {
+        File nullFile = new File(".");
+
+        return new Configuration.Builder()
+                .withAndroidSdk(nullFile)
+                .withApplicationPackage("com.github.tarcv.tongstest")
+                .withInstrumentationPackage("com.github.tarcv.tongstest")
+                .withTestRunnerClass("android.support.test.runner.AndroidJUnitRunner")
+                .withTestRunnerArguments(Collections.emptyMap())
+                .withOutput(nullFile);
     }
 }

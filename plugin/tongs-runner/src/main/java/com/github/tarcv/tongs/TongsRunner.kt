@@ -14,7 +14,8 @@
 package com.github.tarcv.tongs
 
 import com.github.tarcv.tongs.injector.ConfigurationInjector
-import com.github.tarcv.tongs.injector.TongsRunnerInjector.TestCaseRuleManager
+import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
+import com.github.tarcv.tongs.injector.TestCaseRuleManager
 import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.model.Pool
@@ -51,7 +52,9 @@ class TongsRunner(private val poolLoader: PoolLoader,
             val poolTestCasesMap: Map<Pool, Collection<TestCaseEvent>> = pools
                     .map { pool ->
                         val testCaseRules = testCaseRuleManager
-                                .createRulesFrom { TestCaseRuleContext(ConfigurationInjector.configuration(), pool) }
+                                .createRulesFrom {
+                                    configuration -> TestCaseRuleContext(configuration, pool)
+                                }
                         val testCases = createTestSuiteLoaderForPool(pool)
                                 .map { testCaseEvent: TestCaseEvent ->
                                     testCaseRules.fold(testCaseEvent) { acc, rule -> rule.transform(acc) }
