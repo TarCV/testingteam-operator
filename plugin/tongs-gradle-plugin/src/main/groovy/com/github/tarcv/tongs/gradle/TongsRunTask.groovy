@@ -57,8 +57,9 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
     String testRunnerClass
 
     Map<String, String> testRunnerArguments
-
     List<String> plugins
+
+    Map<String, Object> pluginsConfiguration
 
     boolean isCoverageEnabled
 
@@ -96,6 +97,7 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
                 .withTestRunnerClass(testRunnerClass)
                 .withTestRunnerArguments(testRunnerArguments)
                 .withPlugins(plugins)
+                .withPluginConfiguration(pluginsConfiguration)
                 .withTestOutputTimeout(testOutputTimeout)
                 .withExcludedSerials(excludedSerials)
                 .withFallbackToScreenshots(fallbackToScreenshots)

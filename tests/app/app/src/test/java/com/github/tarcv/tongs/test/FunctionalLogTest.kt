@@ -13,6 +13,7 @@ package com.github.tarcv.tongs.test
 import com.github.tarcv.test.BuildConfig.FLAVOR
 import org.junit.Assume.assumeTrue
 import org.junit.Test
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -127,7 +128,9 @@ class FunctionalLogTest {
 
         val lineRegex = Regex("""^\d+\s+(.+)$""")
         val testNameRegex = Regex(""".*-e filterMethod (\S+)\s.*-e filterClass (\S+)\s.*""")
-        return Files.readAllLines(Paths.get("..", "tongs-${5554 + whichDevice*2}_adb.log"))
+        return Files.readAllLines(
+                Paths.get("..", "tongs-${5554 + whichDevice*2}_adb.log"),
+                StandardCharsets.ISO_8859_1)
                 .fold(arrayListOf(ArrayList<String>())) { acc, line ->
                     val result = lineRegex.matchEntire(line)!!
                     val lineNoTime = result.groupValues[1]

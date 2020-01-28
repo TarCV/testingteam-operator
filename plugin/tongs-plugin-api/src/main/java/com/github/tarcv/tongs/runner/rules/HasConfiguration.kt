@@ -10,19 +10,6 @@
 
 package com.github.tarcv.tongs.runner.rules
 
-import com.github.tarcv.tongs.TongsConfiguration
-import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.model.Pool
-import com.github.tarcv.tongs.model.TestCaseEvent
-import com.github.tarcv.tongs.system.io.TestCaseFileManager
-
-class RunRuleContext(
-        val configuration: RunConfiguration
-)
-interface RunRuleFactory<out T: RunRule> {
-    fun runRules(context: RunRuleContext): Array<out T>
-}
-interface RunRule {
-    fun before()
-    fun after()
+interface HasConfiguration {
+    val configurationSections: Array<String>
 }

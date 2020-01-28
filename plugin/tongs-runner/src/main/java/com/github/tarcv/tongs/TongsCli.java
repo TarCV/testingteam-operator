@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -107,6 +107,7 @@ public class TongsCli {
                     .withPoolingStrategy(tongsConfiguration.poolingStrategy)
                     .withExcludedAnnotation(tongsConfiguration.excludedAnnotation)
                     .withTongsIntegrationTestRunType(tongsConfiguration.tongsIntegrationTestRunType)
+                    .withPluginConfiguration(tongsConfiguration.configuration)
                     .build();
 
             Tongs tongs = new Tongs(configuration);

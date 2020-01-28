@@ -1,6 +1,7 @@
 package com.github.tarcv.tongs.summary
 
 import com.github.tarcv.tongs.Configuration
+import com.github.tarcv.tongs.Configuration.aConfigurationBuilder
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.ConfigurationInjector.setConfiguration
 import com.github.tarcv.tongs.injector.summary.OutcomeAggregatorInjector.outcomeAggregator
@@ -26,8 +27,6 @@ import java.nio.file.Paths
 class SummarizerIntegrationTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
-
-    val nullFile = File(".")
 
     @Test
     fun summarize() {
@@ -65,8 +64,7 @@ class SummarizerIntegrationTest {
     }
 
     private fun initConfiguration() {
-        val configuration = Configuration.Builder()
-                .withAndroidSdk(nullFile)
+        val configuration = aConfigurationBuilder()
                 .withApplicationPackage("com.github.tarcv.tongstestapp.f2")
                 .withInstrumentationPackage("com.github.tarcv.tongstestapp.test")
                 .withTestRunnerClass("android.support.test.runner.AndroidJUnitRunner")
