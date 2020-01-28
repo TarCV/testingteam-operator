@@ -15,16 +15,12 @@ package com.github.tarcv.tongs.runner
 
 import com.github.tarcv.tongs.injector.ActualConfiguration
 import com.github.tarcv.tongs.injector.ConfigurationInjector
-import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector
 import com.github.tarcv.tongs.injector.ruleManagerFactory
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
+import com.github.tarcv.tongs.runner.rules.*
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
@@ -43,11 +39,10 @@ class DeviceTestRunner(private val pool: Pool,
                        private val progressReporter: ProgressReporter) : Runnable {
     override fun run() {
         try {
-            val rules = RuleManager(DeviceRunRuleFactory::class.java,
+            val rules = ruleManagerFactory.create(DeviceRunRuleFactory::class.java,
                     listOf(AndroidSetupDeviceRuleFactory()),
-                    configuration().pluginsInstances,
                     { factory, context: DeviceRunRuleContext -> factory.deviceRules(context) }
-            ).createRulesFrom { DeviceRunRuleContext(configuration(), pool, device) }
+            ).createRulesFrom { configuration -> DeviceRunRuleContext(configuration, pool, device) }
 
             try {
                 rules.forEach { it.before() }
@@ -68,19 +63,19 @@ class DeviceTestRunner(private val pool: Pool,
                                     configuration.tongsIntegrationTestRunType)
                                     .toList()
 
-                        val ruleManager = ruleManagerFactory.create(
-                                TestCaseRunRuleFactory::class.java,
-                                listOf(
-                                        AndroidCleanupTestCaseRunRuleFactory(),
-                                        AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
-                                ),
-                                { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
-                        )
-                        val testCaseRunRules = ruleManager.createRulesFrom { configuration ->
-                            TestCaseRunRuleContext(
-                                    configuration, testCaseFileManager,
-                                    pool, device, testCaseEvent)
-                        }
+                            val ruleManager = ruleManagerFactory.create(
+                                    TestCaseRunRuleFactory::class.java,
+                                    listOf(
+                                            AndroidCleanupTestCaseRunRuleFactory(),
+                                            AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
+                                    ),
+                                    { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
+                            )
+                            val testCaseRunRules = ruleManager.createRulesFrom { pluginConfiguration ->
+                                TestCaseRunRuleContext(
+                                        pluginConfiguration, testCaseFileManager,
+                                        pool, device, testCaseEvent)
+                            }
 
                             // TODO: Add some defensive code
                             testRunListeners.forEach { it.before() }
