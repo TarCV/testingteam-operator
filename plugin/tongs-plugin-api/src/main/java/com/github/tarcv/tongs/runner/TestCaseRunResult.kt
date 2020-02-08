@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -23,7 +23,7 @@ import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import java.io.File
 
 // TODO: merge with com.github.tarcv.tongs.summary.TestResult
-class TestCaseRunResult(
+data class TestCaseRunResult(
         val pool: Pool,
         val device: Device,
         val testCase: TestCase,
@@ -35,14 +35,6 @@ class TestCaseRunResult(
         val coverageReport: TestCaseFile? = null,
         val data: List<TestReportData>
 ) {
-    fun copy(pool: Pool, device: Device, testCase: TestCase, status: ResultStatus): TestCaseRunResult {
-        return TestCaseRunResult(
-                pool, device, testCase, status,
-                this.stackTrace, this.timeTaken, this.totalFailureCount,
-                this.metrics, this.coverageReport, this.data
-        )
-    }
-
     companion object {
         private val pool = aDevicePool().addDevice(Device.TEST_DEVICE).build()
 

@@ -14,6 +14,7 @@ import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.runner.rules.HasConfiguration
 import com.github.tarcv.tongs.runner.rules.RunConfiguration
+import org.slf4j.Logger
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 import kotlin.collections.ArrayList
@@ -176,26 +177,77 @@ class ActualConfiguration(configuration: Configuration)
     : com.github.tarcv.tongs.runner.rules.RunConfiguration,
         TongsConfiguration by configuration
 
-class RuleCollection<out R>(val rules: Collection<R>) {
-    inline fun forEach(block: (R) -> Unit) {
-        rules.forEach {
-            // TODO: add defensive code
-            block(it)
-        }
-    }
-
-    inline fun forEachReversed(block: (R) -> Unit) {
-        rules
-                .reversed()
-                .forEach {
-                    // TODO: add defensive code
-                    block(it)
+inline fun <R, V>withRulesWithoutAfter(
+        logger: Logger,
+        inRuleText: String,
+        inActionText: String,
+        rules: List<R>,
+        beforeAction: (R) -> Unit,
+        block: () -> V
+): Pair<List<R>, Result<V>> {
+    val (allowedAfterRules, lastException) = run {
+        var lastException: Throwable? = null
+        val allowedRules = rules.takeWhile {
+            if (lastException == null) {
+                try {
+                    beforeAction(it)
+                } catch (t: Throwable) {
+                    logger.error("Exception $inRuleText (in before method)")
+                    lastException = t
                 }
+                return@takeWhile true
+            } else {
+                return@takeWhile false
+            }
+        }
+
+        Pair(allowedRules, lastException)
     }
 
-    fun <RR>mapSequence(block: (R) -> RR): Sequence<RR> {
-        return rules
-                .asSequence()
-                .map(block)
+    var actionResult: Result<V> = if (lastException == null) {
+        try {
+            Result.success(block())
+        } catch (t: Throwable) {
+            logger.error("Exception $inActionText")
+            Result.failure<V>(t)
+        }
+    } else {
+        Result.failure<V>(lastException)
     }
+    return Pair(allowedAfterRules, actionResult)
+}
+inline fun <R, V>withRules(
+        logger: Logger,
+        inRuleText: String,
+        inActionText: String,
+        rules: List<R>,
+        beforeAction: (R) -> Unit,
+        afterAction: (R, Result<V>) -> Result<V>,
+        block: () -> V
+): V {
+    val (allowedAfterRules, actionResult) = withRulesWithoutAfter(logger, inRuleText, inActionText, rules, beforeAction, block)
+
+    return allowedAfterRules
+            .asReversed()
+            .fold(actionResult) { acc, it ->
+                try {
+                    afterAction(it, acc)
+                            .also {
+                                if (it.exceptionOrNull() != actionResult.exceptionOrNull()) {
+                                    throw IllegalStateException("Rules must not change thrown exceptions")
+                                }
+                            }
+                } catch (t: Throwable) {
+                    logger.error("Exception $inRuleText (in after method)")
+                    acc
+                            .fold(
+                                    { t },
+                                    { it.apply { addSuppressed(t) } }
+                            )
+                            .let {
+                                Result.failure(it)
+                            }
+                }
+            }
+            .getOrThrow()
 }

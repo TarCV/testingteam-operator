@@ -13,10 +13,8 @@
  */
 package com.github.tarcv.tongs.runner
 
-import com.github.tarcv.tongs.injector.ActualConfiguration
-import com.github.tarcv.tongs.injector.ConfigurationInjector
+import com.github.tarcv.tongs.injector.*
 import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector
-import com.github.tarcv.tongs.injector.ruleManagerFactory
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
@@ -28,6 +26,7 @@ import org.slf4j.LoggerFactory
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.lang.System.lineSeparator
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -77,26 +76,67 @@ class DeviceTestRunner(private val pool: Pool,
                                         pool, device, testCaseEvent)
                             }
 
-                            // TODO: Add some defensive code
-                            testRunListeners.forEach { it.before() }
+                            val inRuleText = "while executing a test case run rule"
 
-                            testCaseRunRules.forEach { it.before() }
+                            val (allowedAfterRules, eitherResult) = withRulesWithoutAfter(
+                                    logger,
+                                    inRuleText,
+                                    "while executing a test case",
+                                    (testRunListeners + testCaseRunRules),
+                                    { it.before() },
+                                    {
+                                        val executeContext = TestCaseRunRuleContext(
+                                                ActualConfiguration(configuration), testCaseFileManager,
+                                                pool, device, testCaseEvent)
 
-                            val executeContext = TestCaseRunRuleContext(
-                                    ActualConfiguration(configuration), testCaseFileManager,
-                                    pool, device, testCaseEvent)
-                            val initialResult = executeTestCase(executeContext)
-
-                            return@doWork fixRunResult(initialResult, testCaseEvent.testCase, "Test case runner")
-                                    .let {
-                                        val transormedArgs =
-                                                applyRulesAfters(TestCaseRunRuleAfterArguments(it), testCaseRunRules)
-                                        transormedArgs.result
+                                        executeTestCase(executeContext)
+                                                .fixRunResult(testCaseEvent.testCase, "Test case runner")
                                     }
-                                    .let {
-                                        val transormedArgs =
-                                                applyRulesAfters(TestCaseRunRuleAfterArguments(it), testRunListeners)
-                                        transormedArgs.result
+                            )
+
+                            val fixedResult = eitherResult
+                                    .getOrElse { e ->
+                                        logger.error("Exception while executing a test case", e)
+                                        val stackTrace = traceAsString(e)
+                                        TestCaseRunResult(
+                                                pool, device,
+                                                testCaseEvent.testCase, ResultStatus.ERROR,
+                                                stackTrace,
+                                                0f,
+                                                0, emptyMap(),
+                                                null,
+                                                emptyList())
+                                    }
+
+                            allowedAfterRules
+                                    .asReversed()
+                                    .fold(fixedResult) { acc, rule ->
+                                        try {
+                                            val args = TestCaseRunRuleAfterArguments(acc)
+
+                                            rule.after(args)
+                                            args.result
+                                                    .fixRunResult(
+                                                            testCaseEvent.testCase,
+                                                            "Rule ${rule.javaClass.name}"
+                                                    )
+                                        } catch (e: Exception) {
+                                            val emptyPrefix = if (acc.stackTrace.isBlank()) {
+                                                """|
+                                                |
+                                                |---Rule exceptions---""".trimMargin()
+                                            } else {
+                                                ""
+                                            }
+                                            val newStackTrace = """${acc.stackTrace}${emptyPrefix}
+                                                |
+                                                |Exception ${inRuleText} (after): ${traceAsString(e)}"""
+                                                .trimMargin()
+                                            acc.copy(
+                                                    status = ResultStatus.ERROR,
+                                                    stackTrace = newStackTrace
+                                            )
+                                        }
                                     }
                         }
                     } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
@@ -114,33 +154,23 @@ class DeviceTestRunner(private val pool: Pool,
         }
     }
 
-    private fun applyRulesAfters(arguments: TestCaseRunRuleAfterArguments, rules: List<TestCaseRunRule>): TestCaseRunRuleAfterArguments {
-        val originalResult = arguments.result
-
-        val finalArgs = rules
-                .asReversed()
-                .fold(arguments) { args, rule ->
-                    rule.after(args)
-
-                    args.result = fixRunResult(args.result, originalResult.testCase, "Rule ${rule.javaClass.name}")
-
-                    args
-                }
-        return finalArgs
-    }
-
-    private fun fixRunResult(result: TestCaseRunResult, testCase: TestCase, changer: String): TestCaseRunResult {
-        if (result.pool != pool
-                || result.device != device
-                || result.testCase != testCase) {
+    private fun TestCaseRunResult.fixRunResult(testCase: TestCase, changer: String): TestCaseRunResult {
+        if (pool != this@DeviceTestRunner.pool
+                || device != this@DeviceTestRunner.device
+                || this.testCase != testCase) {
             throw RuntimeException(
                     "$changer attempted to change pool, device or testCase field of a run result")
         }
 
-        return if (result.status == ResultStatus.UNKNOWN) { // TODO: Report as a fatal crashed test
-            result.copy(pool, device, testCase, status = ResultStatus.ERROR)
+        return if (status == ResultStatus.UNKNOWN) { // TODO: Report as a fatal crashed test
+            copy(
+                    pool = this@DeviceTestRunner.pool,
+                    device = this@DeviceTestRunner.device,
+                    testCase = testCase,
+                    status = ResultStatus.ERROR
+            )
         } else {
-            result
+            this
         }
     }
 
@@ -150,35 +180,22 @@ class DeviceTestRunner(private val pool: Pool,
         private fun executeTestCase(context: TestCaseRunRuleContext): TestCaseRunResult {
             val androidTestRunFactory = TestRunFactoryInjector.testRunFactory(context.configuration)
             val workCountdownLatch = PreregisteringLatch()
-            return try {
-                val testStatus = AtomicReference(ResultStatus.UNKNOWN)
+            val testStatus = AtomicReference(ResultStatus.UNKNOWN)
 
-                try {
-                    val testRun = androidTestRunFactory.createTestRun(context, context.testCaseEvent,
-                            context.device as AndroidDevice,
-                            context.pool,
-                            testStatus,
-                            workCountdownLatch)
-                    workCountdownLatch.finalizeRegistering()
-                    testRun.execute()
-                } finally {
-                    workCountdownLatch.await(15, TimeUnit.SECONDS)
-                }
-            } catch (e: Throwable) {
-                logger.error("Exception during test case execution", e)
-                val stackTrace = traceAsStream(e)
-                TestCaseRunResult(
-                        context.pool, context.device,
-                        context.testCaseEvent.testCase, ResultStatus.ERROR,
-                        stackTrace,
-                        0f,
-                        0, emptyMap(),
-                        null,
-                        emptyList())
+            return try {
+                val testRun = androidTestRunFactory.createTestRun(context, context.testCaseEvent,
+                        context.device as AndroidDevice,
+                        context.pool,
+                        testStatus,
+                        workCountdownLatch)
+                workCountdownLatch.finalizeRegistering()
+                testRun.execute()
+            } finally {
+                workCountdownLatch.await(15, TimeUnit.SECONDS)
             }
         }
 
-        private fun traceAsStream(e: Throwable): String {
+        private fun traceAsString(e: Throwable): String {
             val byteStream = ByteArrayOutputStream()
             val printStream = PrintStream(BufferedOutputStream(byteStream))
             e.printStackTrace(printStream)

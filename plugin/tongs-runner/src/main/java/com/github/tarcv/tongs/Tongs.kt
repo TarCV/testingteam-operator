@@ -14,33 +14,34 @@
 package com.github.tarcv.tongs
 
 import com.github.tarcv.tongs.injector.ConfigurationInjector
-import com.github.tarcv.tongs.injector.RuleManagerFactory.Companion.fixGenericClass
 import com.github.tarcv.tongs.injector.TongsRunnerInjector.tongsRunner
 import com.github.tarcv.tongs.injector.ruleManagerFactory
+import com.github.tarcv.tongs.injector.withRules
 import com.github.tarcv.tongs.runner.rules.RunConfiguration
 import com.github.tarcv.tongs.runner.rules.RunRule
 import com.github.tarcv.tongs.runner.rules.RunRuleContext
 import com.github.tarcv.tongs.runner.rules.RunRuleFactory
 import com.github.tarcv.tongs.utils.Utils
-import com.google.common.collect.Lists
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DurationFormatUtils
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.util.function.Consumer
 
 class Tongs(configuration: Configuration) {
     init {
         ConfigurationInjector.setConfiguration(configuration)
     }
     private val tongsRunner: TongsRunner = tongsRunner()
-    private val output: File = configuration.output
 
     fun run(): Boolean {
         val startOfTestsMs = System.nanoTime()
+        val predefinedRulesFactories = listOf(
+                PrepareOutputDirectoryRuleFactory()
+        )
         val runRules = ruleManagerFactory
                 .create<RunRuleContext, RunRule, RunRuleFactory<RunRule>>(
-                        RunRuleFactory::class.java
+                        RunRuleFactory::class.java,
+                        predefinedRulesFactories
                 ) { runRuleFactory: RunRuleFactory<RunRule>, runRuleContext: RunRuleContext ->
                     runRuleFactory.runRules(runRuleContext)
                 }
@@ -48,24 +49,45 @@ class Tongs(configuration: Configuration) {
                     RunRuleContext(configuration)
                 }
 
-        runRules.forEach(Consumer { runRule: RunRule -> runRule.before() })
-
         return try {
-            FileUtils.deleteDirectory(output)
-            //noinspection ResultOfMethodCallIgnored
-            output.mkdirs()
-
-            tongsRunner.run()
+            withRules(
+                    logger,
+                    "while executing a run rule",
+                    "while running Tongs",
+                    runRules,
+                    { it.before() },
+                    { it, ret ->
+                        it.after()
+                        ret
+                    }
+            ) {
+                tongsRunner.run()
+            }
         } catch (e: Exception) {
-            logger.error("Error while running Tongs", e)
+            // the exception is already logged inside withRules call
             false
         } finally {
             val duration = Utils.millisSinceNanoTime(startOfTestsMs)
-            logger.info(DurationFormatUtils.formatPeriod(0, duration, "'Total time taken:' H 'hours' m 'minutes' s 'seconds'"))
-            Lists.reverse(runRules)
-                    .forEach{ runRule: RunRule ->
-                        runRule.after()
-                    }
+            logger.info(DurationFormatUtils.formatPeriod(0, duration,
+                    "'Total time taken:' H 'hours' m 'minutes' s 'seconds'"))
+        }
+    }
+
+    class PrepareOutputDirectoryRuleFactory(): RunRuleFactory<PrepareOutputDirectoryRule> {
+        override fun runRules(context: RunRuleContext): Array<out PrepareOutputDirectoryRule> {
+            return arrayOf(PrepareOutputDirectoryRule(context.configuration.output))
+        }
+    }
+
+    class PrepareOutputDirectoryRule(private val output: File): RunRule {
+        override fun before() {
+            FileUtils.deleteDirectory(output)
+            //noinspection ResultOfMethodCallIgnored
+            output.mkdirs()
+        }
+
+        override fun after() {
+            // no-op
         }
     }
 

@@ -39,5 +39,5 @@ interface TestCaseRunRuleFactory<out T: TestCaseRunRule> {
 interface TestCaseRunRule {
     fun before()
     fun after(arguments: TestCaseRunRuleAfterArguments)
-    // TODO: consider adding a separate method for transforming results and making after nonmutating
+    // TODO: consider adding a separate method for transforming results and making after() nonmutating
 }

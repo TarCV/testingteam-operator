@@ -16,6 +16,7 @@ package com.github.tarcv.tongs.runner
 import com.github.tarcv.tongs.Utils
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.ruleManagerFactory
+import com.github.tarcv.tongs.injector.withRules
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEventQueue
 import com.github.tarcv.tongs.runner.rules.PoolRunRule
@@ -55,19 +56,23 @@ class PoolTestRunner(
                 emptyList(),
                 { factory, context: PoolRunRuleContext -> factory.poolRules(context) })
                 .createRulesFrom { configuration -> PoolRunRuleContext(configuration, pool) }
-        try {
-            rules.forEach { it.before() }
 
+        withRules(
+                logger,
+                "while executing a pool run rule", "while setting up test execution on a device",
+                rules,
+                { it.before() },
+                { it, ret ->
+                    it.after()
+                    ret
+                }
+        ) {
             for (device in pool.devices) {
                 val deviceTestRunner = deviceTestRunnerFactory.createDeviceTestRunner(pool, testCases,
                         deviceCountDownLatch, device, progressReporter)
                 concurrentDeviceExecutor.execute(deviceTestRunner)
             }
             deviceCountDownLatch.await()
-        } finally {
-            rules
-                    .asReversed()
-                    .forEach { it.after() }
         }
     }
 
