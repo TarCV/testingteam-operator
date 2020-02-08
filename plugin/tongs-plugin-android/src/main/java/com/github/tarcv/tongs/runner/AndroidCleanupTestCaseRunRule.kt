@@ -24,11 +24,16 @@ import java.lang.String.format
 
 class AndroidCleanupTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidCleanupTestCaseRunRule> {
     override fun testCaseRunRules(context: TestCaseRunRuleContext): Array<out AndroidCleanupTestCaseRunRule> {
-        return arrayOf(AndroidCleanupTestCaseRunRule(
-                context.device as AndroidDevice,
-                context.configuration.applicationPackage,
-                context.configuration.instrumentationPackage
-        ))
+        val device = context.device
+        return if (device is AndroidDevice) {
+            arrayOf(AndroidCleanupTestCaseRunRule(
+                    device,
+                    context.configuration.applicationPackage,
+                    context.configuration.instrumentationPackage
+            ))
+        } else {
+            emptyArray()
+        }
     }
 }
 

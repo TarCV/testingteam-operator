@@ -74,35 +74,37 @@ public class JUnitTestSuiteLoader(
                 val configuration = context.configuration
                 val installer = installer(configuration)
                 for (device in context.pool.devices) {
-                    val testCollector = TestCollectingListener()
-                    deviceTestCollectors.add(Pair(device, testCollector))
-                    val deviceTestRunner = Runnable {
-                        val deviceInterface = device.deviceInterface
-                        try {
-                            DdmPreferences.setTimeOut(30000)
-                            installer.prepareInstallation(deviceInterface as IDevice)
-
-                            val collectionLatch = CountDownLatch(1)
-
-                            val collectingRule = AndroidCollectingTestCaseRunRule(device, testCollector, collectionLatch)
-                            val collectingTestRun = testRunFactory.createCollectingRun(
-                                    device as AndroidDevice, context.pool, testCollector, collectionLatch)
+                    if (device is AndroidDevice) {
+                        val testCollector = TestCollectingListener()
+                        deviceTestCollectors.add(Pair(device, testCollector))
+                        val deviceTestRunner = Runnable {
+                            val deviceInterface = device.deviceInterface
                             try {
-                                collectingRule.before()
-                                collectingTestRun.execute()
-                            } finally {
-                                val stubResult = TestCaseRunResult.Companion.aTestResult("", "", ResultStatus.PASS, "")
-                                collectingRule.after(TestCaseRunRuleAfterArguments(stubResult))
-                            }
+                                DdmPreferences.setTimeOut(30000)
+                                installer.prepareInstallation(deviceInterface as IDevice)
 
-                            collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)
-                            testInfoMessages.addAll(testCollector.infos)
-                        } finally {
-                            logger.info("Device {} from pool {} finished", device.serial, context.pool.name)
-                            deviceCountDownLatch.countDown()
+                                val collectionLatch = CountDownLatch(1)
+
+                                val collectingRule = AndroidCollectingTestCaseRunRule(device, testCollector, collectionLatch)
+                                val collectingTestRun = testRunFactory.createCollectingRun(
+                                        device, context.pool, testCollector, collectionLatch)
+                                try {
+                                    collectingRule.before()
+                                    collectingTestRun.execute()
+                                } finally {
+                                    val stubResult = TestCaseRunResult.Companion.aTestResult("", "", ResultStatus.PASS, "")
+                                    collectingRule.after(TestCaseRunRuleAfterArguments(stubResult))
+                                }
+
+                                collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)
+                                testInfoMessages.addAll(testCollector.infos)
+                            } finally {
+                                logger.info("Device {} from pool {} finished", device.serial, context.pool.name)
+                                deviceCountDownLatch.countDown()
+                            }
                         }
+                        concurrentDeviceExecutor!!.execute(deviceTestRunner)
                     }
-                    concurrentDeviceExecutor!!.execute(deviceTestRunner)
                 }
                 deviceCountDownLatch.await()
             } catch (e: InterruptedException) {

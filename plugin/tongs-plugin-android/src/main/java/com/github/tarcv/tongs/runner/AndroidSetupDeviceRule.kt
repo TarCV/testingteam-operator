@@ -21,19 +21,24 @@ import com.github.tarcv.tongs.system.io.RemoteFileManager
 
 import com.github.tarcv.tongs.device.clearLogcat
 import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
-import com.github.tarcv.tongs.runner.rules.DeviceRule
-import com.github.tarcv.tongs.runner.rules.DeviceRuleContext
-import com.github.tarcv.tongs.runner.rules.DeviceRuleFactory
+import com.github.tarcv.tongs.runner.rules.DeviceRunRule
+import com.github.tarcv.tongs.runner.rules.DeviceRunRuleContext
+import com.github.tarcv.tongs.runner.rules.DeviceRunRuleFactory
 
-class AndroidSetupDeviceRuleFactory : DeviceRuleFactory<AndroidDevice, AndroidSetupDeviceRule> {
-    override fun deviceRules(context: DeviceRuleContext<AndroidDevice>): Array<out AndroidSetupDeviceRule> {
-        return arrayOf(
-                AndroidSetupDeviceRule(context.device.deviceInterface, installer(context.configuration))
-        )
+class AndroidSetupDeviceRuleFactory : DeviceRunRuleFactory<AndroidSetupDeviceRule> {
+    override fun deviceRules(context: DeviceRunRuleContext): Array<out AndroidSetupDeviceRule> {
+        val device = context.device
+        if (device is AndroidDevice) {
+            return arrayOf(
+                    AndroidSetupDeviceRule(device.deviceInterface, installer(context.configuration))
+            )
+        } else {
+            return emptyArray()
+        }
     }
 }
 
-class AndroidSetupDeviceRule(private val deviceInterface: IDevice, private val installer: Installer) : DeviceRule {
+class AndroidSetupDeviceRule(private val deviceInterface: IDevice, private val installer: Installer) : DeviceRunRule {
     override fun before() {
         DdmPreferences.setTimeOut(30000)
         installer.prepareInstallation(deviceInterface)

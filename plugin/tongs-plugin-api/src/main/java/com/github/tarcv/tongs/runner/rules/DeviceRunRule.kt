@@ -17,18 +17,17 @@ import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 
-class DeviceRuleContext<out T: Device>(
+class DeviceRunRuleContext(
         val configuration: RunConfiguration,
-        val fileManager: TestCaseFileManager,
         val pool: Pool,
-        val device: T
+        val device: Device
 )
 
-interface DeviceRuleFactory<D: Device, out T: DeviceRule> {
-    fun deviceRules(context: DeviceRuleContext<D>): Array<out T>
+interface DeviceRunRuleFactory<out T: DeviceRunRule> {
+    fun deviceRules(context: DeviceRunRuleContext): Array<out T>
 }
 
-interface DeviceRule {
+interface DeviceRunRule {
     fun before()
     fun after()
 }
