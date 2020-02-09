@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -39,15 +39,15 @@ class TemplateTest {
     fun fullTestResultPageIsCorrect() {
         val manager = object : TestCaseFileManager {
             override fun createFile(fileType: FileType): File {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                TODO("not implemented")
             }
 
             override fun createFile(fileType: FileType, sequenceNumber: Int): File {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                TODO("not implemented")
             }
 
             override fun createFile(fileType: FileType, suffix: String): File {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                TODO("not implemented")
             }
 
             override fun getFile(fileType: FileType, suffix: String): File {
