@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 
 export GRADLE_OPTS="-Dorg.gradle.console=plain"
 
-./gradlew --stop
+# Wait for the output directory to be unlocked after the previous run
 sleep 3
 
 rm ./*.log || true
