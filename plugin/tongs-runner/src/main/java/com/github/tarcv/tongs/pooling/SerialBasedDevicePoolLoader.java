@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -43,7 +43,9 @@ public class SerialBasedDevicePoolLoader implements DevicePoolLoader {
                 Device device = devices.stream()
                         .filter(d -> d.getSerial().equals(serial))
                         .findFirst()
-                        .orElseThrow(RuntimeException::new); // TODO: add message
+                        .orElseThrow(() -> {
+                            return new RuntimeException("Device with the serial '" + serial + "' was not found");
+                        });
                 if (device != null) {
                     poolBuilder.addDevice(device);
                 }
