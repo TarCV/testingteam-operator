@@ -76,8 +76,8 @@ class RuleBlockTest {
                     {
                         it.before()
                     },
-                    { it, e, ret ->
-                        it.after(e)
+                    { it, ret ->
+                        it.after(ret.exceptionOrNull())
                         if (it.index == 2) {
                             throw RuntimeException()
                         }
@@ -110,8 +110,8 @@ class RuleBlockTest {
                     {
                         it.before()
                     },
-                    { it, e, ret ->
-                        it.after(e)
+                    { it, ret ->
+                        it.after(ret.exceptionOrNull())
                         ret
                     },
                     fun(): Unit {
@@ -146,7 +146,9 @@ class RuleBlockTest {
                     {
                         it.before()
                     },
-                    { it, e, ret ->
+                    { it, ret ->
+                        val e = ret.exceptionOrNull()
+
                         if (e != null) {
                             receivedExceptions.add(e)
                         }
@@ -192,9 +194,9 @@ class RuleBlockTest {
                 {
                     it.before()
                 },
-                { it, e, ret ->
-                    it.after(e)
-                    ret + it.index
+                { it, ret ->
+                    it.after(ret.exceptionOrNull())
+                    Result.success(ret.getOrThrow() + it.index)
                 },
                 ::action
         )
@@ -206,7 +208,7 @@ class RuleBlockTest {
                         "After 3 - exception:false", "After 2 - exception:false", "After 1 - exception:false"),
                 executedParts
         )
-        assert(out == "Success123")
+        assertEquals("Success321", out)
     }
 
     companion object {

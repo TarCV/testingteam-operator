@@ -99,7 +99,7 @@ class FunctionalLogTest {
         }
     }
 
-    /*@Test
+    @Test
     fun testPermissionGrantBeforeTests() {
         val grantTests = setOf(
                 "com.github.tarcv.test.GrantPermissionsForClassTest#testPermissionGranted1",
@@ -121,7 +121,7 @@ class FunctionalLogTest {
                 assert(beforeLines.none { line -> line == grantToTest })
             }
         }
-    }*/
+    }
 
     private fun getTestLineGroups(whichDevice: Int): Map<String, List<String>> {
         assumeTrue(System.getenv("CI_STUBBED") == "true")

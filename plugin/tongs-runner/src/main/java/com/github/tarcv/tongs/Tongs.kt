@@ -17,6 +17,7 @@ import com.github.tarcv.tongs.injector.ConfigurationInjector
 import com.github.tarcv.tongs.injector.TongsRunnerInjector.tongsRunner
 import com.github.tarcv.tongs.injector.ruleManagerFactory
 import com.github.tarcv.tongs.injector.withRules
+import com.github.tarcv.tongs.runner.AndroidDdmRunRuleFactory
 import com.github.tarcv.tongs.runner.rules.RunConfiguration
 import com.github.tarcv.tongs.runner.rules.RunRule
 import com.github.tarcv.tongs.runner.rules.RunRuleContext
@@ -36,7 +37,8 @@ class Tongs(configuration: Configuration) {
     fun run(): Boolean {
         val startOfTestsMs = System.nanoTime()
         val predefinedRulesFactories = listOf(
-                PrepareOutputDirectoryRuleFactory()
+                PrepareOutputDirectoryRuleFactory(),
+                AndroidDdmRunRuleFactory()
         )
         val runRules = ruleManagerFactory
                 .create<RunRuleContext, RunRule, RunRuleFactory<RunRule>>(

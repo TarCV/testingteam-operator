@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ package com.github.tarcv.tongs.summary;
 public enum ResultStatus {
     PASS,
     FAIL,
-    ERROR, // TODO
+    ERROR,
     IGNORED,
     ASSUMPTION_FAILED,
     UNKNOWN
