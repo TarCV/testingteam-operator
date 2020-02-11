@@ -282,22 +282,22 @@ public class Configuration implements TongsConfiguration {
             return new Builder();
         }
 
-        public Builder withAndroidSdk(@Nonnull File androidSdk) {
+        public Builder withAndroidSdk(@Nullable File androidSdk) {
             this.androidSdk = androidSdk;
             return this;
         }
 
-        public Builder withApplicationApk(@Nonnull File applicationApk) {
+        public Builder withApplicationApk(@Nullable File applicationApk) {
             this.applicationApk = applicationApk;
             return this;
         }
 
-        public Builder withInstrumentationApk(@Nonnull File instrumentationApk) {
+        public Builder withInstrumentationApk(@Nullable File instrumentationApk) {
             this.instrumentationApk = instrumentationApk;
             return this;
         }
 
-        public Builder withOutput(@Nonnull File output) {
+        public Builder withOutput(@Nullable File output) {
             this.output = output;
             return this;
         }

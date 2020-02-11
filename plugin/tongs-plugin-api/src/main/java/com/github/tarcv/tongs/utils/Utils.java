@@ -33,10 +33,14 @@ public class Utils {
     }
 
     @Nullable
-    public static File cleanFile(String path) {
+    public static File cleanFile(@Nullable String path) {
         if (path == null) {
             return null;
         }
+        return new File(path).getAbsoluteFile();
+    }
+
+    public static File cleanFileSafe(String path) {
         return new File(path).getAbsoluteFile();
     }
 }
