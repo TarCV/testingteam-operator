@@ -16,7 +16,6 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.runner.Table;
@@ -43,7 +42,7 @@ class LogCatTestRunListener extends BaseListener {
     private final Gson gson;
     private final List<LogCatMessage> messages = Collections.synchronizedList(new ArrayList<LogCatMessage>());
 
-	private final TestCaseFile jsonFile;
+	private final TestCaseFile tableFile;
 	private final TestCaseFile rawFile;
 
 	public LogCatTestRunListener(Gson gson, TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
@@ -53,7 +52,7 @@ class LogCatTestRunListener extends BaseListener {
         this.fileManager = fileManager;
         this.pool = pool;
 		this.device = device;
-		this.jsonFile = new TestCaseFile(fileManager, JSON_LOG, "");
+		this.tableFile = new TestCaseFile(fileManager, JSON_LOG, "");
 		this.rawFile = new TestCaseFile(fileManager, RAW_LOG, "");
 	}
 
@@ -86,8 +85,8 @@ class LogCatTestRunListener extends BaseListener {
 			messages.addAll(copyOfLogCatMessages);
 		}
 		LogCatWriter logCatWriter = new CompositeLogCatWriter(
-                new JsonLogCatWriter(gson, fileManager, pool, device, jsonFile.create()),
-                new RawLogCatWriter(fileManager, pool, device, rawFile.create()));
+                new TableLogCatWriter(gson, tableFile),
+                new RawLogCatWriter(fileManager, pool, device, rawFile));
         LogCatSerializer logCatSerializer = new LogCatSerializer(test, logCatWriter);
 		logCatSerializer.serializeLogs(copyOfLogCatMessages);
 	}
@@ -109,36 +108,11 @@ class LogCatTestRunListener extends BaseListener {
 		}
 	}
 
-	public TestCaseFile getJsonFile() {
-		return jsonFile;
+	public TestCaseFile getTableFile() {
+		return tableFile;
 	}
 
 	public TestCaseFile getRawFile() {
 		return rawFile;
-	}
-
-	@NotNull
-	public Table getAsTable() {
-		List<String> headers = asList("appName",
-				"logLevel",
-				"message",
-				"pid",
-				"tag",
-				"tid",
-				"time"
-		);
-		List<List<String>> rows = messages.stream()
-				.map(logCatMessage -> {
-					return asList(logCatMessage.getAppName(),
-							logCatMessage.getLogLevel().getStringValue(),
-							logCatMessage.getMessage(),
-							String.valueOf(logCatMessage.getPid()),
-							logCatMessage.getTag(),
-							String.valueOf(logCatMessage.getTid()),
-							logCatMessage.getTimestamp().toString()
-					);
-				})
-				.collect(Collectors.toList());
-		return new Table(headers, rows);
 	}
 }

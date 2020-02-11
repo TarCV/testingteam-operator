@@ -12,15 +12,20 @@
  */
 package com.github.tarcv.tongs.runner
 
+import com.github.tarcv.tongs.injector.GsonInjector.gson
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.Pool.Builder.aDevicePool
 import com.github.tarcv.tongs.model.TestCase
+import com.github.tarcv.tongs.runner.Table.Companion.tableFromFile
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
 import com.github.tarcv.tongs.system.io.FileType
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
+import com.google.gson.Gson
+import com.google.gson.JsonParseException
 import java.io.File
+import java.nio.charset.StandardCharsets
 
 // TODO: merge with com.github.tarcv.tongs.summary.TestResult
 data class TestCaseRunResult(
@@ -80,8 +85,20 @@ sealed class TestReportData(
     val title: String
 )
 class HtmlReportData(title: String, val html: String): TestReportData(title)
+class FileHtmlReportData(title: String, private val htmlPath: TestCaseFile): TestReportData(title) {
+    val html: String
+        get() {
+            return htmlPath.toFile()
+                    .readText(StandardCharsets.UTF_8)
+        }
+}
 
 class TableReportData(title: String, val table: Table): TestReportData(title)
+class FileTableReportData(title: String, private val tablePath: TestCaseFile): TestReportData(title) {
+    val table: Table
+        get() = tableFromFile(tablePath)
+}
+
 class ImageReportData(title: String, private val image: TestCaseFile): TestReportData(title) {
     val imagePath: String
         get() = image.relativePath
@@ -104,10 +121,53 @@ class Table(headerStrings: Collection<String>, rowStrings: Collection<Collection
         rows = fixRows(rowStrings, headers)
     }
 
-    companion object {
-        fun fixHeaders(headers: Collection<String>) = headers.map { Header(it) }.toList()
+    private class TableJson(
+            var headers: Collection<String>? = null,
+            var rows: Collection<Collection<String>>? = null
+    )
 
-        fun fixRows(rows: Collection<Collection<String>>, fixedHeaders: List<Header>): List<Row> {
+    fun writeToFile(output: TestCaseFile, gson: Gson = gson()) {
+        val headerStrings = headers.map { it.title }
+        val rowStringLists = rows
+                .map {
+                    it.cells.map { it.text }
+                }
+        val adaptedForJson = TableJson(headerStrings, rowStringLists)
+
+        output.create()
+                .bufferedWriter(StandardCharsets.UTF_8)
+                .use { writer ->
+                    gson.toJson(adaptedForJson, writer)
+                }
+    }
+
+    companion object {
+        fun tableFromFile(tablePath: TestCaseFile, gson: Gson = gson()): Table {
+            return tablePath.toFile()
+                    .bufferedReader(StandardCharsets.UTF_8)
+                    .use { reader ->
+                        gson.fromJson(reader, TableJson::class.java)
+                    }
+                    .let {
+                        val headers = it.headers
+                        val rowsStringLists = it.rows
+                        if (rowsStringLists.isNullOrEmpty()) {
+                            Table(
+                                    it.headers ?: emptyList(),
+                                    emptyList()
+                            )
+                        } else {
+                            if (headers.isNullOrEmpty()) {
+                                throw RuntimeException("Table headers must not be empty when rows are present")
+                            }
+                            Table(headers, rowsStringLists)
+                        }
+                    }
+        }
+
+        private fun fixHeaders(headers: Collection<String>) = headers.map { Header(it) }.toList()
+
+        private fun fixRows(rows: Collection<Collection<String>>, fixedHeaders: List<Header>): List<Row> {
             return rows
                     .map { cells ->
                         val fixedCells = cells.mapIndexed { index, cell -> Cell(fixedHeaders[index], cell) }

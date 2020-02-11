@@ -20,6 +20,7 @@ import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.summary.DeviceTestFilesRetrieverImpl
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
+import com.github.tarcv.tongs.system.io.StandardFileTypes
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import org.simpleframework.xml.core.Persister
 import java.util.concurrent.atomic.AtomicReference
@@ -85,9 +86,9 @@ class ResultProducer(
 
         val reportBlocks = listOf(
                 // TODO: add ADB shell stdout/stderr log
-                TableReportData("Logcat", logCatListener.getAsTable()),
+                FileTableReportData("Logcat", logCatListener.tableFile),
                 LinkedFileReportData("Logcat", logCatListener.rawFile),
-                LinkedFileReportData("Logcat as JSON", logCatListener.jsonFile),
+                LinkedFileReportData("Logcat as JSON", logCatListener.tableFile),
                 addTraceReport(screenTraceListener)
         ).filterNotNull()
 
