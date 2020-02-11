@@ -197,8 +197,9 @@ class DeviceTestRunner(private val pool: Pool,
 
         private fun traceAsString(e: Throwable): String {
             val byteStream = ByteArrayOutputStream()
-            val printStream = PrintStream(BufferedOutputStream(byteStream))
-            e.printStackTrace(printStream)
+            PrintStream(BufferedOutputStream(byteStream), false, Charsets.UTF_8.name()).use { printStream ->
+                e.printStackTrace(printStream)
+            }
             return byteStream.toString()
         }
     }
