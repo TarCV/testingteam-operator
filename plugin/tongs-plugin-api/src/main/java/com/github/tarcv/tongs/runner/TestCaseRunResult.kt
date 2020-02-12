@@ -135,7 +135,7 @@ class Table(headerStrings: Collection<String>, rowStrings: Collection<Collection
         val adaptedForJson = TableJson(headerStrings, rowStringLists)
 
         output.create()
-                .bufferedWriter(StandardCharsets.UTF_8)
+                .bufferedWriter(Charsets.UTF_8)
                 .use { writer ->
                     gson.toJson(adaptedForJson, writer)
                 }
@@ -144,7 +144,7 @@ class Table(headerStrings: Collection<String>, rowStrings: Collection<Collection
     companion object {
         fun tableFromFile(tablePath: TestCaseFile, gson: Gson = gson()): Table {
             return tablePath.toFile()
-                    .bufferedReader(StandardCharsets.UTF_8)
+                    .bufferedReader(Charsets.UTF_8)
                     .use { reader ->
                         gson.fromJson(reader, TableJson::class.java)
                     }
