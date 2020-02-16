@@ -14,7 +14,7 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.github.tarcv.tongs.runner.listeners.BaseListener
+import com.github.tarcv.tongs.runner.listeners.BroadcastingListener
 import com.github.tarcv.tongs.system.DdmsUtils
 import com.github.tarcv.tongs.system.DdmsUtils.unescapeInstrumentationArg
 import java.nio.charset.StandardCharsets
@@ -28,7 +28,7 @@ interface IRemoteAndroidTestRunnerFactory {
 
 class RemoteAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
     override fun createRemoteAndroidTestRunner(testPackage: String, testRunner: String, device: IDevice): RemoteAndroidTestRunner {
-        return RemoteAndroidTestRunner(
+        return TongsRemoteAndroidTestRunner(
                 testPackage,
                 testRunner,
                 device)
@@ -335,65 +335,3 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
     }
 }
 
-private class BroadcastingListener(
-        private val targetListeners: Collection<ITestRunListener>
-) : BaseListener(null) {
-    override fun testRunStarted(runName: String?, testCount: Int) {
-        targetListeners.forEach {
-            it.testRunStarted(runName, testCount)
-        }
-    }
-
-    override fun testStarted(test: TestIdentifier?) {
-        targetListeners.forEach {
-            it.testStarted(test)
-        }
-    }
-
-    override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) {
-        targetListeners.forEach {
-            it.testAssumptionFailure(test, trace)
-        }
-    }
-
-    override fun testRunStopped(elapsedTime: Long) {
-        targetListeners.forEach {
-            it.testRunStopped(elapsedTime)
-        }
-    }
-
-    override fun testFailed(test: TestIdentifier?, trace: String?) {
-        targetListeners.forEach {
-            it.testFailed(test, trace)
-        }
-    }
-
-    override fun testEnded(test: TestIdentifier?, testMetrics: Map<String, String>?) {
-        targetListeners.forEach {
-            it.testEnded(test, testMetrics)
-        }
-    }
-
-    override fun testIgnored(test: TestIdentifier?) {
-        targetListeners.forEach {
-            it.testIgnored(test)
-        }
-    }
-
-    override fun testRunFailed(errorMessage: String?) {
-        targetListeners.forEach {
-            it.testRunFailed(errorMessage)
-        }
-    }
-
-    override fun testRunEnded(elapsedTime: Long, runMetrics: Map<String, String>?) {
-        try {
-            targetListeners.forEach {
-                it.testRunEnded(elapsedTime, runMetrics)
-            }
-        } finally {
-            onWorkFinished()
-        }
-    }
-
-}

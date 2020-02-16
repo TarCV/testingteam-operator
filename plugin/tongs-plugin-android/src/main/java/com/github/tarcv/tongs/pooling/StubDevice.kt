@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -67,6 +67,10 @@ class StubDevice(
 
     override fun executeShellCommand(command: String, receiver: IShellOutputReceiver, maxTimeToOutputResponse: Int) {
         executeShellCommand(command, receiver, maxTimeToOutputResponse.toLong(), TimeUnit.MILLISECONDS)
+    }
+
+    override fun executeShellCommand(command: String, receiver: IShellOutputReceiver, maxTimeout: Long, maxTimeToOutputResponse: Long, maxTimeUnits: TimeUnit) {
+        executeShellCommand(command, receiver, maxTimeToOutputResponse, maxTimeUnits)
     }
 
     override fun executeShellCommand(command: String, receiver: IShellOutputReceiver, maxTimeToOutputResponse: Long, maxTimeUnits: TimeUnit) {
@@ -188,6 +192,27 @@ class StubDevice(
         }
     }
 
+    override fun installPackage(
+            packageFilePath: String,
+            reinstall: Boolean,
+            receiver: InstallReceiver,
+            vararg extraArgs: String
+    ) {
+        installPackage(packageFilePath, reinstall, *extraArgs)
+    }
+
+    override fun installPackage(
+            packageFilePath: String,
+            reinstall: Boolean,
+            receiver: InstallReceiver,
+            maxTimeout: Long,
+            maxTimeToOutputResponse: Long,
+            maxTimeUnits: TimeUnit,
+            vararg extraArgs: String
+    ) {
+        installPackage(packageFilePath, reinstall, *extraArgs)
+    }
+
     override fun supportsFeature(feature: IDevice.Feature): Boolean {
         return when(feature) {
             SCREEN_RECORD -> true
@@ -230,6 +255,14 @@ class StubDevice(
     }
 
     override fun installRemotePackage(remoteFilePath: String?, reinstall: Boolean, vararg extraArgs: String?) {
+        TODO("not implemented")
+    }
+
+    override fun installRemotePackage(remoteFilePath: String?, reinstall: Boolean, receiver: InstallReceiver?, vararg extraArgs: String?) {
+        TODO("not implemented")
+    }
+
+    override fun installRemotePackage(remoteFilePath: String?, reinstall: Boolean, receiver: InstallReceiver?, maxTimeout: Long, maxTimeToOutputResponse: Long, maxTimeUnits: TimeUnit?, vararg extraArgs: String?) {
         TODO("not implemented")
     }
 

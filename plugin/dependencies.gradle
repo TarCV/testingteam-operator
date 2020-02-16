@@ -1,5 +1,5 @@
 ext.versions = [
-    androidTools: '25.1.0',
+    androidTools: '26.5.3',
     handleBars: '4.1.2',
     junit: '4.12',
     jmock: '2.8.2',

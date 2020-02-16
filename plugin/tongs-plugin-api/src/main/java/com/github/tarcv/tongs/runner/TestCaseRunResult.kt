@@ -23,7 +23,6 @@ import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
 import com.github.tarcv.tongs.system.io.FileType
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import com.google.gson.Gson
-import com.google.gson.JsonParseException
 import java.io.File
 import java.nio.charset.StandardCharsets
 
@@ -84,6 +83,22 @@ class TestCaseFile(
 sealed class TestReportData(
     val title: String
 )
+class MonoTextReportData(title: String, val type: Type, val text: String): TestReportData(title) {
+    enum class Type {
+        STDOUT,
+        STRERR,
+        OTHER
+    }
+}
+class FileMonoTextReportData(title: String, val type: MonoTextReportData.Type, private val textPath: TestCaseFile)
+    : TestReportData(title) {
+    val text: String
+        get() {
+            return textPath.toFile()
+                    .readText(StandardCharsets.UTF_8)
+        }
+}
+
 class HtmlReportData(title: String, val html: String): TestReportData(title)
 class FileHtmlReportData(title: String, private val htmlPath: TestCaseFile): TestReportData(title) {
     val html: String

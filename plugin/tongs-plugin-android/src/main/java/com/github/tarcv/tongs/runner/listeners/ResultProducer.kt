@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.injector.GsonInjector.gson
 import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.runner.*
+import com.github.tarcv.tongs.runner.MonoTextReportData.Type
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.summary.DeviceTestFilesRetrieverImpl
 import com.github.tarcv.tongs.summary.ResultStatus
@@ -48,8 +49,7 @@ class ResultProducer(
         private val latch: PreregisteringLatch
 ) : IResultProducer {
     private val androidDevice = context.device as AndroidDevice
-    private val testStatus = AtomicReference<ResultStatus>(ResultStatus.UNKNOWN)
-    private val resultListener = ResultListener(context.testCaseEvent, testStatus, latch)
+    private val resultListener = ResultListener(context.testCaseEvent, latch)
     private val xmlReportListener = AndroidXmlTestRunListener(context.fileManager)
     private val wrappedXmlReportListener = BaseListenerWrapper(latch, xmlReportListener)
     private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, androidDevice, latch)
@@ -57,7 +57,7 @@ class ResultProducer(
     private val coverageListener = getCoverageTestRunListener(context.configuration, androidDevice, context.fileManager, context.pool, context.testCaseEvent, latch)
 
     override fun requestListeners(): List<BaseListener> {
-        if (testStatus.get() != ResultStatus.UNKNOWN) {
+        if (resultListener.result.status != ResultStatus.UNKNOWN) {
             throw IllegalStateException("Can't request listeners once tests are executed")
         }
         return listOf(
@@ -69,13 +69,19 @@ class ResultProducer(
     }
 
     override fun getResult(): TestCaseRunResult {
+        // TODO: Get all this data using ResultListener too
         val xmlResults = DeviceTestFilesRetrieverImpl(null, Persister())
                 .parseTestResultsFromFile(xmlReportListener.file.toFile(), androidDevice)
         val xmlResult = xmlResults.single()
 
-        val runStatus = testStatus.get()
+        val runStatus = resultListener.result.status
         val status = when (runStatus) {
             ResultStatus.UNKNOWN, ResultStatus.ERROR -> ResultStatus.ERROR
+            ResultStatus.ASSUMPTION_FAILED ->
+                when(xmlResult.resultStatus) {
+                    ResultStatus.ASSUMPTION_FAILED, ResultStatus.PASS -> ResultStatus.ASSUMPTION_FAILED
+                    else -> ResultStatus.ERROR
+                }
             ResultStatus.FAIL ->
                 when(xmlResult.resultStatus) {
                     ResultStatus.FAIL -> ResultStatus.FAIL
@@ -86,10 +92,11 @@ class ResultProducer(
 
         val reportBlocks = listOf(
                 // TODO: add ADB shell stdout/stderr log
+                addOutput(resultListener.result.output),
+                addTraceReport(screenTraceListener),
                 FileTableReportData("Logcat", logCatListener.tableFile),
                 LinkedFileReportData("Logcat", logCatListener.rawFile),
-                LinkedFileReportData("Logcat as JSON", logCatListener.tableFile),
-                addTraceReport(screenTraceListener)
+                LinkedFileReportData("Logcat as JSON", logCatListener.tableFile)
         ).filterNotNull()
 
         val coverageReport = if (coverageListener is CoverageListener) {
@@ -108,6 +115,14 @@ class ResultProducer(
                 xmlResult.metrics,
                 coverageReport,
                 reportBlocks)
+    }
+
+    private fun addOutput(output: String): MonoTextReportData? {
+        return if (output.isEmpty()) {
+            null
+        } else {
+            MonoTextReportData("Shell output", Type.STDOUT, output)
+        }
     }
 
     private fun addTraceReport(screenTraceListener: BaseListener): TestReportData? {
