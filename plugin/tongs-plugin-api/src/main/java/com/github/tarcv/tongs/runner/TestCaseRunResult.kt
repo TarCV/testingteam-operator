@@ -33,12 +33,15 @@ data class TestCaseRunResult(
         val testCase: TestCase,
         val status: ResultStatus,
         val stackTrace: String = "",
-        val timeTaken: Float,
+        val timeTakenMillis: Int,
         val totalFailureCount: Int,
         val metrics: Map<String, String>,
         val coverageReport: TestCaseFile? = null,
         val data: List<TestReportData>
 ) {
+    val timeTakenSeconds: Float
+        get() = timeTakenMillis / 1000f
+
     companion object {
         private val pool = aDevicePool().addDevice(Device.TEST_DEVICE).build()
 
@@ -54,7 +57,7 @@ data class TestCaseRunResult(
                     .get(SUMMARY_KEY_TOTAL_FAILURE_COUNT)
                     ?.let(Integer::parseInt)
                     ?: 0
-            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, trace, 15f, totalFailureCount, metrics, null, emptyList())
+            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, trace, 15, totalFailureCount, metrics, null, emptyList())
         }
     }
 }

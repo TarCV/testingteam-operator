@@ -25,15 +25,19 @@ class ResultListener(private val currentTestCaseEvent: TestCaseEvent,
 
     private val lock = Any()
 
-    @field:GuardedBy("lock") var result: ShellResult = ShellResult(ResultStatus.UNKNOWN, "")
+    @field:GuardedBy("lock") var result: ShellResult = ShellResult()
         @GuardedBy("lock") private set
         get() = synchronized(lock) {
             field
         }
 
     data class ShellResult(
-            val status: ResultStatus,
-            val output: String
+            val status: ResultStatus = ResultStatus.UNKNOWN,
+            val output: String = "",
+            val metrics: Map<String, String> = emptyMap(),
+            val trace: String = "",
+            val startTime: Long = -1,
+            val timeTaken: Int = -1
     )
 
     @GuardedBy("lock")
@@ -49,13 +53,23 @@ class ResultListener(private val currentTestCaseEvent: TestCaseEvent,
     }
 
     override fun testRunStarted(runName: String, testCount: Int) {}
-    override fun testStarted(test: TestIdentifier) {}
+    override fun testStarted(test: TestIdentifier) {
+        synchronized(lock) {
+            result = result.copy(startTime = System.currentTimeMillis())
+        }
+    }
     override fun testFailed(test: TestIdentifier, trace: String) {
-        synchronized(lock) { setStatus(ResultStatus.FAIL) }
+        synchronized(lock) {
+            setStatus(ResultStatus.FAIL)
+            result = result.copy(trace = trace)
+        }
     }
 
     override fun testAssumptionFailure(test: TestIdentifier, trace: String) {
-        synchronized(lock) { setStatus(ResultStatus.ASSUMPTION_FAILED) }
+        synchronized(lock) {
+            setStatus(ResultStatus.ASSUMPTION_FAILED)
+            result = result.copy(trace = trace)
+        }
     }
 
     override fun testIgnored(test: TestIdentifier) {
@@ -64,9 +78,19 @@ class ResultListener(private val currentTestCaseEvent: TestCaseEvent,
 
     override fun testEnded(test: TestIdentifier, testMetrics: Map<String, String>) {
         synchronized(lock) {
-            if (result.status == ResultStatus.UNKNOWN) {
-                result = result.copy(status = ResultStatus.PASS)
+            val actualNewStatus = if (result.status == ResultStatus.UNKNOWN) {
+                ResultStatus.PASS
+            } else {
+                result.status
             }
+
+            val timeTaken = if (result.startTime != -1L) {
+                (System.currentTimeMillis() - result.startTime).toInt()
+            } else {
+                -1
+            }
+
+            result = result.copy(status = actualNewStatus, metrics = testMetrics, timeTaken = timeTaken)
         }
     }
 

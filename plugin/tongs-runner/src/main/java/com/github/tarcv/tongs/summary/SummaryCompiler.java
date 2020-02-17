@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -33,11 +33,9 @@ import static java.util.Locale.ENGLISH;
 
 public class SummaryCompiler {
     private final TongsConfiguration configuration;
-    private final DeviceTestFilesRetriever deviceTestFilesRetriever;
 
-    public SummaryCompiler(TongsConfiguration configuration, DeviceTestFilesRetriever deviceTestFilesRetriever) {
+    public SummaryCompiler(TongsConfiguration configuration) {
         this.configuration = configuration;
-        this.deviceTestFilesRetriever = deviceTestFilesRetriever;
     }
 
     Summary compileSummary(Collection<Pool> pools, Map<Pool, Collection<TestCaseEvent>> testCasesPerPool, List<TestCaseRunResult> results) {
@@ -81,48 +79,6 @@ public class SummaryCompiler {
                 .forEach(pool -> {
                     summaryBuilder.addFatalError("Pool " + pool.getName() + " not executed");
                 });
-    }
-
-    private Collection<TestResult> getTestResultsForPool(Pool pool, Map<com.github.tarcv.tongs.model.TestCase , TestCaseEvent> eventMap) {
-        Set<TestResult> testResults = Sets.newHashSet();
-
-        Collection<TestResult> testResultsForPoolDevices = pool.getDevices()
-                .stream()
-                .map(device -> {
-                    return deviceTestFilesRetriever
-                            .getTestResultsForDevice(pool, device).stream()
-                            .map(testResult -> {
-                                // TODO: In current Tongs implementation testMetrics and properties is the same, probably split them later
-                                TestCaseEvent testCaseEvent = eventMap.get(new TestCase(testResult.getTestMethod(), testResult.getTestClass()));
-                                if (testCaseEvent != null) {
-                                    Map<String, String> xmlMetrics = testResult.getMetrics();
-                                    Map<String, String> outMetrics = new HashMap<>();
-
-                                    // Metrics from XML Output take priority
-                                    outMetrics.putAll(testCaseEvent.getProperties());
-                                    outMetrics.putAll(xmlMetrics);
-
-                                    return new TestResult.Builder(testResult)
-                                            .withTestMetrics(outMetrics)
-                                            .build();
-                                } else {
-                                    return testResult;
-                                }
-                            })
-                            .collect(Collectors.toSet());
-                })
-                .reduce(Sets.newHashSet(), (accum, set) -> {
-                    accum.addAll(set);
-                    return accum;
-                });
-        testResults.addAll(testResultsForPoolDevices);
-
-        Device watchdog = getPoolWatchdog(pool.getName());
-        Collection<TestResult> testResultsForWatchdog =
-                deviceTestFilesRetriever.getTestResultsForDevice(pool, watchdog);
-        testResults.addAll(testResultsForWatchdog);
-
-        return testResults;
     }
 
     private static Device getPoolWatchdog(String poolName) {

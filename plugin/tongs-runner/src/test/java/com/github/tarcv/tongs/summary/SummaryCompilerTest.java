@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
-import static com.github.tarcv.tongs.summary.FakeDeviceTestFilesRetriever.aFakeDeviceTestFilesRetriever;
 import static com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
@@ -50,7 +49,6 @@ public class SummaryCompilerTest {
     @Mock
     private TongsConfiguration mockConfiguration;
 
-    private final FakeDeviceTestFilesRetriever fakeDeviceTestFilesRetriever = aFakeDeviceTestFilesRetriever();
     private SummaryCompiler summaryCompiler;
 
     private final Pool devicePool = aDevicePool()
@@ -96,7 +94,7 @@ public class SummaryCompilerTest {
 
     @Before
     public void setUp() {
-        summaryCompiler = new SummaryCompiler(mockConfiguration, fakeDeviceTestFilesRetriever);
+        summaryCompiler = new SummaryCompiler(mockConfiguration);
         mockery.checking(new Expectations() {{
             allowing(mockConfiguration);
         }});

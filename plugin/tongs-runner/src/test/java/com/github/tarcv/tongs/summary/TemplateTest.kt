@@ -117,7 +117,7 @@ class TemplateTest {
                 pool, TEST_DEVICE,
                 TestCase("method", "Class"),
                 ResultStatus.FAIL, "stackTrace\n\ttrace",
-                10F, 3,
+                10, 3,
                 mapOf("metric" to "value"), null,
                 datas
         )

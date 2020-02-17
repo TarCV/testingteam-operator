@@ -102,7 +102,7 @@ class DeviceTestRunner(private val pool: Pool,
                                                 pool, device,
                                                 testCaseEvent.testCase, ResultStatus.ERROR,
                                                 stackTrace,
-                                                0f,
+                                                0,
                                                 0, emptyMap(),
                                                 null,
                                                 emptyList())

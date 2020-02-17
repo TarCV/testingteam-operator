@@ -18,13 +18,9 @@ import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.runner.*
 import com.github.tarcv.tongs.runner.MonoTextReportData.Type
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
-import com.github.tarcv.tongs.summary.DeviceTestFilesRetrieverImpl
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
-import com.github.tarcv.tongs.system.io.StandardFileTypes
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
-import org.simpleframework.xml.core.Persister
-import java.util.concurrent.atomic.AtomicReference
 
 interface IResultProducer {
     fun requestListeners(): List<BaseListener>
@@ -38,7 +34,7 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
         return TestCaseRunResult(
                 pool, device, TestCase("dummy", "dummy"),
                 ResultStatus.PASS,
-                "", 0F, 0, emptyMap(), null, emptyList()
+                "", 0, 0, emptyMap(), null, emptyList()
         )
     }
 
@@ -50,8 +46,6 @@ class ResultProducer(
 ) : IResultProducer {
     private val androidDevice = context.device as AndroidDevice
     private val resultListener = ResultListener(context.testCaseEvent, latch)
-    private val xmlReportListener = AndroidXmlTestRunListener(context.fileManager)
-    private val wrappedXmlReportListener = BaseListenerWrapper(latch, xmlReportListener)
     private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, androidDevice, latch)
     private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, context.pool, androidDevice, latch)
     private val coverageListener = getCoverageTestRunListener(context.configuration, androidDevice, context.fileManager, context.pool, context.testCaseEvent, latch)
@@ -62,37 +56,16 @@ class ResultProducer(
         }
         return listOf(
                 resultListener,
-                wrappedXmlReportListener,
                 logCatListener,
                 screenTraceListener,
                 coverageListener)
     }
 
     override fun getResult(): TestCaseRunResult {
-        // TODO: Get all this data using ResultListener too
-        val xmlResults = DeviceTestFilesRetrieverImpl(null, Persister())
-                .parseTestResultsFromFile(xmlReportListener.file.toFile(), androidDevice)
-        val xmlResult = xmlResults.single()
-
-        val runStatus = resultListener.result.status
-        val status = when (runStatus) {
-            ResultStatus.UNKNOWN, ResultStatus.ERROR -> ResultStatus.ERROR
-            ResultStatus.ASSUMPTION_FAILED ->
-                when(xmlResult.resultStatus) {
-                    ResultStatus.ASSUMPTION_FAILED, ResultStatus.PASS -> ResultStatus.ASSUMPTION_FAILED
-                    else -> ResultStatus.ERROR
-                }
-            ResultStatus.FAIL ->
-                when(xmlResult.resultStatus) {
-                    ResultStatus.FAIL -> ResultStatus.FAIL
-                    else -> ResultStatus.ERROR
-                }
-            else -> xmlResult.resultStatus
-        }
+        val shellResult = resultListener.result
 
         val reportBlocks = listOf(
-                // TODO: add ADB shell stdout/stderr log
-                addOutput(resultListener.result.output),
+                addOutput(shellResult.output),
                 addTraceReport(screenTraceListener),
                 FileTableReportData("Logcat", logCatListener.tableFile),
                 LinkedFileReportData("Logcat", logCatListener.rawFile),
@@ -108,11 +81,11 @@ class ResultProducer(
         return TestCaseRunResult(
                 context.pool, androidDevice,
                 context.testCaseEvent.testCase,
-                status,
-                xmlResult.trace,
-                xmlResult.timeTaken,
-                (xmlResult.metrics[SUMMARY_KEY_TOTAL_FAILURE_COUNT] ?: "0").toInt(),
-                xmlResult.metrics,
+                shellResult.status,
+                shellResult.trace,
+                shellResult.timeTaken,
+                (shellResult.metrics[SUMMARY_KEY_TOTAL_FAILURE_COUNT] ?: "0").toInt(), // TODO: fix for ResultListener
+                shellResult.metrics,
                 coverageReport,
                 reportBlocks)
     }
