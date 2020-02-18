@@ -28,6 +28,11 @@
             {{^linkedFilePath}}
             <div>
                 <a name="{{replace title ' ' '_'}}"><h1>{{title}}</h1></a>
+                {{#monoText}}
+                <pre class="test {{lower status}}">
+{{.}}
+</pre>
+                {{/monoText}}
                 {{#videoPath}}
                 <video class="diagnostic {{lower status}}" width="35%" height="35%" controls src="../../../{{unixPath .}}" type="video/mp4">
                     Is video supported in this browser?

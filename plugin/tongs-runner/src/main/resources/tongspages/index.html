@@ -45,7 +45,7 @@
         Ignored tests:
         <ul>
             {{#ignoredTests}}
-            <li>{{.}}</li>
+            <li>{{testCase.testClass}}#{{testCase.testMethod}} on {{device.serial}}</li><!-- TODO: change to pool.name when rescheduling is implemented -->
             {{/ignoredTests}}
             {{^ignoredTests}}
             <li>None.</li>

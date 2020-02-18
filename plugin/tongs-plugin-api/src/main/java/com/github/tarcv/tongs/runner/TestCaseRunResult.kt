@@ -86,18 +86,18 @@ class TestCaseFile(
 sealed class TestReportData(
     val title: String
 )
-class MonoTextReportData(title: String, val type: Type, val text: String): TestReportData(title) {
+class MonoTextReportData(title: String, val type: Type, val monoText: String): TestReportData(title) {
     enum class Type {
         STDOUT,
         STRERR,
         OTHER
     }
 }
-class FileMonoTextReportData(title: String, val type: MonoTextReportData.Type, private val textPath: TestCaseFile)
+class FileMonoTextReportData(title: String, val type: MonoTextReportData.Type, private val monoTextPath: TestCaseFile)
     : TestReportData(title) {
-    val text: String
+    val monoText: String
         get() {
-            return textPath.toFile()
+            return monoTextPath.toFile()
                     .readText(StandardCharsets.UTF_8)
         }
 }
