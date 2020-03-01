@@ -25,6 +25,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.time.Duration
+import java.time.Instant
 
 class TemplateTest {
     val pool = aDevicePool()
@@ -117,8 +119,10 @@ class TemplateTest {
                 pool, TEST_DEVICE,
                 TestCase("method", "Class"),
                 ResultStatus.FAIL, "stackTrace\n\ttrace",
-                10, 3,
-                mapOf("metric" to "value"), null,
+                Instant.now(), Instant.now().plusMillis(10),
+                Instant.now(), Instant.now().plusMillis(10),
+                3, mapOf("metric" to "value"),
+                null,
                 datas
         )
     }

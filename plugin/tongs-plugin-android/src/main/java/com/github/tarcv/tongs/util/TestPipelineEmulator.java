@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
 import com.github.tarcv.tongs.summary.ResultStatus;
 import org.jetbrains.annotations.NotNull;
+
+import java.time.Instant;
 
 import static com.github.tarcv.tongs.model.Device.TEST_DEVICE;
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
@@ -50,7 +52,9 @@ public class TestPipelineEmulator {
 
     @NotNull
     private TestCaseRunResult failureResult(TestCase testCase, ResultStatus status, String trace) {
-        return new TestCaseRunResult(testPool, TEST_DEVICE, testCase, status, trace, 100, 0, emptyMap(), null, emptyList());
+        return new TestCaseRunResult(testPool, TEST_DEVICE, testCase, status, trace,
+                Instant.now(), Instant.now().plusMillis(100), Instant.now(), Instant.now().plusMillis(100),
+                0, emptyMap(), null, emptyList());
     }
 
     // TODO: Rewrite for new Tongs pipeline

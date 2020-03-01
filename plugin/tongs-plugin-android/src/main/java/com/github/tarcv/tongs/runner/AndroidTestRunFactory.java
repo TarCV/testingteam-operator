@@ -45,7 +45,6 @@ public class AndroidTestRunFactory {
     public AndroidInstrumentedTestRun createTestRun(TestCaseRunRuleContext testRunContext, TestCaseEvent testCase,
                                                     AndroidDevice device,
                                                     Pool pool,
-                                                    AtomicReference<ResultStatus> testStatus,
                                                     PreregisteringLatch workCountdownLatch) {
         TestRunParameters testRunParameters = createTestParameters(testCase, device, configuration);
 

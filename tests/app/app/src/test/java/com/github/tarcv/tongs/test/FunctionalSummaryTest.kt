@@ -169,14 +169,14 @@ class FunctionalSummaryTest {
         val testResults = getTestResults() as Iterable<JSONObject>
 
         val normalPropertiesTest = testResults.single { it.getJSONObject("testCase").getString("testMethod") == "normalPropertiesTest" }
-        with(normalPropertiesTest.getJSONObject("metrics")) {
+        with(normalPropertiesTest.getJSONObject("additionalProperties")) {
             assert(getString("x") == "1")
             assert(getString("y") == "2")
             assert(keySet() == setOf("x", "y"))
         }
 
         val normalPropertyPairsTest = testResults.single { it.getString("testMethod") == "normalPropertyPairsTest" }
-        with(normalPropertyPairsTest.getJSONObject("metrics")) {
+        with(normalPropertyPairsTest.getJSONObject("additionalProperties")) {
             assert(getString("v") == "1")
             assert(getString("w") == "2")
             assert(keySet() == setOf("v", "w"))

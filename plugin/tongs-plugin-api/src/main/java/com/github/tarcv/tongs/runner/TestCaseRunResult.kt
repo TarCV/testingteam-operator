@@ -19,28 +19,62 @@ import com.github.tarcv.tongs.model.Pool.Builder.aDevicePool
 import com.github.tarcv.tongs.model.TestCase
 import com.github.tarcv.tongs.runner.Table.Companion.tableFromFile
 import com.github.tarcv.tongs.summary.ResultStatus
-import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
 import com.github.tarcv.tongs.system.io.FileType
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import com.google.gson.Gson
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.time.Instant
 
 // TODO: merge with com.github.tarcv.tongs.summary.TestResult
 data class TestCaseRunResult(
         val pool: Pool,
         val device: Device,
         val testCase: TestCase,
+
+        // TODO: Split result to a different class (sealed class hierarchy)
         val status: ResultStatus,
         val stackTrace: String = "",
-        val timeTakenMillis: Int,
+        val startTimestampUtc: Instant,
+        val endTimestampUtc: Instant = Instant.EPOCH,
+        val netStartTimestampUtc: Instant?,
+        val netEndTimestampUtc: Instant?,
         val totalFailureCount: Int,
-        val metrics: Map<String, String>,
+        val additionalProperties: Map<String, String>,
         val coverageReport: TestCaseFile? = null,
         val data: List<TestReportData>
 ) {
+    val timeTaken: Duration
+        get() {
+            val endInstant = endTimestampUtc
+            return if (endInstant == Instant.EPOCH) {
+                throw IllegalStateException("Can't check timeTaken before the test case finishes execution")
+            } else {
+                Duration.between(startTimestampUtc, endInstant)
+            }
+        }
+
+    val timeNetTaken: Duration?
+        get() {
+            val startInstant = netStartTimestampUtc
+            val endInstant = netEndTimestampUtc
+            return if (startInstant == null || endInstant == null) {
+                null
+            } else {
+                Duration.between(startInstant, endInstant)
+            }
+        }
+
+    val timeTakenMillis: Long
+        get() = timeTaken.toMillis()
+    val timeNetTakenMillis: Long?
+        get() = timeNetTaken?.toMillis()
+
     val timeTakenSeconds: Float
         get() = timeTakenMillis / 1000f
+    val timeNetTakenSeconds: Float?
+        get() = timeNetTakenMillis?.div(1000f)
 
     companion object {
         private val pool = aDevicePool().addDevice(Device.TEST_DEVICE).build()
@@ -52,12 +86,10 @@ data class TestCaseRunResult(
 
         @JvmStatic
         @JvmOverloads
-        fun aTestResult(pool: Pool, device: Device, testClass: String, testMethod: String, status: ResultStatus, trace: String, metrics: Map<String, String> = emptyMap()): TestCaseRunResult {
-            val totalFailureCount: Int = metrics
-                    .get(SUMMARY_KEY_TOTAL_FAILURE_COUNT)
-                    ?.let(Integer::parseInt)
-                    ?: 0
-            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, trace, 15, totalFailureCount, metrics, null, emptyList())
+        fun aTestResult(pool: Pool, device: Device, testClass: String, testMethod: String, status: ResultStatus, trace: String, totalFailureCount: Int = 0): TestCaseRunResult {
+            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, trace,
+                    Instant.now(), Instant.now().plusMillis(15), Instant.now(), Instant.now().plusMillis(15),
+                    totalFailureCount, emptyMap(), null, emptyList())
         }
     }
 }

@@ -120,6 +120,7 @@ private fun createStubDevice(serial: String): Device {
     val model = "Emu-$api"
     val stubDevice = StubDevice(serial, manufacturer, model, serial, api, "", 1)
     return object: Device() {
+        override fun getHost(): String = "localhost"
         override fun getSerial(): String = serial
         override fun getManufacturer(): String = manufacturer
         override fun getModelName(): String = model

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ public class TestRunListenersFactoryTongs {
                 new ConsoleLoggingTestRunListener(configuration.getTestPackage(), testIdentifier, device.getSerial(),
                         device.getModelName(), progressReporter),
                 new SlowWarningTestRunListener(testIdentifier),
-                getTongsAdditionalXmlTestRunListener(fileManager, configuration.getOutput(), pool, device, testCase, progressReporter),
                 buildRetryListener(testCase, device, pool, progressReporter, testCaseEventQueue)
         );
         if (tongsIntegrationTestRunType == TongsConfiguration.TongsIntegrationTestRunType.RECORD_LISTENER_EVENTS) {
@@ -72,14 +71,5 @@ public class TestRunListenersFactoryTongs {
         TestRetryerImpl testRetryer = new TestRetryerImpl(progressReporter, pool, testCaseEventQueue);
         DeviceTestFilesCleanerImpl deviceTestFilesCleaner = new DeviceTestFilesCleanerImpl(fileManager, pool, device);
         return new RetryListener(pool, device, testCase, testRetryer, deviceTestFilesCleaner);
-    }
-
-    private TongsTestListener getTongsAdditionalXmlTestRunListener(FileManager fileManager,
-                                                                   File output,
-                                                                   Pool pool,
-                                                                   Device device,
-                                                                   TestCaseEvent testCase,
-                                                                   ProgressReporter progressReporter) {
-        return new TongsXmlTestRunListener(); // TODO: move removed parts from TestCaseFileManager to this listener
     }
 }

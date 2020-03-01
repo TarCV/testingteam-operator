@@ -16,6 +16,5 @@ public enum ResultStatus {
     FAIL,
     ERROR,
     IGNORED,
-    ASSUMPTION_FAILED,
-    UNKNOWN
+    ASSUMPTION_FAILED
 }

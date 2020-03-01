@@ -32,17 +32,17 @@ class ResultListener(private val currentTestCaseEvent: TestCaseEvent,
         }
 
     data class ShellResult(
-            val status: ResultStatus = ResultStatus.UNKNOWN,
+            val status: ResultStatus? = null,
             val output: String = "",
             val metrics: Map<String, String> = emptyMap(),
             val trace: String = "",
-            val startTime: Long = -1,
-            val timeTaken: Int = -1
+            val startTime: Long? = null,
+            val endTime: Long? = null
     )
 
     @GuardedBy("lock")
     private fun setStatus(newStatus: ResultStatus) {
-        val actualNewStatus = if (result.status == ResultStatus.UNKNOWN) {
+        val actualNewStatus = if (result.status == null) {
             newStatus
         } else {
             logger.warn("Tried to set run status for {}#{} twice. Falling back to FAILED",
@@ -78,19 +78,19 @@ class ResultListener(private val currentTestCaseEvent: TestCaseEvent,
 
     override fun testEnded(test: TestIdentifier, testMetrics: Map<String, String>) {
         synchronized(lock) {
-            val actualNewStatus = if (result.status == ResultStatus.UNKNOWN) {
+            val actualNewStatus = if (result.status == null) {
                 ResultStatus.PASS
             } else {
                 result.status
             }
 
-            val timeTaken = if (result.startTime != -1L) {
-                (System.currentTimeMillis() - result.startTime).toInt()
+            val endTime = if (result.startTime != null) {
+                System.currentTimeMillis()
             } else {
-                -1
+                null
             }
 
-            result = result.copy(status = actualNewStatus, metrics = testMetrics, timeTaken = timeTaken)
+            result = result.copy(status = actualNewStatus, metrics = testMetrics, endTime = endTime)
         }
     }
 

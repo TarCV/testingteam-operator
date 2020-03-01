@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
@@ -13,6 +13,7 @@
  */
 package com.github.tarcv.tongs.system.io
 
+import com.github.tarcv.tongs.runner.TestCaseFile
 import java.io.File
 
 interface TestCaseFileManager {
@@ -21,4 +22,6 @@ interface TestCaseFileManager {
     fun createFile(fileType: FileType, suffix: String): File
     fun getFile(fileType: FileType, suffix: String): File
     fun getRelativeFile(fileType: FileType, suffix: String): File
+
+    fun testCaseFile(ofType: FileType, suffix: String) = TestCaseFile(this, ofType, suffix)
 }

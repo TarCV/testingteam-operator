@@ -18,8 +18,11 @@ import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -96,6 +99,8 @@ public class SummaryCompiler {
                 String failedTest = format(ENGLISH, "%d times %s", totalFailureCount, getTestResultData(testResult));
                 summaryBuilder.addFailedTests(testResult);
             } else if (testResult.getStatus() == ERROR || testResult.getStatus() == FAIL) {
+                // totalFailureCount of 0 here means something went wrong and this is actually a fatal crash
+                // TODO: handle this in a way that makes sure testResult.status == ERROR from plugins POV
                 summaryBuilder.addFatalCrashedTest(testResult);
             }
         }
@@ -115,8 +120,8 @@ public class SummaryCompiler {
                     return new TestCaseRunResult(pool, NO_DEVICE,
                             new TestCase(testResultItem.testMethod, testResultItem.testClass),
                             ERROR, "Fatally crashed",
-                            0, 0,
-                            Collections.emptyMap(), null, Collections.emptyList());
+                            Instant.now(), Instant.EPOCH, Instant.now(), Instant.EPOCH,
+                            0, Collections.emptyMap(), null, Collections.emptyList());
                 })
                 .forEach(testCaseRunResult -> {
                     summaryBuilder.addFatalCrashedTest(testCaseRunResult);
@@ -164,6 +169,12 @@ public class SummaryCompiler {
 
     private static final Device NO_DEVICE = new Device() {
         private final Object uniqueIdentifier = new Object();
+
+        @NotNull
+        @Override
+        public String getHost() {
+            return "N/A";
+        }
 
         @Override
         public String getSerial() {

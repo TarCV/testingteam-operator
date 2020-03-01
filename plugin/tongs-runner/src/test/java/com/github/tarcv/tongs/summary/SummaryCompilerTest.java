@@ -35,9 +35,9 @@ import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
-import static com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItems;
@@ -72,13 +72,10 @@ public class SummaryCompilerTest {
             ""
     );
 
-    private final HashMap<String, String> testMetricsForFailedTest = new HashMap<String, String>() {{
-        put(SUMMARY_KEY_TOTAL_FAILURE_COUNT, "10");
-    }};
     private final List<TestCaseRunResult> testResults = newArrayList(
             firstCompletedTest,
             secondCompletedTest,
-            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.FailedClassTest", "doesJobProperly", ResultStatus.FAIL, "a failure stacktrace", testMetricsForFailedTest),
+            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.FailedClassTest", "doesJobProperly", ResultStatus.FAIL, "a failure stacktrace", 10),
             TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.IgnoredClassTest", "doesJobProperly", ResultStatus.IGNORED, "")
     );
 
@@ -87,7 +84,7 @@ public class SummaryCompilerTest {
                 newTestCase(new TestCase("doesJobProperly", "com.example.CompletedClassTest")),
                 newTestCase(new TestCase("doesJobProperly", "com.example.CompletedClassTest2")),
                 newTestCase("doesJobProperly", "com.example.FailedClassTest",
-                        testMetricsForFailedTest, emptyList(), emptyList()),
+                        emptyMap(), emptyList(), emptyList(), 10),
                 newTestCase(new TestCase("doesJobProperly", "com.example.IgnoredClassTest")),
                 newTestCase(new TestCase("doesJobProperly", "com.example.SkippedClassTest"))
             )).build();

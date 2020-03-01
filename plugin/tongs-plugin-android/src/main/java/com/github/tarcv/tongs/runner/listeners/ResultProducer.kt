@@ -19,8 +19,8 @@ import com.github.tarcv.tongs.runner.*
 import com.github.tarcv.tongs.runner.MonoTextReportData.Type
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.summary.ResultStatus
-import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
+import java.time.Instant
 
 interface IResultProducer {
     fun requestListeners(): List<BaseListener>
@@ -33,8 +33,10 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
     override fun getResult(): TestCaseRunResult {
         return TestCaseRunResult(
                 pool, device, TestCase("dummy", "dummy"),
-                ResultStatus.PASS,
-                "", 0, 0, emptyMap(), null, emptyList()
+                ResultStatus.PASS, "",
+                Instant.now(), Instant.now(), Instant.now(), Instant.now(),
+                0,
+                emptyMap(), null, emptyList()
         )
     }
 
@@ -51,7 +53,7 @@ class ResultProducer(
     private val coverageListener = getCoverageTestRunListener(context.configuration, androidDevice, context.fileManager, context.pool, context.testCaseEvent, latch)
 
     override fun requestListeners(): List<BaseListener> {
-        if (resultListener.result.status != ResultStatus.UNKNOWN) {
+        if (resultListener.result.status != null) {
             throw IllegalStateException("Can't request listeners once tests are executed")
         }
         return listOf(
@@ -78,13 +80,21 @@ class ResultProducer(
             null
         }
 
+        val stackTrace = if (shellResult.status == null) {
+            "Failed to get the test result" + (System.lineSeparator().repeat(2)) + shellResult.trace
+        } else {
+            shellResult.trace
+        }
         return TestCaseRunResult(
                 context.pool, androidDevice,
                 context.testCaseEvent.testCase,
-                shellResult.status,
-                shellResult.trace,
-                shellResult.timeTaken,
-                (shellResult.metrics[SUMMARY_KEY_TOTAL_FAILURE_COUNT] ?: "0").toInt(), // TODO: fix for ResultListener
+                shellResult.status ?: ResultStatus.ERROR,
+                stackTrace,
+                Instant.EPOCH,
+                Instant.EPOCH,
+                Instant.ofEpochMilli(shellResult.startTime ?: 0),
+                Instant.ofEpochMilli(shellResult.endTime ?: 0),
+                0, // TODO
                 shellResult.metrics,
                 coverageReport,
                 reportBlocks)

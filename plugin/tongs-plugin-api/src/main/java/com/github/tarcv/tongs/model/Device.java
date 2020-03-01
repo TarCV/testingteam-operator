@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,11 +13,15 @@
  */
 package com.github.tarcv.tongs.model;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.Nullable;
 import java.util.Objects;
 
 public abstract class Device {
     private String nameSuffix;
+
+    @NotNull public abstract String getHost();
 
     public abstract String getSerial();
 
@@ -67,6 +71,12 @@ public abstract class Device {
 
     public static final Device TEST_DEVICE = new Device() {
         private final Object uniqueIdentifier = new Object();
+
+        @NotNull
+        @Override
+        public String getHost() {
+            return "localhost";
+        }
 
         @Override
         public String getSerial() {

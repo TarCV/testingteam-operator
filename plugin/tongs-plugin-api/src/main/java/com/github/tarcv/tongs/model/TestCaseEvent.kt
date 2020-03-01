@@ -17,14 +17,14 @@ import java.util.Collections.emptyList
 
 class TestCaseEvent private constructor(
         val testCase: TestCase,
-        excludedDevices: Collection<Device>) {
+        excludedDevices: Collection<Device>,
+        val totalFailureCount: Int = 0
+) {
 
     val testMethod: String
         get() = testCase.testMethod
     val testClass: String
         get() = testCase.testClass
-    val properties: Map<String, String>
-        get() = testCase.properties
 
     val excludedDevices: Set<Device>
         get() = Collections.unmodifiableSet(_excludedDevices)
@@ -62,9 +62,17 @@ class TestCaseEvent private constructor(
         // TODO: Refactor to usual constructors
 
         @JvmStatic
-        fun newTestCase(testMethod: String, testClass: String, properties: Map<String, String>, annotations: List<AnnotationInfo>, excludedDevices: Collection<Device>): TestCaseEvent {
+        @JvmOverloads
+        fun newTestCase(
+                testMethod: String,
+                testClass: String,
+                properties: Map<String, String>,
+                annotations: List<AnnotationInfo>,
+                excludedDevices: Collection<Device>,
+                totalFailureCount: Int = 0
+        ): TestCaseEvent {
             val testCase = TestCase(testMethod, testClass, properties, annotations)
-            return TestCaseEvent(testCase, excludedDevices)
+            return TestCaseEvent(testCase, excludedDevices, totalFailureCount)
         }
 
         @JvmStatic

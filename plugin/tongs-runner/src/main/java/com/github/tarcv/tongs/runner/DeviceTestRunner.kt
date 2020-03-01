@@ -26,10 +26,9 @@ import org.slf4j.LoggerFactory
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
-import java.lang.System.lineSeparator
+import java.time.Instant
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 class DeviceTestRunner(private val pool: Pool,
                        private val device: Device,
@@ -50,94 +49,14 @@ class DeviceTestRunner(private val pool: Pool,
                     val testCaseTask = queueOfTestsInPool.pollForDevice(device, 10)
                     if (testCaseTask != null) {
                         testCaseTask.doWork { testCaseEvent: TestCaseEvent ->
-                            val testCaseFileManager: TestCaseFileManager = TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.testCase)
-                            val configuration = ConfigurationInjector.configuration()
-
-                            val testRunListeners = TestRunListenersTongsFactoryInjector.testRunListenersTongsFactory(configuration).createTongsListners(
-                                    testCaseEvent,
-                                    device,
-                                    pool,
-                                    progressReporter,
-                                    queueOfTestsInPool,
-                                    configuration.tongsIntegrationTestRunType)
-                                    .toList()
-
-                            val ruleManager = ruleManagerFactory.create(
-                                    TestCaseRunRuleFactory::class.java,
-                                    listOf(
-                                            AndroidCleanupTestCaseRunRuleFactory(),
-                                            AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
-                                    ),
-                                    { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
-                            )
-                            val testCaseRunRules = ruleManager.createRulesFrom { pluginConfiguration ->
-                                TestCaseRunRuleContext(
-                                        pluginConfiguration, testCaseFileManager,
-                                        pool, device, testCaseEvent)
+                            val startTimestampUtc = Instant.now()
+                            try {
+                                runEvent(testCaseEvent, startTimestampUtc)
+                                        .validateRunResult(testCaseEvent.testCase, startTimestampUtc, "Something")
+                                        .copy(endTimestampUtc = Instant.now())
+                            } catch (e: Exception) {
+                                fatalErrorResult(testCaseEvent, e, startTimestampUtc)
                             }
-
-                            val inRuleText = "while executing a test case run rule"
-
-                            val (allowedAfterRules, eitherResult) = withRulesWithoutAfter(
-                                    logger,
-                                    inRuleText,
-                                    "while executing a test case",
-                                    (testRunListeners + testCaseRunRules),
-                                    { it.before() },
-                                    {
-                                        val executeContext = TestCaseRunRuleContext(
-                                                ActualConfiguration(configuration), testCaseFileManager,
-                                                pool, device, testCaseEvent)
-
-                                        executeTestCase(executeContext)
-                                                .fixRunResult(testCaseEvent.testCase, "Test case runner")
-                                    }
-                            )
-
-                            val fixedResult = eitherResult
-                                    .getOrElse { e ->
-                                        logger.error("Exception while executing a test case", e)
-                                        val stackTrace = traceAsString(e)
-                                        TestCaseRunResult(
-                                                pool, device,
-                                                testCaseEvent.testCase, ResultStatus.ERROR,
-                                                stackTrace,
-                                                0,
-                                                0, emptyMap(),
-                                                null,
-                                                emptyList())
-                                    }
-
-                            allowedAfterRules
-                                    .asReversed()
-                                    .fold(fixedResult) { acc, rule ->
-                                        try {
-                                            val args = TestCaseRunRuleAfterArguments(acc)
-
-                                            rule.after(args)
-                                            args.result
-                                                    .fixRunResult(
-                                                            testCaseEvent.testCase,
-                                                            "Rule ${rule.javaClass.name}"
-                                                    )
-                                        } catch (e: Exception) {
-                                            val emptyPrefix = if (acc.stackTrace.isBlank()) {
-                                                """|
-                                                |
-                                                |---Rule exceptions---""".trimMargin()
-                                            } else {
-                                                ""
-                                            }
-                                            val newStackTrace = """${acc.stackTrace}${emptyPrefix}
-                                                |
-                                                |Exception ${inRuleText} (after): ${traceAsString(e)}"""
-                                                .trimMargin()
-                                            acc.copy(
-                                                    status = ResultStatus.ERROR,
-                                                    stackTrace = newStackTrace
-                                            )
-                                        }
-                                    }
                         }
                     } else if (queueOfTestsInPool.hasNoPotentialEventsFor(device)) {
                         break
@@ -154,24 +73,113 @@ class DeviceTestRunner(private val pool: Pool,
         }
     }
 
-    private fun TestCaseRunResult.fixRunResult(testCase: TestCase, changer: String): TestCaseRunResult {
-        if (pool != this@DeviceTestRunner.pool
-                || device != this@DeviceTestRunner.device
-                || this.testCase != testCase) {
-            throw RuntimeException(
-                    "$changer attempted to change pool, device or testCase field of a run result")
+    private fun runEvent(testCaseEvent: TestCaseEvent, startTimestampUtc: Instant): TestCaseRunResult {
+        val testCaseFileManager: TestCaseFileManager = TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.testCase)
+        val configuration = ConfigurationInjector.configuration()
+
+        val testRunListeners = TestRunListenersTongsFactoryInjector.testRunListenersTongsFactory(configuration).createTongsListners(
+                testCaseEvent,
+                device,
+                pool,
+                progressReporter,
+                queueOfTestsInPool,
+                configuration.tongsIntegrationTestRunType)
+                .toList()
+
+        val ruleManager = ruleManagerFactory.create(
+                TestCaseRunRuleFactory::class.java,
+                listOf(
+                        AndroidCleanupTestCaseRunRuleFactory(),
+                        AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
+                ),
+                { factory, context: TestCaseRunRuleContext -> factory.testCaseRunRules(context) }
+        )
+        val testCaseRunRules = ruleManager.createRulesFrom { pluginConfiguration ->
+            TestCaseRunRuleContext(
+                    pluginConfiguration, testCaseFileManager,
+                    pool, device, testCaseEvent, startTimestampUtc)
         }
 
-        return if (status == ResultStatus.UNKNOWN) { // TODO: Report as a fatal crashed test
-            copy(
-                    pool = this@DeviceTestRunner.pool,
-                    device = this@DeviceTestRunner.device,
-                    testCase = testCase,
-                    status = ResultStatus.ERROR
-            )
-        } else {
-            this
+        val inRuleText = "while executing a test case run rule"
+
+        val (allowedAfterRules, eitherResult) = withRulesWithoutAfter(
+                logger,
+                inRuleText,
+                "while executing a test case",
+                (testRunListeners + testCaseRunRules),
+                { it.before() },
+                {
+                    val executeContext = TestCaseRunRuleContext(
+                            ActualConfiguration(configuration), testCaseFileManager,
+                            pool, device, testCaseEvent, startTimestampUtc)
+
+                    executeTestCase(executeContext)
+                            .validateRunResult(testCaseEvent.testCase, startTimestampUtc, "Test case runner")
+                }
+        )
+
+        val fixedResult = eitherResult
+                .getOrElse { e ->
+                    logger.error("Exception while executing a test case", e)
+                    fatalErrorResult(testCaseEvent, e, startTimestampUtc)
+                }
+
+        return allowedAfterRules
+                .asReversed()
+                .fold(fixedResult) { acc, rule ->
+                    try {
+                        val args = TestCaseRunRuleAfterArguments(acc)
+
+                        rule.after(args)
+                        args.result
+                                .validateRunResult(
+                                        testCaseEvent.testCase,
+                                        startTimestampUtc,
+                                        "Rule ${rule.javaClass.name}"
+                                )
+                    } catch (e: Exception) {
+                        val emptyPrefix = if (acc.stackTrace.isBlank()) {
+                            System.lineSeparator().repeat(2) + "---Rule exceptions---"
+                        } else {
+                            ""
+                        }
+                        val newStackTrace = """${acc.stackTrace}${emptyPrefix}
+                                                    |
+                                                    |Exception ${inRuleText} (after): ${traceAsString(e)}"""
+                                .trimMargin()
+                        acc.copy(
+                                status = ResultStatus.ERROR,
+                                stackTrace = newStackTrace
+                        )
+                    }
+                }
+    }
+
+    private fun fatalErrorResult(testCaseEvent: TestCaseEvent, error: Throwable, startTimestampUtc: Instant): TestCaseRunResult {
+        return TestCaseRunResult(
+                pool, device,
+                testCaseEvent.testCase, ResultStatus.ERROR,
+                traceAsString(error),
+                startTimestampUtc,
+                Instant.EPOCH,
+                Instant.EPOCH,
+                Instant.EPOCH,
+                0,
+                combineProperties(testCaseEvent, emptyMap()),
+                null,
+                emptyList())
+    }
+
+    private fun TestCaseRunResult.validateRunResult(testCase: TestCase, startTimestampUtc: Instant, changer: String): TestCaseRunResult {
+        if (pool != this@DeviceTestRunner.pool
+                || device != this@DeviceTestRunner.device
+                || this.testCase != testCase
+                || this.startTimestampUtc != startTimestampUtc) {
+            throw RuntimeException(
+                    "$changer attempted to change pool, device, testCase or startTimestampUtc field of a run result")
         }
+
+        return this
     }
 
     companion object {
@@ -180,19 +188,28 @@ class DeviceTestRunner(private val pool: Pool,
         private fun executeTestCase(context: TestCaseRunRuleContext): TestCaseRunResult {
             val androidTestRunFactory = TestRunFactoryInjector.testRunFactory(context.configuration)
             val workCountdownLatch = PreregisteringLatch()
-            val testStatus = AtomicReference(ResultStatus.UNKNOWN)
 
             return try {
                 val testRun = androidTestRunFactory.createTestRun(context, context.testCaseEvent,
                         context.device as AndroidDevice,
                         context.pool,
-                        testStatus,
                         workCountdownLatch)
                 workCountdownLatch.finalizeRegistering()
-                testRun.execute()
+                val result = testRun.execute()
+                result.copy(
+                        startTimestampUtc = context.startTimestampUtc,
+                        additionalProperties = combineProperties(context.testCaseEvent, result.additionalProperties)
+                )
             } finally {
                 workCountdownLatch.await(15, TimeUnit.SECONDS)
             }
+        }
+
+        private fun combineProperties(
+                testCaseEvent: TestCaseEvent,
+                additionalProperties: Map<String, String>
+        ): Map<String, String> {
+            return testCaseEvent.testCase.properties + additionalProperties
         }
 
         private fun traceAsString(e: Throwable): String {

@@ -29,12 +29,11 @@ abstract class TongsTestListener: TestCaseRunRule {
     override fun after(arguments: TestCaseRunRuleAfterArguments) {
         val result = arguments.result
         val status = result.status
-        when (status) {
+        val forceExhaustive = when (status) {
             ResultStatus.PASS -> onTestSuccessful()
             ResultStatus.IGNORED -> onTestSkipped(result)
             ResultStatus.ASSUMPTION_FAILED -> onTestAssumptionFailure(result)
             ResultStatus.FAIL, ResultStatus.ERROR -> onTestFailed(result)
-            else -> throw IllegalStateException("Got unknown status:$status")
         }
     }
 }
