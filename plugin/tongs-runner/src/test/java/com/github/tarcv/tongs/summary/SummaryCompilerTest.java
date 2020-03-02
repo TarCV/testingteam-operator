@@ -75,7 +75,7 @@ public class SummaryCompilerTest {
     private final List<TestCaseRunResult> testResults = newArrayList(
             firstCompletedTest,
             secondCompletedTest,
-            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.FailedClassTest", "doesJobProperly", ResultStatus.FAIL, "a failure stacktrace", 10),
+            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.FailedClassTest", "doesJobProperly", ResultStatus.FAIL, "a failure stacktrace", 9),
             TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.IgnoredClassTest", "doesJobProperly", ResultStatus.IGNORED, "")
     );
 

@@ -71,7 +71,7 @@ public class RetryListener extends TongsTestListener {
 
     @Override
     public void onTestFailed(@NotNull TestCaseRunResult failureResult) {
-        if (testRetryer.rescheduleTestExecution(currentTestCaseEvent)) {
+        if (testRetryer.rescheduleTestExecution(currentTestCaseEvent.withFailureCount(failureResult.getTotalFailureCount()))) {
             logger.info("Test " + currentTestCaseEvent.toString() + " enqueued again into pool:" + pool.getName());
             removeFailureTraceFiles();
         } else {

@@ -58,6 +58,10 @@ class TestCaseEvent private constructor(
         return this.testClass + "#" + this.testMethod
     }
 
+    fun withFailureCount(totalFailureCount: Int): TestCaseEvent {
+        return TestCaseEvent(testCase, excludedDevices, totalFailureCount)
+    }
+
     companion object {
         // TODO: Refactor to usual constructors
 

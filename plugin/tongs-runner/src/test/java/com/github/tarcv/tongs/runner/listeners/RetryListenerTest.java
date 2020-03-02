@@ -66,6 +66,8 @@ public class RetryListenerTest {
         emulator.emulateFor(retryListener, fatalCrashedTest);
     }
 
+    // TODO: Check that total failure count is incremented
+
     @Test
     public void doesNotDeleteTraceFilesIfCannotRescheduleTestAfterTestRunFailed() {
         PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
