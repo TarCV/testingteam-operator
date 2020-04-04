@@ -18,7 +18,11 @@ import java.io.File
 import java.text.DecimalFormat
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
+import java.time.chrono.IsoChronology
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.ResolverStyle
+import java.time.temporal.ChronoField
 
 class XmlResultWriter() {
     fun writeXml(xmlFile: File, result: TestCaseRunResult) {
@@ -43,7 +47,25 @@ class XmlResultWriter() {
     }
 
     companion object {
-        private val dateTimeFormatter = ISO_LOCAL_DATE_TIME.withZone(ZoneId.of("UTC"))
+        private val timeFormatter = DateTimeFormatterBuilder()
+                .appendValue(ChronoField.HOUR_OF_DAY, 2)
+                .appendLiteral(':')
+                .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+                .optionalStart()
+                .appendLiteral(':')
+                .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+                .toFormatter()
+                .withChronology(IsoChronology.INSTANCE)
+                .withResolverStyle(ResolverStyle.STRICT)
+        private val dateTimeFormatter = DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .append(DateTimeFormatter.ISO_LOCAL_DATE)
+                .appendLiteral('T')
+                .append(timeFormatter)
+                .toFormatter()
+                .withChronology(IsoChronology.INSTANCE)
+                .withResolverStyle(ResolverStyle.STRICT)
+                .withZone(ZoneId.of("UTC"))
         private val secondsFormatter = DecimalFormat().apply {
             minimumFractionDigits = 1
             maximumFractionDigits = 6
