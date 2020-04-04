@@ -12,6 +12,10 @@
  */
 package com.github.tarcv.tongs.summary
 
+import com.github.tarcv.tongs.runner.MonoTextReportData
+import com.github.tarcv.tongs.runner.SimpleMonoTextReportData
+import com.github.tarcv.tongs.runner.SimpleMonoTextReportData.Type.STDOUT
+import com.github.tarcv.tongs.runner.SimpleMonoTextReportData.Type.STRERR
 import com.github.tarcv.tongs.runner.TestCaseRunResult
 import org.apache.commons.lang3.StringEscapeUtils
 import java.io.File
@@ -32,6 +36,9 @@ class XmlResultWriter() {
                 "deviceId" to result.device.serial,
                 "totalFailureCount" to result.totalFailureCount.toString()
         )
+        val stdOut = compileStdOut(result, STDOUT)
+        val stdErr = compileStdOut(result, STRERR)
+
         writeXml(
                 xmlFile,
                 result.status,
@@ -40,10 +47,19 @@ class XmlResultWriter() {
                 result.testCase.testMethod,
                 predefinedProps + result.additionalProperties,
                 listOf(result.stackTrace),
+                stdOut,
+                stdErr,
                 result.startTimestampUtc,
                 result.timeTakenSeconds.toDouble(),
                 result.timeNetTakenSeconds?.toDouble() ?: 0.0
         )
+    }
+
+    private fun compileStdOut(result: TestCaseRunResult, type: SimpleMonoTextReportData.Type): String {
+        return result.data
+                .filterIsInstance<MonoTextReportData>()
+                .filter { it.type == type }
+                .joinToString(System.lineSeparator()) { it.monoText }
     }
 
     companion object {
@@ -80,6 +96,8 @@ class XmlResultWriter() {
                 testCaseMethod: String,
                 properties: Map<String, String>,
                 stackTraces: List<String>,
+                stdOut: String,
+                stdErr: String,
                 startTimestampUtc: Instant,
                 totalTime: Double,
                 netTime: Double
@@ -95,6 +113,8 @@ class XmlResultWriter() {
                     StringEscapeUtils.escapeXml10(testCaseMethod),
                     escapedProperties,
                     stackTraces.map { StringEscapeUtils.escapeXml10(it) },
+                    StringEscapeUtils.escapeXml10(stdOut),
+                    StringEscapeUtils.escapeXml10(stdErr),
                     StringEscapeUtils.escapeXml10(dateTimeFormatter.format(startTimestampUtc)),
                     StringEscapeUtils.escapeXml10(secondsFormatter.format(totalTime)),
                     StringEscapeUtils.escapeXml10(secondsFormatter.format(netTime))
@@ -109,6 +129,8 @@ class XmlResultWriter() {
                 testCaseMethod: String,
                 properties: Map<String, String>,
                 stackTraces: List<String>,
+                stdOut: String,
+                stdErr: String,
                 startTimestampUtc: String,
                 totalTime: String,
                 netTime: String
@@ -130,6 +152,8 @@ class XmlResultWriter() {
                                 """skipped="$skipped" time="$totalTime" timestamp="$startTimestampUtc" hostname="$host">
                         |${propertiesToStrings("  ", properties)}
                         |${testCaseToString("  ", resultType, stackTraces, testCaseMethod, testClass, netTime)}
+                        |<system-out>$stdOut</system-out>
+                        |<system-err>$stdErr</system-err>
                         |</testsuite>""").trimMargin())
                     }
         }

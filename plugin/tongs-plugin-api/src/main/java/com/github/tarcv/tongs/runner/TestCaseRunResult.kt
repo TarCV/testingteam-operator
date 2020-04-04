@@ -126,34 +126,52 @@ class TestCaseFile(
 sealed class TestReportData(
     val title: String
 )
-class MonoTextReportData(title: String, val type: Type, val monoText: String): TestReportData(title) {
+
+interface MonoTextReportData {
+    val title: String
+    val type: SimpleMonoTextReportData.Type
+    val monoText: String
+}
+class SimpleMonoTextReportData(title: String, override val type: Type, override val monoText: String)
+    : TestReportData(title), MonoTextReportData {
     enum class Type {
         STDOUT,
         STRERR,
         OTHER
     }
 }
-class FileMonoTextReportData(title: String, val type: MonoTextReportData.Type, private val monoTextPath: TestCaseFile)
-    : TestReportData(title) {
-    val monoText: String
+class FileMonoTextReportData(
+        title: String,
+        override val type: SimpleMonoTextReportData.Type,
+        private val monoTextPath: TestCaseFile
+): TestReportData(title), MonoTextReportData {
+    override val monoText: String
         get() {
             return monoTextPath.toFile()
                     .readText(StandardCharsets.UTF_8)
         }
 }
 
-class HtmlReportData(title: String, val html: String): TestReportData(title)
-class FileHtmlReportData(title: String, private val htmlPath: TestCaseFile): TestReportData(title) {
+interface HtmlReportData {
+    val title: String
     val html: String
+}
+class SimpleHtmlReportData(title: String, override val html: String): TestReportData(title), HtmlReportData
+class FileHtmlReportData(title: String, private val htmlPath: TestCaseFile): TestReportData(title), HtmlReportData {
+    override val html: String
         get() {
             return htmlPath.toFile()
                     .readText(StandardCharsets.UTF_8)
         }
 }
 
-class TableReportData(title: String, val table: Table): TestReportData(title)
-class FileTableReportData(title: String, private val tablePath: TestCaseFile): TestReportData(title) {
+interface TableReportData {
+    val title: String
     val table: Table
+}
+class SimpleTableReportData(title: String, override val table: Table): TestReportData(title), TableReportData
+class FileTableReportData(title: String, private val tablePath: TestCaseFile): TestReportData(title), TableReportData {
+    override val table: Table
         get() = tableFromFile(tablePath)
 }
 

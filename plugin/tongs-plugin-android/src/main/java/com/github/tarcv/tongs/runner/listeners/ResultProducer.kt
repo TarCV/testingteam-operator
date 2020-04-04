@@ -16,7 +16,7 @@ import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.injector.GsonInjector.gson
 import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.runner.*
-import com.github.tarcv.tongs.runner.MonoTextReportData.Type
+import com.github.tarcv.tongs.runner.SimpleMonoTextReportData.Type
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
@@ -100,11 +100,11 @@ class ResultProducer(
                 reportBlocks)
     }
 
-    private fun addOutput(output: String): MonoTextReportData? {
+    private fun addOutput(output: String): SimpleMonoTextReportData? {
         return if (output.isEmpty()) {
             null
         } else {
-            MonoTextReportData("Shell output", Type.STDOUT, output)
+            SimpleMonoTextReportData("Shell output", Type.STDOUT, output)
         }
     }
 
