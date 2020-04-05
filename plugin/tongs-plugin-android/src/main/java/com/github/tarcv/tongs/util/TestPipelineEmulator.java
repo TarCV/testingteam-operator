@@ -23,8 +23,8 @@ import java.time.Instant;
 
 import static com.github.tarcv.tongs.model.Device.TEST_DEVICE;
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
+import static com.github.tarcv.tongs.util.ResultUtilKt.parseJavaTrace;
+import static java.util.Collections.*;
 
 public class TestPipelineEmulator {
     private final String trace;
@@ -52,7 +52,7 @@ public class TestPipelineEmulator {
 
     @NotNull
     private TestCaseRunResult failureResult(TestCase testCase, ResultStatus status, String trace) {
-        return new TestCaseRunResult(testPool, TEST_DEVICE, testCase, status, trace,
+        return new TestCaseRunResult(testPool, TEST_DEVICE, testCase, status, singletonList(parseJavaTrace(trace)),
                 Instant.now(), Instant.now().plusMillis(100), Instant.now(), Instant.now().plusMillis(100),
                 0, emptyMap(), null, emptyList());
     }

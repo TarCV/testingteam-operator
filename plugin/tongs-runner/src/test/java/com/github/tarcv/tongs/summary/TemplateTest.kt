@@ -25,7 +25,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
-import java.time.Duration
 import java.time.Instant
 
 class TemplateTest {
@@ -62,7 +61,7 @@ class TemplateTest {
 
         }
         val model = aTestCaseRunResult(datas = listOf(
-                TableReportData("Logcat", tableOf(listOf(
+                SimpleTableReportData("Logcat", tableOf(listOf(
                         "appName",
                         "logLevel",
                         "message",
@@ -84,7 +83,7 @@ class TemplateTest {
 
     @Test
     fun tableDataIsCorrectlyDisplayed() {
-        val model = aTestCaseRunResult(datas = listOf(TableReportData("Table-title",
+        val model = aTestCaseRunResult(datas = listOf(SimpleTableReportData("Table-title",
                 tableOf(
                         listOf("foo", "bar"),
                         listOf("1", "2"),
@@ -118,7 +117,7 @@ class TemplateTest {
         return TestCaseRunResult(
                 pool, TEST_DEVICE,
                 TestCase("method", "Class"),
-                ResultStatus.FAIL, "stackTrace\n\ttrace",
+                ResultStatus.FAIL, listOf(StackTrace("", "stackTrace", "stackTrace\n\ttrace")),
                 Instant.now(), Instant.now().plusMillis(10),
                 Instant.now(), Instant.now().plusMillis(10),
                 3, mapOf("metric" to "value"),

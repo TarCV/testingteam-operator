@@ -17,9 +17,11 @@ import com.github.tarcv.tongs.injector.GsonInjector.gson
 import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.runner.*
 import com.github.tarcv.tongs.runner.SimpleMonoTextReportData.Type
+import com.github.tarcv.tongs.runner.TestCaseRunResult.Companion.NO_TRACE
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
+import com.github.tarcv.tongs.util.parseJavaTrace
 import java.time.Instant
 
 interface IResultProducer {
@@ -33,7 +35,7 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
     override fun getResult(): TestCaseRunResult {
         return TestCaseRunResult(
                 pool, device, TestCase("dummy", "dummy"),
-                ResultStatus.PASS, "",
+                ResultStatus.PASS, NO_TRACE,
                 Instant.now(), Instant.now(), Instant.now(), Instant.now(),
                 0,
                 emptyMap(), null, emptyList()
@@ -81,15 +83,18 @@ class ResultProducer(
         }
 
         val stackTrace = if (shellResult.status == null) {
-            "Failed to get the test result" + (System.lineSeparator().repeat(2)) + shellResult.trace
+            StackTrace(
+                    "RunError", "Failed to get the test result",
+                    "Failed to get the test result" + (System.lineSeparator().repeat(2)) + shellResult.trace
+            )
         } else {
-            shellResult.trace
+            parseJavaTrace(shellResult.trace)
         }
         return TestCaseRunResult(
                 context.pool, androidDevice,
                 context.testCaseEvent.testCase,
                 shellResult.status ?: ResultStatus.ERROR,
-                stackTrace,
+                listOf(stackTrace),
                 Instant.EPOCH,
                 Instant.EPOCH,
                 Instant.ofEpochMilli(shellResult.startTime ?: 0),

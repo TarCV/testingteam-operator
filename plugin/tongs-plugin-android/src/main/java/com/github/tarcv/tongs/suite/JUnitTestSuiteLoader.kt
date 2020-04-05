@@ -21,10 +21,9 @@ import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.model.AnnotationInfo
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.TestCaseEvent
+import com.github.tarcv.tongs.runner.*
 import com.github.tarcv.tongs.runner.AndroidCollectingTestCaseRunRule
-import com.github.tarcv.tongs.runner.AndroidTestRunFactory
-import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
-import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.runner.TestCaseRunResult.Companion.NO_TRACE
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.summary.ResultStatus
 import com.google.gson.*
@@ -92,7 +91,9 @@ public class JUnitTestSuiteLoader(
                                     collectingRule.before()
                                     collectingTestRun.execute()
                                 } finally {
-                                    val stubResult = TestCaseRunResult.Companion.aTestResult("", "", ResultStatus.PASS, "")
+                                    val stubResult = TestCaseRunResult.Companion.aTestResult(
+                                            "", "", ResultStatus.PASS,
+                                            NO_TRACE)
                                     collectingRule.after(TestCaseRunRuleAfterArguments(stubResult))
                                 }
 

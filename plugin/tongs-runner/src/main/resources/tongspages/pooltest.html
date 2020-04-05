@@ -79,10 +79,12 @@
             </div>
             {{/linkedFilePath}}
             {{/data}}
-            <a name="Stacktrace"><h1>Stacktrace</h1></a>
-            <pre class="test {{lower status}}">{{#stackTrace}}
-{{.}}
-{{/stackTrace}}</pre>
+            <a name="Stacktrace"><h1>Stacktrace(s)</h1></a>
+            <pre class="test {{lower status}}">{{#stackTraces}}
+{{fullTrace}}{{#unless @last}}
+
+{{/unless}}
+{{/stackTraces}}</pre>
         </div>
 
         <script type="text/javascript">

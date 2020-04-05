@@ -16,6 +16,7 @@ package com.github.tarcv.tongs.summary;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.runner.StackTrace;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -119,7 +120,7 @@ public class SummaryCompiler {
                 .map(testResultItem -> {
                     return new TestCaseRunResult(pool, NO_DEVICE,
                             new TestCase(testResultItem.testMethod, testResultItem.testClass),
-                            ERROR, "Fatally crashed",
+                            ERROR, Collections.singletonList(new StackTrace("FatalError", "Fatally crashed", "Fatally crashed")),
                             Instant.now(), Instant.EPOCH, Instant.now(), Instant.EPOCH,
                             0, Collections.emptyMap(), null, Collections.emptyList());
                 })

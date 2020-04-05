@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.runner.StackTrace;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -35,9 +36,9 @@ import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
+import static com.github.tarcv.tongs.runner.TestCaseRunResult.NO_TRACE;
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
+import static java.util.Collections.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItems;
@@ -63,20 +64,27 @@ public class SummaryCompilerTest {
             "com.example.CompletedClassTest",
             "doesJobProperly",
             ResultStatus.PASS,
-            "");
+            NO_TRACE
+    );
     private final TestCaseRunResult secondCompletedTest = TestCaseRunResult.Companion.aTestResult(
             devicePool, Device.TEST_DEVICE,
             "com.example.CompletedClassTest2",
             "doesJobProperly",
             ResultStatus.PASS,
-            ""
+            NO_TRACE
     );
 
     private final List<TestCaseRunResult> testResults = newArrayList(
             firstCompletedTest,
             secondCompletedTest,
-            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.FailedClassTest", "doesJobProperly", ResultStatus.FAIL, "a failure stacktrace", 9),
-            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.IgnoredClassTest", "doesJobProperly", ResultStatus.IGNORED, "")
+            TestCaseRunResult.Companion.aTestResult(devicePool,
+                    Device.TEST_DEVICE,
+                    "com.example.FailedClassTest",
+                    "doesJobProperly",
+                    ResultStatus.FAIL,
+                    singletonList(new StackTrace("", "a failure stacktrace", "a failure stacktrace")),
+                    9),
+            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.IgnoredClassTest", "doesJobProperly", ResultStatus.IGNORED, NO_TRACE)
     );
 
     private final Map<Pool, Collection<TestCaseEvent>> testCaseEvents = ImmutableMap.<Pool, Collection<TestCaseEvent>>builder()

@@ -138,18 +138,11 @@ class DeviceTestRunner(private val pool: Pool,
                                         "Rule ${rule.javaClass.name}"
                                 )
                     } catch (e: Exception) {
-                        val emptyPrefix = if (acc.stackTrace.isBlank()) {
-                            System.lineSeparator().repeat(2) + "---Rule exceptions---"
-                        } else {
-                            ""
-                        }
-                        val newStackTrace = """${acc.stackTrace}${emptyPrefix}
-                                                    |
-                                                    |Exception ${inRuleText} (after): ${traceAsString(e)}"""
-                                .trimMargin()
+                        val header = "Exception ${inRuleText} (after)"
+                        val newStackTrace = "$header: ${traceAsString(e)}"
                         acc.copy(
                                 status = ResultStatus.ERROR,
-                                stackTrace = newStackTrace
+                                stackTraces = acc.stackTraces + StackTrace("RuleException", header, newStackTrace)
                         )
                     }
                 }
@@ -159,7 +152,7 @@ class DeviceTestRunner(private val pool: Pool,
         return TestCaseRunResult(
                 pool, device,
                 testCaseEvent.testCase, ResultStatus.ERROR,
-                traceAsString(error),
+                listOf(StackTrace(error.javaClass.typeName, error.message ?: "", traceAsString(error))),
                 startTimestampUtc,
                 Instant.EPOCH,
                 Instant.EPOCH,

@@ -35,7 +35,7 @@ data class TestCaseRunResult(
 
         // TODO: Split result to a different class (sealed class hierarchy)
         val status: ResultStatus,
-        val stackTrace: String = "",
+        val stackTraces: List<StackTrace>,
         val startTimestampUtc: Instant,
         val endTimestampUtc: Instant = Instant.EPOCH,
         val netStartTimestampUtc: Instant?,
@@ -86,21 +86,47 @@ data class TestCaseRunResult(
 
     companion object {
         private val pool = aDevicePool().addDevice(Device.TEST_DEVICE).build()
+        @JvmField val NO_TRACE = listOf(StackTrace("", "", ""))
 
         @JvmStatic
-        fun aTestResult(testClass: String, testMethod: String, status: ResultStatus, trace: String): TestCaseRunResult {
-            return aTestResult(pool, Device.TEST_DEVICE, testClass, testMethod, status, trace)
+        fun aTestResult(testClass: String, testMethod: String, status: ResultStatus, traces: List<StackTrace>): TestCaseRunResult {
+            return aTestResult(pool, Device.TEST_DEVICE, testClass, testMethod, status, traces)
         }
 
         @JvmStatic
         @JvmOverloads
-        fun aTestResult(pool: Pool, device: Device, testClass: String, testMethod: String, status: ResultStatus, trace: String, baseTotalFailureCount: Int = 0): TestCaseRunResult {
-            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, trace,
+        fun aTestResult(
+                pool: Pool,
+                device: Device,
+                testClass: String,
+                testMethod: String,
+                status: ResultStatus,
+                traces: List<StackTrace>,
+                baseTotalFailureCount: Int = 0
+        ): TestCaseRunResult {
+            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, traces,
                     Instant.now(), Instant.now().plusMillis(15), Instant.now(), Instant.now().plusMillis(15),
                     baseTotalFailureCount, emptyMap(), null, emptyList())
         }
     }
 }
+
+data class StackTrace(
+        /**
+         * Should be the class type of an exception for compatible languages (and just the type of an error otherwise)
+         */
+        val errorType: String,
+
+        /**
+         * Any additional information besides [errorType] and a stack trace
+         */
+        val errorMessage: String,
+
+        /**
+         * Should include both [errorType] and [errorMessage] in some form in the first line
+         */
+        val fullTrace: String
+)
 
 class TestCaseFile(
         val fileManager: TestCaseFileManager,

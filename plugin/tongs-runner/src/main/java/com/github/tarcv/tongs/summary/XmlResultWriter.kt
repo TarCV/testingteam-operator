@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.runner.MonoTextReportData
 import com.github.tarcv.tongs.runner.SimpleMonoTextReportData
 import com.github.tarcv.tongs.runner.SimpleMonoTextReportData.Type.STDOUT
 import com.github.tarcv.tongs.runner.SimpleMonoTextReportData.Type.STRERR
+import com.github.tarcv.tongs.runner.StackTrace
 import com.github.tarcv.tongs.runner.TestCaseRunResult
 import org.apache.commons.lang3.StringEscapeUtils
 import java.io.File
@@ -46,7 +47,7 @@ class XmlResultWriter() {
                 result.testCase.testClass,
                 result.testCase.testMethod,
                 predefinedProps + result.additionalProperties,
-                listOf(result.stackTrace),
+                result.stackTraces,
                 stdOut,
                 stdErr,
                 result.startTimestampUtc,
@@ -95,7 +96,7 @@ class XmlResultWriter() {
                 testClass: String,
                 testCaseMethod: String,
                 properties: Map<String, String>,
-                stackTraces: List<String>,
+                stackTraces: List<StackTrace>,
                 stdOut: String,
                 stdErr: String,
                 startTimestampUtc: Instant,
@@ -112,7 +113,7 @@ class XmlResultWriter() {
                     StringEscapeUtils.escapeXml10(testClass),
                     StringEscapeUtils.escapeXml10(testCaseMethod),
                     escapedProperties,
-                    stackTraces.map { StringEscapeUtils.escapeXml10(it) },
+                    stackTraces,
                     StringEscapeUtils.escapeXml10(stdOut),
                     StringEscapeUtils.escapeXml10(stdErr),
                     StringEscapeUtils.escapeXml10(dateTimeFormatter.format(startTimestampUtc)),
@@ -128,7 +129,7 @@ class XmlResultWriter() {
                 testClass: String,
                 testCaseMethod: String,
                 properties: Map<String, String>,
-                stackTraces: List<String>,
+                stackTraces: List<StackTrace>,
                 stdOut: String,
                 stdErr: String,
                 startTimestampUtc: String,
@@ -161,14 +162,21 @@ class XmlResultWriter() {
         private fun testCaseToString(
                 indent: String,
                 resultType: String?,
-                stackTraces: List<String>,
+                stackTraces: List<StackTrace>,
                 testCaseMethod: String,
                 testClass: String,
                 netTime: String
         ): String {
             val testCaseBlock = if (resultType != null) {
                 val result = stackTraces.joinToString(System.lineSeparator()) {
-                    """${indent}  <$resultType>$it</$resultType>"""
+                    val typeAttribute = """ type="${StringEscapeUtils.escapeXml10(it.errorType)}""""
+                    val messageAttribute = if (it.errorMessage.isEmpty()) {
+                        ""
+                    } else {
+                        """ message="${StringEscapeUtils.escapeXml10(it.errorMessage)}""""
+                    }
+                    val trace = StringEscapeUtils.escapeXml10(it.fullTrace)
+                    """${indent}  <$resultType$messageAttribute$typeAttribute>$trace</$resultType>"""
                 }
                 """${indent}<testcase name="$testCaseMethod" classname="$testClass" time="$netTime">
                         |${result}

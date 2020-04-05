@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@ package com.github.tarcv.tongs.summary;
 
 import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.runner.StackTrace;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import org.junit.Test;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.runner.TestCaseRunResult.NO_TRACE;
 import static com.github.tarcv.tongs.runner.TestCaseRunResult.aTestResult;
 import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
 import static com.github.tarcv.tongs.summary.ResultStatus.*;
 import static com.github.tarcv.tongs.summary.Summary.Builder.aSummary;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -32,10 +35,11 @@ public class OutcomeAggregatorTest {
     @Test
     public void returnsFalseIfThereAreFatalCrashedTests() {
         Summary summary = aSummary()
-                .addFatalCrashedTest(aTestResult("com.example.FatalCrashedTest", "testMethod", ERROR, ""))
+                .addFatalCrashedTest(aTestResult("com.example.FatalCrashedTest", "testMethod", ERROR, NO_TRACE))
                 .addPoolSummary(aPoolSummary()
                         .withPoolName("pool")
-                        .addTestResults(singleton(TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", ResultStatus.ERROR, "error")))
+                        .addTestResults(singleton(TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", ResultStatus.ERROR,
+                                singletonList(new StackTrace("error", "", "error")))))
                         .build())
                 .build();
 
@@ -47,12 +51,12 @@ public class OutcomeAggregatorTest {
     @Test
     public void returnsTrueIfThereAreOnlyPassedAndIgnoredTests() {
         Summary summary = aSummary()
-                .addIgnoredTest(aTestResult("com.example.IgnoredTest", "testMethod", IGNORED, ""))
+                .addIgnoredTest(aTestResult("com.example.IgnoredTest", "testMethod", IGNORED, NO_TRACE))
                 .addPoolSummary(aPoolSummary()
                         .withPoolName("pool")
                         .addTestResults(asList(
-                                TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", PASS, ""),
-                                TestCaseRunResult.Companion.aTestResult("com.example.IgnoredTest", "testMethod", IGNORED, "")
+                                TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", PASS, NO_TRACE),
+                                TestCaseRunResult.Companion.aTestResult("com.example.IgnoredTest", "testMethod", IGNORED, NO_TRACE)
                         ))
                         .build())
                 .build();
