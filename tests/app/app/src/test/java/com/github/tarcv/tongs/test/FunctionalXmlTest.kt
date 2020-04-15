@@ -1,9 +1,8 @@
 package com.github.tarcv.tongs.test
 
-import com.github.tarcv.test.BuildConfig
+import com.github.tarcv.tongs.test.util.ResultsSupplier
 import org.junit.Test
 import org.xml.sax.SAXException
-import java.io.File
 import java.lang.AssertionError
 import java.net.URL
 import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
@@ -19,7 +18,7 @@ class FunctionalXmlTest {
             val schemaUrl = javaClass.classLoader.getResource(schema) as URL
             val factory = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI)
             val validatorFactory = factory.newSchema(schemaUrl)
-            File("./build/reports/tongs/${BuildConfig.FLAVOR}DebugAndroidTest/tests")
+            ResultsSupplier.JUnitXmls.rootFile
                     .walkTopDown()
                     .filter { it.isFile && it.extension.toLowerCase() == "xml" }
                     .forEach {
