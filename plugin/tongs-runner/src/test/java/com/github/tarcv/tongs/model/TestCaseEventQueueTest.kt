@@ -89,7 +89,11 @@ class TestCaseEventQueueTest {
         }
 
         withTimeout {
-            Assert.assertEquals(test2, queue.pollForDevice(device1))
+            queue.pollForDevice(device1)!!.doWork {
+                Assert.assertEquals(test2, it)
+
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
+            }
         }
     }
 }

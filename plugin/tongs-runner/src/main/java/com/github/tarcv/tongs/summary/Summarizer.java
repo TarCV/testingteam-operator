@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -47,7 +48,7 @@ public class Summarizer {
     boolean summarize(Collection<Pool> pools, Map<Pool, Collection<TestCaseEvent>> testCases, List<TestCaseRunResult> results) {
         if (configuration.getTongsIntegrationTestRunType() == RECORD_LISTENER_EVENTS) {
             try (BufferedWriter outputWriter = Files.newBufferedWriter(
-                    Paths.get("summarizeInputs.json"),
+                    new File("summarizeInputs.json").toPath(),
                     CREATE, WRITE, TRUNCATE_EXISTING)) {
                 SummarizerInputs inputs = new SummarizerInputs(pools, testCases, results);
                 testRecorderGsonBuilder().create().toJson(inputs, outputWriter);
