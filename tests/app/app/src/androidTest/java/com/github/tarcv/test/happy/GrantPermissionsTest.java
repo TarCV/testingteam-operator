@@ -1,9 +1,10 @@
-package com.github.tarcv.test;
+package com.github.tarcv.test.happy;
 
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v4.content.ContextCompat;
+import com.github.tarcv.test.MainActivity;
 import com.github.tarcv.tongs.GrantPermission;
 import org.junit.Rule;
 import org.junit.Test;

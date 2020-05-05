@@ -1,4 +1,7 @@
-package com.github.tarcv.test;
+package com.github.tarcv.test.happy;
+
+import android.support.test.espresso.matcher.ViewMatchers;
+import com.github.tarcv.test.R;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
@@ -8,7 +11,7 @@ import static org.hamcrest.core.AllOf.allOf;
 
 public class TestHelpers {
     public static void basicTestSteps() {
-        onView(withId(R.id.hello_text))
+        onView(ViewMatchers.withId(R.id.hello_text))
                 .check(matches(allOf(
                         isDisplayed(),
                         withText("Hello World!")

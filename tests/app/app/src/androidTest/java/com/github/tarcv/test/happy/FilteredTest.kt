@@ -1,7 +1,8 @@
-package com.github.tarcv.test
+package com.github.tarcv.test.happy
 
 import android.support.test.filters.SdkSuppress
 import android.support.test.rule.ActivityTestRule
+import com.github.tarcv.test.MainActivity
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

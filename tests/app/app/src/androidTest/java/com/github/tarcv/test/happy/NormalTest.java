@@ -8,10 +8,20 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.tarcv.test;
+package com.github.tarcv.test.happy;
 
-public class Config {
-    public final static long TEST_DURATION = 5_000;
+import android.support.test.rule.ActivityTestRule;
+import com.github.tarcv.test.MainActivity;
+import org.junit.Rule;
+import org.junit.Test;
 
-    public final static String PACKAGE = "com.github.tarcv.test.happy";
+public class NormalTest {
+    @Rule
+    public ActivityTestRule<MainActivity> rule = new ActivityTestRule<>(
+            MainActivity.class, true, true);
+
+    @Test
+    public void test() {
+        TestHelpers.basicTestSteps();
+    }
 }

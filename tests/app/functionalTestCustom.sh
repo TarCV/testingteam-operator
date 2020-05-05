@@ -16,7 +16,11 @@ if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest --stacktrace
     ./gradlew :app:uninstallF2Debug :app:uninstallF2DebugAndroidTest
 fi
-./gradlew :app:tongsF1DebugAndroidTest --stacktrace
+
+set +e
+./gradlew :app:tongsF1DebugAndroidTest --stacktrace && exit 1
+set -e
+
 ./gradlew :app:testF1DebugUnitTest
 
 rm ./*.log || true
@@ -26,7 +30,11 @@ if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest
     ./gradlew :app:uninstallF2Debug :app:uninstallF2DebugAndroidTest --stacktrace
 fi
-./gradlew :app:tongsF2DebugAndroidTest --stacktrace
+
+set +e
+./gradlew :app:tongsF2DebugAndroidTest --stacktrace && exit 1
+set -e
+
 ./gradlew :app:testF2DebugUnitTest
 
 rm ./*.log || true
@@ -56,6 +64,8 @@ else
 fi
 
 pushd ../../plugin
-    ./gradlew :tongs-runner:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json"
+    set +e
+    ./gradlew :tongs-runner:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json" && exit 1
+    set -e
 popd
 ./gradlew :app:testF2DebugUnitTest

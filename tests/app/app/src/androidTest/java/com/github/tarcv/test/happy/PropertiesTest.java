@@ -1,6 +1,7 @@
-package com.github.tarcv.test;
+package com.github.tarcv.test.happy;
 
 import android.support.test.rule.ActivityTestRule;
+import com.github.tarcv.test.MainActivity;
 import com.github.tarcv.tongs.TestProperties;
 import com.github.tarcv.tongs.TestPropertyPairs;
 import org.junit.Rule;
