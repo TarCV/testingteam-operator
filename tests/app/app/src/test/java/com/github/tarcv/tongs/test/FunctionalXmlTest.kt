@@ -6,6 +6,7 @@ import com.github.tarcv.tongs.test.util.attributeNamed
 import com.github.tarcv.tongs.test.util.childrenAssertingNoText
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.Matcher
+import org.hamcrest.Matchers.isEmptyString
 import org.hamcrest.core.AnyOf.anyOf
 import org.junit.Assert
 import org.junit.Assume
@@ -108,6 +109,10 @@ class FunctionalXmlTest(private val xmlFile: File) {
                         null
                     }
                 }
+                if (expectStackTrace != null) {
+                    Assert.assertThat("Stacktrace for a failure or skip should not be empty",
+                            expectStackTrace, not(isEmptyString()))
+                }
 
                 val stdOutText = stdOut.textContent
                 assertTrue("stdout tag has some text", stdOutText.isNotBlank())
@@ -141,9 +146,14 @@ class FunctionalXmlTest(private val xmlFile: File) {
         asserter.assertEquals("at localhost", "localhost", testCaseInfo.suite.attributeNamed("hostname").nodeValue)
         asserter.assertTrue("stderr tag has no childs and empty", testCaseInfo.stdErr.childrenAssertingNoText().isEmpty())
         asserter.assertEquals("pool", "emulators", testCaseInfo.properties["pool"])
-        Assert.assertThat(testCaseInfo.properties["deviceId"], anyOf(
-                `is`(System.getenv("DEVICE1")), `is`(System.getenv("DEVICE2"))
-        ))
+
+        val actualDeviceId = testCaseInfo.properties["deviceId"]
+        val expectedIdMatcher = if (! java.lang.Boolean.valueOf(System.getenv("CI_STUBBED"))) {
+            anyOf(`is`(System.getenv("DEVICE1")), `is`(System.getenv("DEVICE2")))
+        } else {
+            anyOf(`is`("tongs-5554"), `is`("tongs-5556"))
+        }
+        Assert.assertThat(actualDeviceId, expectedIdMatcher)
     }
 
     private fun readSuiteAndCaseInfo(): TestCaseInfo {

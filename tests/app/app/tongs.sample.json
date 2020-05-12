@@ -10,13 +10,14 @@
   },
   "totalAllowedRetryQuota": 4,
   "retryPerTestCaseQuota": 2,
-  "tongsIntegrationTestRunType": "TEST_RUN_TYPE",
+  "tongsIntegrationTestRunType": "STUB_PARALLEL_TESTRUN",
+  "plugins": ["com.github.tarcv.tongs.plugin.android.StubDeviceProviderFactory"],
   "poolingStrategy": {
     "manual": {
       "groupings": {
         "emulators": [
-          "DEVICE1",
-          "DEVICE2"
+          "tongs-5554",
+          "tongs-5556"
         ]
       }
     }

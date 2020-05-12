@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,12 +13,19 @@ package com.github.tarcv.tongs.injector.runner;
 
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.runner.AndroidTestRunFactory;
+import com.github.tarcv.tongs.runner.TestAndroidTestRunFactory;
+
+import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN;
 
 public class TestRunFactoryInjector {
 
     private TestRunFactoryInjector() {}
 
     public static AndroidTestRunFactory testRunFactory(TongsConfiguration configuration) {
-        return new AndroidTestRunFactory(configuration);
+        if (configuration.getTongsIntegrationTestRunType() == STUB_PARALLEL_TESTRUN) {
+            return new TestAndroidTestRunFactory(configuration);
+        } else {
+            return new AndroidTestRunFactory(configuration);
+        }
     }
 }

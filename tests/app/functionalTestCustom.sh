@@ -2,15 +2,24 @@
 
 set -ex
 
+function cleanReportsAndLogs() {
+  rm ./*.log || true
+  rm -r app/build/reports || true
+}
+
 cd "$(dirname "$0")"
 
 export GRADLE_OPTS="-Dorg.gradle.console=plain"
 
+# Make sure new build of the plugin is loaded
+./gradlew --stop
+
 # Wait for the output directory to be unlocked after the previous run
 sleep 3
 
-rm ./*.log || true
-rm -r app/build/reports || true
+
+
+cleanReportsAndLogs
 
 if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest --stacktrace
@@ -18,13 +27,14 @@ if [[ ${CI_STUBBED} != 'true' ]]; then
 fi
 
 set +e
-./gradlew :app:tongsF1DebugAndroidTest --stacktrace && exit 1
+./gradlew :app:tongsF1DebugAndroidTest --stacktrace --info && exit 1
 set -e
 
 ./gradlew :app:testF1DebugUnitTest
 
-rm ./*.log || true
-rm -r app/build/reports || true
+
+
+cleanReportsAndLogs
 
 if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest
@@ -37,19 +47,20 @@ set -e
 
 ./gradlew :app:testF2DebugUnitTest
 
-rm ./*.log || true
-rm -r app/build/reports || true
-rm app/tongs.json || true
+
+
+cleanReportsAndLogs
 
 if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest
     ./gradlew :app:uninstallF2Debug :app:uninstallF2DebugAndroidTest --stacktrace
 fi
 
-rm ./*.log || true
-rm -r app/build/reports || true
-rm app/tongs.json || true
 
+
+cleanReportsAndLogs
+
+rm app/tongs.json || true
 cp app/tongs.sample.json app/tongs.json
 TEST_ROOT="$(pwd)"
 TEST_ROOT=$(echo "$TEST_ROOT" | perl -lape 's/^\/([a-z])\//$1:\//g')

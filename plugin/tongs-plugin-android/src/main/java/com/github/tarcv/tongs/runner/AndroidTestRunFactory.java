@@ -17,6 +17,7 @@ import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
+import com.github.tarcv.tongs.runner.listeners.IResultProducer;
 import com.github.tarcv.tongs.runner.listeners.ResultProducer;
 import com.github.tarcv.tongs.runner.listeners.TestCollectorResultProducer;
 import com.github.tarcv.tongs.runner.rules.TestCaseRunRule;
@@ -25,6 +26,7 @@ import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory;
 import com.github.tarcv.tongs.suite.TestCollectingListener;
 import com.github.tarcv.tongs.summary.ResultStatus;
 import com.github.tarcv.tongs.system.PermissionGrantingManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,7 +51,7 @@ public class AndroidTestRunFactory {
         TestRunParameters testRunParameters = createTestParameters(testCase, device, configuration);
 
         List<BaseListener> testRunListeners = new ArrayList<>();
-        ResultProducer resultProducer = new ResultProducer(testRunContext, workCountdownLatch);
+        IResultProducer resultProducer = createResultProducer(testRunContext, workCountdownLatch);
         testRunListeners.addAll(resultProducer.requestListeners());
 
         return new AndroidInstrumentedTestRun(
@@ -59,6 +61,11 @@ public class AndroidTestRunFactory {
                 resultProducer,
                 RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration)
         );
+    }
+
+    @NotNull
+    protected IResultProducer createResultProducer(TestCaseRunRuleContext testRunContext, PreregisteringLatch workCountdownLatch) {
+        return new ResultProducer(testRunContext, workCountdownLatch);
     }
 
     public AndroidInstrumentedTestRun createCollectingRun(AndroidDevice device,

@@ -31,8 +31,29 @@ import kotlin.test.asserter
 class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier) {
     private val packageForRegex = PACKAGE.replace(".", """\.""")
 
+    private val expectedNumberOfHappyTests: Int = run {
+            val filteredNum = if (FLAVOR == "f2") {
+                1 * 4
+            } else {
+                2 * 4
+            }
+
+            // Numbers are test case counts per classes in alphabetical order
+            12 + filteredNum + 2 + 2 + 2 + 2 + 1 + 8 + 8 + 2 + 4
+        }
+    private val expectedNumberOfResultTests = 3 * 2
+
     @Test
-    fun testAllTestcasesExecutedExactlyOnce() {
+    fun testAllTestcaseExecutedAtLeastOnce() {
+        val count = getTestResults()
+                .map { "${it.testClass}#${it.testMethod}" }
+                .distinct()
+                .count()
+        assert(count == expectedNumberOfHappyTests + expectedNumberOfResultTests)
+    }
+
+    @Test
+    fun testAllHappyTestcasesExecutedExactlyOnce() {
         val simplifiedResults = getSimplifiedResults()
 
         simplifiedResults.fold(HashSet<String>()) { acc, result ->
@@ -40,13 +61,7 @@ class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier)
             acc
         }
 
-        val filteredNum = if (FLAVOR == "f2") {
-            1 * 4
-        } else {
-            2 * 4
-        }
-        // Numbers are test case counts per classes in alphabetical order
-        asserter.assertEquals("All tests should be executed", 12+filteredNum+2+2+2+2+1+8+8+2+4, simplifiedResults.size)
+        asserter.assertEquals("All tests should be executed", expectedNumberOfHappyTests, simplifiedResults.size)
     }
 
     @Test
@@ -68,21 +83,22 @@ class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier)
     }
 
     @Test
+    fun testNormalParameterizedTestDistribution() {
+        doTestParameterizedTestsDistribution("""$packageForRegex\..+\[\d+]""".toRegex())
+    }
+
+    @Test
+    fun testNamedParameterizedTestDistribution() {
+        doTestParameterizedTestsDistribution("""$packageForRegex\..+\[\s*param = .+]""".toRegex())
+    }
+
+    @Test
     fun testApi22IsOnlyExecutedOnTheSecondDevice() {
         val simplifiedResults = getSimplifiedResults()
-        val testsPerDevice = simplifiedResults
-                .filter { """$packageForRegex\.FilteredTest#api22Only\[\s*.+]""".toRegex().matches(it.first) }
-                .fold(HashMap<String, AtomicInteger>()) { acc, test ->
-                    acc
-                            .computeIfAbsent(test.second) { AtomicInteger(0) }
-                            .incrementAndGet()
-                    acc
-                }
-                .entries
-                .toList()
+        val testsPerDevice = getPerDeviceTestCounts(simplifiedResults, """$packageForRegex\.FilteredTest#api22Only\[\s*.+]""".toRegex())
         assert(testsPerDevice.isNotEmpty()) { "API 20 only tests should be executed" }
         assert(testsPerDevice.size == 1) { "API 20 only should be executed on exactly 1 device (got ${testsPerDevice.size})" }
-        assert(testsPerDevice[0].value.get() == 4) { "Exactly 4 API 20 only test cases should be executed on ${testsPerDevice[0].key} device" }
+        assert(testsPerDevice[0].value == 4) { "Exactly 4 API 20 only test cases should be executed on ${testsPerDevice[0].key} device" }
     }
 
     @Test
@@ -230,7 +246,33 @@ class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier)
     private fun doAssertionsForParameterizedTests(pattern: Regex, expectedCount: Int) {
         val simplifiedResults = getSimplifiedResults()
 
-        val testsPerDevice = simplifiedResults
+        val testsPerDevice = getPerDeviceTestCounts(simplifiedResults, pattern)
+        if (expectedCount > 0) {
+            assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
+
+            assert(testsPerDevice.sumBy { it.value } == expectedCount) {
+                "Exactly $expectedCount parameterized tests should be executed" +
+                        " (device1=${testsPerDevice[0].value}, device2=${testsPerDevice[1].value})"
+            }
+        } else {
+            assert(testsPerDevice.isEmpty()) { "The parameterized tests should not be executed" }
+        }
+    }
+
+    private fun doTestParameterizedTestsDistribution(pattern: Regex) {
+        val simplifiedResults = getSimplifiedResults()
+
+        val testsPerDevice = getPerDeviceTestCounts(simplifiedResults, pattern)
+
+        assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
+
+        assert(testsPerDevice.size == 2) { "Variants should be executed on exactly 2 devices (got ${testsPerDevice.size})" }
+        assert(testsPerDevice[0].value > 0) { "At least one parameterized test should be executed on ${testsPerDevice[0].key} device" }
+        assert(testsPerDevice[1].value > 0) { "At least one parameterized test should be executed on ${testsPerDevice[1].key} device" }
+    }
+
+    private fun getPerDeviceTestCounts(simplifiedResults: List<Pair<String, String>>, pattern: Regex): List<Map.Entry<String, Int>> {
+        return simplifiedResults
                 .filter { pattern.matches(it.first) }
                 .fold(HashMap<String, AtomicInteger>()) { acc, test ->
                     acc
@@ -238,22 +280,9 @@ class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier)
                             .incrementAndGet()
                     acc
                 }
+                .mapValues { it.value.get() }
                 .entries
                 .toList()
-        if (expectedCount > 0) {
-            assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
-            if (expectedCount >= 8) {
-                assert(testsPerDevice.size == 2) { "Variants should be executed on exactly 2 devices (got ${testsPerDevice.size})" }
-                assert(testsPerDevice[0].value.get() > 0) { "At least one parameterized test should be executed on ${testsPerDevice[0].key} device" }
-                assert(testsPerDevice[1].value.get() > 0) { "At least one parameterized test should be executed on ${testsPerDevice[1].key} device" }
-            }
-            assert(testsPerDevice[0].value.get() + testsPerDevice[1].value.get() == expectedCount) {
-                "Exactly $expectedCount parameterized tests should be executed" +
-                        " (device1=${testsPerDevice[0].value.get()}, device2=${testsPerDevice[1].value.get()})"
-            }
-        } else {
-            assert(testsPerDevice.isEmpty()) { "The parameterized tests should not be executed" }
-        }
     }
 
     private fun getSimplifiedResults(

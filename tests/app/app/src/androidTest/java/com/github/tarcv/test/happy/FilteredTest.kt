@@ -36,11 +36,6 @@ class FilteredTest(param: Int) {
     fun filterUsingAssumption() {
         Assume.assumeTrue(Build.VERSION.SDK_INT == 22)
     }
-
-    @Test
-    fun assumptionFailedIsMarkedSkipped() {
-        Assume.assumeTrue(false)
-    }
 */
     companion object {
         @Parameterized.Parameters

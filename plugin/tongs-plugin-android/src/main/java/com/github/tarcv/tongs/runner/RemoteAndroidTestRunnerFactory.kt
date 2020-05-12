@@ -15,10 +15,16 @@ import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.runner.listeners.BroadcastingListener
+import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
+import com.github.tarcv.tongs.summary.ResultStatus
 import com.github.tarcv.tongs.system.DdmsUtils
 import com.github.tarcv.tongs.system.DdmsUtils.unescapeInstrumentationArg
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 import java.util.*
+import kotlin.collections.ArrayList
+
+// TODO: Refactor this file
 
 interface IRemoteAndroidTestRunnerFactory {
     fun createRemoteAndroidTestRunner(testPackage: String, testRunner: String, device: IDevice): RemoteAndroidTestRunner
@@ -69,7 +75,7 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                         val withF2Filter = filters.split(",").contains("com.github.tarcv.test.F2Filter")
 
                         val testCount: Int
-                        val filteredTestIdentifiers: List<String> = TestIdentifiers.asSequence()
+                        val filteredTestIdentifiers: List<String> = testIdentifiers.asSequence()
                                 .filter { shouldIncludeApi22Only || !it.contains("#api22Only") }
                                 .filter { !withF2Filter || !it.contains("#filteredByF2Filter")}
                                 .toList()
@@ -131,10 +137,85 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
     }
 
     companion object {
+        private const val testPackageRoot = """com.github.tarcv.test"""
+
+        fun resultForTestCase(testCaseContext: TestCaseRunRuleContext, timeStart: Instant): TestCaseRunResult {
+            fun MutableList<StackTrace>.addTrace() {
+                this += StackTrace(
+                        "Exception",
+                        "message ${this.size}",
+                        "trace"
+                )
+            }
+
+            val event = testCaseContext.testCaseEvent
+
+            // Conditions are from FunctionalXmlTest#testNegativeXmlsHaveExpectedContent
+            val isResultTest = event.testClass == "$testPackageRoot.ResultTest"
+            val shouldFail = isResultTest && event.testMethod.startsWith("failure")
+            val shouldFailureInAfter = isResultTest && event.testMethod.contains("failAfter = true")
+            val shouldSkip = isResultTest && event.testMethod.startsWith("assumptionFailure")
+
+            var status = ResultStatus.PASS
+            val stackTraces = ArrayList<StackTrace>()
+
+            if (shouldFail) {
+                stackTraces.addTrace()
+                status = ResultStatus.FAIL
+            }
+            if (shouldSkip) {
+                stackTraces.addTrace()
+                status = ResultStatus.ASSUMPTION_FAILED
+            }
+            if (shouldFailureInAfter) {
+                stackTraces.addTrace()
+                status = ResultStatus.FAIL
+            }
+
+            val failuresOut = if (stackTraces.isNotEmpty()) {
+                "There were ${stackTraces.size} failures:\n" +
+                        stackTraces
+                                .mapIndexed { index, trace ->
+                                    "${index + 1}) ${event.testMethod}(${event.testClass})\n$trace"
+                                }
+                                .joinToString("\n") +
+                        "\n\nFAILURES!!"
+            } else if (stackTraces.size == 1) {
+                "There was 1 failure:\n" +
+                        "1) ${event.testMethod}(${event.testClass})\n" +
+                        stackTraces[0].fullTrace +
+                        "\n\nFAILURES!!"
+            } else {
+                "OK"
+            }
+            val data = listOf(SimpleMonoTextReportData(
+                    "System Out",
+                    SimpleMonoTextReportData.Type.STDOUT,
+                    failuresOut
+            ))
+
+            val timeEnd = Instant.now()
+            return TestCaseRunResult(
+                    testCaseContext.pool,
+                    testCaseContext.device,
+                    testCaseContext.testCaseEvent.testCase,
+                    status,
+                    stackTraces.lastOrNull()?.let{ listOf(it) } ?: emptyList(),
+                    Instant.EPOCH,
+                    Instant.EPOCH,
+                    timeStart,
+                    timeEnd,
+                    0, // TODO
+                    emptyMap(),
+                    null,
+                    data
+            )
+        }
+
         const val functionalTestTestIdentifierDuration = 2345L
 
         private const val expectedTestPackage = "com.github.tarcv.tongstestapp.f[12].test"
-        private const val expectedTestRunner = "(?:android.support.test.runner.AndroidJUnitRunner|com.github.tarcv.test.f2.TestRunner)"
+        private const val expectedTestRunner = "(?:android.support.test.runner.AndroidJUnitRunner|$testPackageRoot.f2.TestRunner)"
         val logOnlyCommandPattern =
                 ("am\\s+instrument\\s+-w\\s+-r" +
                         " -e filter ((?:\\S+,)?com.github.tarcv.tongs.ondevice.AnnontationReadingFilter(,?:\\S+)?)" +
@@ -155,183 +236,111 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                         .replace(" -", "\\s+-")
                         .replace("()", "(.+?)")
                         .toRegex()
-        private val TestIdentifiers = listOf("""com.github.tarcv.test.DangerousNamesTest#test[param = """ + '$' + """THIS_IS_NOT_A_VAR]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param =        1       ]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = #######]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = !!!!!!!]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = ''''''']""",
-                "com.github.tarcv.test.DangerousNamesTest#test[param = \"\"\"\"\"\"\"\"]",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = ()$(echo)`echo`()$(echo)`echo`()$(echo)`echo`()$(echo)`echo`()$(echo)`echo`()$(echo)`echo`()$(echo)`echo`]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = * *.* * *.* * *.* * *.* * *.* * *.* * *.* * *.* *]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = . .. . .. . .. . .. . .. . .. . .. . .. . .. . ..]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = |&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = Non-ASCII: ° © ± ¶ ½ » ѱ ∆]""",
-                """com.github.tarcv.test.DangerousNamesTest#test[param = ; function {}; while {}; for {}; do {}; done {}; exit]""",
-                """com.github.tarcv.test.FilteredTest#api22Only[1]""",
-                """com.github.tarcv.test.FilteredTest#api22Only[2]""",
-                """com.github.tarcv.test.FilteredTest#api22Only[3]""",
-                """com.github.tarcv.test.FilteredTest#api22Only[4]""",
-                """com.github.tarcv.test.FilteredTest#filteredByF2Filter[1]""",
-                """com.github.tarcv.test.FilteredTest#filteredByF2Filter[2]""",
-                """com.github.tarcv.test.FilteredTest#filteredByF2Filter[3]""",
-                """com.github.tarcv.test.FilteredTest#filteredByF2Filter[4]""",
-                """com.github.tarcv.test.GrantPermissionsForClassTest#testPermissionGranted1""",
-                """com.github.tarcv.test.GrantPermissionsForClassTest#testPermissionGranted2""",
-                """com.github.tarcv.test.GrantPermissionsForInheritedClassTest#testPermissionGranted1""",
-                """com.github.tarcv.test.GrantPermissionsForInheritedClassTest#testPermissionGranted2""",
-                """com.github.tarcv.test.GrantPermissionsTest#testPermissionGranted""",
-                """com.github.tarcv.test.GrantPermissionsTest#testNoPermissionByDefault""",
-                """com.github.tarcv.test.NoPermissionsForOverridesTest#testNoPermissionForAbstractOverrides""",
-                """com.github.tarcv.test.NoPermissionsForOverridesTest#testNoPermissionForNormalOverrides""",
-                """com.github.tarcv.test.NormalTest#test""",
-                """com.github.tarcv.test.ParameterizedNamedTest#test[param = 1]""",
-                """com.github.tarcv.test.ParameterizedNamedTest#test[param = 2]""",
-                """com.github.tarcv.test.ParameterizedNamedTest#test[param = 3]""",
-                """com.github.tarcv.test.ParameterizedNamedTest#test[param = 4]""",
-                """com.github.tarcv.test.ParameterizedNamedTest#test[param = 5]""",
-                """com.github.tarcv.test.ParameterizedNamedTest#test[param = 6]""",
-                """com.github.tarcv.test.ParameterizedNamedTest#test[param = 7]""",
-                """com.github.tarcv.test.ParameterizedNamedTest#test[param = 8]""",
-                """com.github.tarcv.test.ParameterizedTest#test[1]""",
-                """com.github.tarcv.test.ParameterizedTest#test[2]""",
-                """com.github.tarcv.test.ParameterizedTest#test[3]""",
-                """com.github.tarcv.test.ParameterizedTest#test[4]""",
-                """com.github.tarcv.test.ParameterizedTest#test[5]""",
-                """com.github.tarcv.test.ParameterizedTest#test[6]""",
-                """com.github.tarcv.test.ParameterizedTest#test[7]""",
-                """com.github.tarcv.test.ParameterizedTest#test[8]""",
-                """com.github.tarcv.test.PropertiesTest#normalPropertiesTest""",
-                """com.github.tarcv.test.PropertiesTest#normalPropertyPairsTest""",
-                """com.github.tarcv.test.ResetPrefsTest#testPrefsAreClearedBetweenTests[0]""",
-                """com.github.tarcv.test.ResetPrefsTest#testPrefsAreClearedBetweenTests[1]""",
-                """com.github.tarcv.test.ResetPrefsTest#testPrefsAreClearedBetweenTests[2]""",
-                """com.github.tarcv.test.ResetPrefsTest#testPrefsAreClearedBetweenTests[3]"""
-        )
 
-        val logcatLines = listOf("[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = ${'$'}THIS_IS_NOT_A_VAR]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param =        1       ]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = #######]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = !!!!!!!]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = ''''''']","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = \"\"\"\"\"\"\"\"]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = ()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = * *.* * *.* * *.* * *.* * *.* * *.* * *.* * *.* *]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = . .. . .. . .. . .. . .. . .. . .. . .. . .. . ..]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = |&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.DangerousNamesTest","testMethod":"test[param = ; function {}; while {}; for {}; do {}; done {}; exit]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.GrantPermissionsForClassTest","testMethod":"testPermissionGranted1","annotations":[{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.GrantPermissionsForClassTest","testMethod":"testPermissionGranted2","annotations":[{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.GrantPermissionsForInheritedClassTest","testMethod":"testPermissionGranted1","annotations":[{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.GrantPermissionsForInheritedClassTest","testMethod":"testPermissionGranted2","annotations":[{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.GrantPermissionsTest","testMethod":"testPermissionGranted","annotations":[{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.GrantPermissionsTest","testMethod":"testNoPermissionByDefault","annotations":[{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.NoPermissionsForOverridesTest","testMethod":"testNoPermissionForOverrides","annotations":[{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.NormalTest","testMethod":"test","annotations":[{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedNamedTest","testMethod":"test[param = 1]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedNamedTest","testMethod":"test[param = 2]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedNamedTest","testMethod":"test[param = 3]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedNamedTest","testMethod":"test[param = 4]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedNamedTest","testMethod":"test[param = 5]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedNamedTest","testMethod":"test[param = 6]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedNamedTest","testMethod":"test[param = 7]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedNamedTest","testMethod":"test[param = 8]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedTest","testMethod":"test[0]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedTest","testMethod":"test[1]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedTest","testMethod":"test[2]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedTest","testMethod":"test[3]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedTest","testMethod":"test[4]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedTest","testMethod":"test[5]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedTest","testMethod":"test[6]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ParameterizedTest","testMethod":"test[7]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.PropertiesTest","testMethod":"normalPropertiesTest","annotations":[{"annotationType":"com.github.tarcv.tongs.TestProperties","keys":["x","y"],"values":["1","2"]},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.PropertiesTest","testMethod":"normalPropertyPairsTest","annotations":[{"annotationType":"com.github.tarcv.tongs.TestPropertyPairs","value":["v","1","w","2"]},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ResetPrefsTest","testMethod":"testPrefsAreClearedBetweenTests[0]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ResetPrefsTest","testMethod":"testPrefsAreClearedBetweenTests[1]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ResetPrefsTest","testMethod":"testPrefsAreClearedBetweenTests[2]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                "",
-                "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]",
-                """0b2d3157-LOGCAT_INDEX:{"testClass":"com.github.tarcv.test.ResetPrefsTest","testMethod":"testPrefsAreClearedBetweenTests[3]","annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
-                ""
-        )
+        private val timeLine = "[ LOGCAT_TIME 1234: 5678 I/Tongs.TestInfo ]"
+        private val parameterizedTestSuffix = """"annotations":[{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},"""
+        private val standardTestSuffix = """"annotations":[{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},"""
+        private val tests = listOf(
+                parameterizedTest("happy.DangerousNamesTest","test[param = ${'$'}THIS_IS_NOT_A_VAR]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param =        1       ]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = #######]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = !!!!!!!]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = ''''''']"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = \"\"\"\"\"\"\"\"]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = ()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`()${'$'}(echo)`echo`]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = * *.* * *.* * *.* * *.* * *.* * *.* * *.* * *.* *]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = . .. . .. . .. . .. . .. . .. . .. . .. . .. . ..]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = |&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%|&;<>()${'$'}`?[]#~=%]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = Non-ASCII: ° © ± ¶ ½ » ѱ ∆]"),
+                parameterizedTest("happy.DangerousNamesTest","test[param = ; function {}; while {}; for {}; do {}; done {}; exit]"),
+                parameterizedTest("happy.FilteredTest","api22Only[1]"),
+                parameterizedTest("happy.FilteredTest","api22Only[2]"),
+                parameterizedTest("happy.FilteredTest","api22Only[3]"),
+                parameterizedTest("happy.FilteredTest","api22Only[4]"),
+                parameterizedTest("happy.FilteredTest","filteredByF2Filter[1]"),
+                parameterizedTest("happy.FilteredTest","filteredByF2Filter[2]"),
+                parameterizedTest("happy.FilteredTest","filteredByF2Filter[3]"),
+                parameterizedTest("happy.FilteredTest","filteredByF2Filter[4]"),
+                test("happy.GrantPermissionsForClassTest","testPermissionGranted1","""{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]}"""),
+                test("happy.GrantPermissionsForClassTest","testPermissionGranted2","""{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]}"""),
+                test("happy.GrantPermissionsForInheritedClassTest","testPermissionGranted1","""{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]}"""),
+                test("happy.GrantPermissionsForInheritedClassTest","testPermissionGranted2","""{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]}"""),
+                test("happy.GrantPermissionsTest","testPermissionGranted","""{"annotationType":"com.github.tarcv.tongs.GrantPermission","value":["android.permission.WRITE_CALENDAR"]}"""),
+                test("happy.GrantPermissionsTest","testNoPermissionByDefault"),
+                test("happy.NoPermissionsForOverridesTest","testNoPermissionForAbstractOverrides"),
+                test("happy.NoPermissionsForOverridesTest","testNoPermissionForNormalOverrides"),
+                test("happy.NormalTest", "test"),
+                parameterizedTest("happy.ParameterizedNamedTest", "test[param = 1]"),
+                parameterizedTest("happy.ParameterizedNamedTest","test[param = 2]"),
+                parameterizedTest("happy.ParameterizedNamedTest","test[param = 3]"),
+                parameterizedTest("happy.ParameterizedNamedTest","test[param = 4]"),
+                parameterizedTest("happy.ParameterizedNamedTest","test[param = 5]"),
+                parameterizedTest("happy.ParameterizedNamedTest","test[param = 6]"),
+                parameterizedTest("happy.ParameterizedNamedTest","test[param = 7]"),
+                parameterizedTest("happy.ParameterizedNamedTest","test[param = 8]"),
+                parameterizedTest("happy.ParameterizedTest","test[0]"),
+                parameterizedTest("happy.ParameterizedTest","test[1]"),
+                parameterizedTest("happy.ParameterizedTest","test[2]"),
+                parameterizedTest("happy.ParameterizedTest","test[3]"),
+                parameterizedTest("happy.ParameterizedTest","test[4]"),
+                parameterizedTest("happy.ParameterizedTest","test[5]"),
+                parameterizedTest("happy.ParameterizedTest","test[6]"),
+                parameterizedTest("happy.ParameterizedTest","test[7]"),
+                test("happy.PropertiesTest","normalPropertiesTest","""{"annotationType":"com.github.tarcv.tongs.TestProperties","keys":["x","y"],"values":["1","2"]}"""),
+                test("happy.PropertiesTest","normalPropertyPairsTest","""{"annotationType":"com.github.tarcv.tongs.TestPropertyPairs","value":["v","1","w","2"]}"""),
+                parameterizedTest("happy.ResetPrefsTest","testPrefsAreClearedBetweenTests[0]"),
+                parameterizedTest("happy.ResetPrefsTest","testPrefsAreClearedBetweenTests[1]"),
+                parameterizedTest("happy.ResetPrefsTest","testPrefsAreClearedBetweenTests[2]"),
+                parameterizedTest("happy.ResetPrefsTest","testPrefsAreClearedBetweenTests[3]"),
+                parameterizedTest("ResultTest","successful[failAfter = true]"),
+                parameterizedTest("ResultTest","successful[failAfter = false]"),
+                parameterizedTest("ResultTest","failureFromEspresso[failAfter = true]"),
+                parameterizedTest("ResultTest","failureFromEspresso[failAfter = false]"),
+                parameterizedTest("ResultTest","assumptionFailure[failAfter = true]"),
+                parameterizedTest("ResultTest","assumptionFailure[failAfter = false]")
+            )
+
+        val testIdentifiers: List<String> = tests.map { it.toStringIdentifier() }
+        val logcatLines: List<String> = tests.flatMap { it.toLines() }
+
+        private fun test(shortenedTestClass: String, testMethod: String, additionalAnnotations: String = ""): TestInfo {
+            return TestInfo(shortenedTestClass, testMethod, additionalAnnotations)
+        }
+
+        private fun parameterizedTest(shortenedTestClass: String, testMethodWithVariant: String): TestInfo {
+            return test(
+                    shortenedTestClass,
+                    testMethodWithVariant,
+                    """{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"},{"annotationType":"org.junit.runner.RunWith","value":"class org.junit.runners.Parameterized"}"""
+            )
+        }
+
+        private class TestInfo(
+                val shortenedTestClass: String,
+                val testMethod: String,
+                private val additionalAnnotations: String = ""
+        ) {
+            val fullTestClass: String
+                get() = """$testPackageRoot.$shortenedTestClass"""
+
+            fun toLines(): List<String> {
+                val additionalAnnotationsPart = if (additionalAnnotations.isNotBlank()) {
+                    "$additionalAnnotations,"
+                } else {
+                    ""
+                }
+                val escapedMethod = testMethod.replace("\"", "\\\"")
+                return listOf(
+                        timeLine,
+                        """0b2d3157-LOGCAT_INDEX:{"testClass":"$fullTestClass","testMethod":"$escapedMethod","annotations":[$additionalAnnotationsPart{"annotationType":"org.junit.Test","expected":"class org.junit.Test${'$'}None","timeout":0}]},""",
+                        ""
+                )
+            }
+
+            fun toStringIdentifier(): String {
+                return "${fullTestClass}#${testMethod}"
+            }
+        }
     }
 }
 

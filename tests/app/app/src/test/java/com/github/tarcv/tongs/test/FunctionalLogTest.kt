@@ -45,7 +45,7 @@ class FunctionalLogTest {
                 .forEach { runCommand ->
                     val expectedFilter = when (FLAVOR) {
                         "f1" ->"com.github.tarcv.tongs.ondevice.ClassMethodFilter"
-                        "f2" ->"com.github.tarcv.tongs.ondevice.ClassMethodFilter,com.github.tarcv.test.F2Filter"
+                        "f2" ->"com.github.tarcv.test.F2Filter,com.github.tarcv.tongs.ondevice.ClassMethodFilter"
                         else -> throw AssertionError("Got an unexpected build flavor")
                     }
                     assert(runCommand.contains("-e filter $expectedFilter")) {
@@ -108,26 +108,28 @@ class FunctionalLogTest {
                 "com.github.tarcv.test.GrantPermissionsForInheritedClassTest#testPermissionGranted2",
                 "com.github.tarcv.test.GrantPermissionsTest#testPermissionGranted"
         )
-        (getTestLineGroups(0) + getTestLineGroups(1)).entries.forEach { entry ->
-            val testCase = entry.key
-            val beforeLines = entry.value.subList(0, entry.value.size - 1)
-            val grantToApp = "pm grant com.github.tarcv.tongstestapp android.permission.WRITE_CALENDAR"
-            val grantToTest = "pm grant com.github.tarcv.tongstestapp.test android.permission.WRITE_CALENDAR"
-            if (grantTests.contains(testCase)) {
-                assert(beforeLines.count { line -> line == grantToApp } == 1)
-                assert(beforeLines.count { line -> line == grantToTest } == 1)
-            } else {
-                assert(beforeLines.none { line -> line == grantToApp })
-                assert(beforeLines.none { line -> line == grantToTest })
-            }
-        }
+        (getTestLineGroups(0) + getTestLineGroups(1)).entries
+                .filter { entry -> entry.value.isNotEmpty() }
+                .forEach { entry ->
+                    val testCase = entry.key
+                    val beforeLines = entry.value.subList(0, entry.value.size - 1)
+                    val grantToApp = "pm grant com.github.tarcv.tongstestapp android.permission.WRITE_CALENDAR"
+                    val grantToTest = "pm grant com.github.tarcv.tongstestapp.test android.permission.WRITE_CALENDAR"
+                    if (grantTests.contains(testCase)) {
+                        assert(beforeLines.count { line -> line == grantToApp } == 1)
+                        assert(beforeLines.count { line -> line == grantToTest } == 1)
+                    } else {
+                        assert(beforeLines.none { line -> line == grantToApp })
+                        assert(beforeLines.none { line -> line == grantToTest })
+                    }
+                }
     }
 
     private fun getTestLineGroups(whichDevice: Int): Map<String, List<String>> {
         assumeTrue(System.getenv("CI_STUBBED") == "true")
 
         val lineRegex = Regex("""^\d+\s+(.+)$""")
-        val testNameRegex = Regex(""".*-e filterMethod (\S+)\s.*-e filterClass (\S+)\s.*""")
+        val testNameRegex = Regex(""".*-e tongs_filterClass (\S+)\s.*-e tongs_filterMethod (\S+).*""")
         return Files.readAllLines(
                 Paths.get("..", "tongs-${5554 + whichDevice*2}_adb.log"),
                 StandardCharsets.ISO_8859_1)
@@ -143,9 +145,13 @@ class FunctionalLogTest {
                     acc
                 }
                 .associate { group ->
-                    val nameMatch = testNameRegex.matchEntire(group.last())
-                    if (nameMatch != null) {
-                        "${nameMatch.groupValues[2]}#${nameMatch.groupValues[1]}" to group.toList()
+                    if (group.isNotEmpty()) { // TODO: this check should not be needed
+                        val nameMatch = testNameRegex.matchEntire(group.last())
+                        if (nameMatch != null) {
+                            "${nameMatch.groupValues[1]}#${nameMatch.groupValues[2]}" to group.toList()
+                        } else {
+                            "" to group.toList()
+                        }
                     } else {
                         "" to group.toList()
                     }
