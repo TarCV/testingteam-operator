@@ -14,12 +14,10 @@
 package com.github.tarcv.tongs.runner
 
 import com.github.tarcv.tongs.Utils
-import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
-import com.github.tarcv.tongs.injector.ruleManagerFactory
+import com.github.tarcv.tongs.injector.RuleManagerFactory
 import com.github.tarcv.tongs.injector.withRules
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEventQueue
-import com.github.tarcv.tongs.runner.rules.PoolRunRule
 import com.github.tarcv.tongs.runner.rules.PoolRunRuleContext
 import com.github.tarcv.tongs.runner.rules.PoolRunRuleFactory
 import org.slf4j.LoggerFactory
@@ -31,7 +29,8 @@ class PoolTestRunner(
         private val pool: Pool,
         private val testCases: TestCaseEventQueue,
         private val poolCountDownLatch: CountDownLatch,
-        private val progressReporter: ProgressReporter
+        private val progressReporter: ProgressReporter,
+        private val ruleManagerFactory: RuleManagerFactory
 ) : Runnable {
     override fun run() {
         val poolName = pool.name
@@ -69,7 +68,7 @@ class PoolTestRunner(
         ) {
             for (device in pool.devices) {
                 val deviceTestRunner = deviceTestRunnerFactory.createDeviceTestRunner(pool, testCases,
-                        deviceCountDownLatch, device, progressReporter)
+                        deviceCountDownLatch, device, progressReporter, ruleManagerFactory)
                 concurrentDeviceExecutor.execute(deviceTestRunner)
             }
             deviceCountDownLatch.await()

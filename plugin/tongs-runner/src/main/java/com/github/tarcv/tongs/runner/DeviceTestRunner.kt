@@ -35,7 +35,9 @@ class DeviceTestRunner(private val pool: Pool,
                        private val device: Device,
                        private val queueOfTestsInPool: TestCaseEventQueue,
                        private val deviceCountDownLatch: CountDownLatch,
-                       private val progressReporter: ProgressReporter) : Runnable {
+                       private val progressReporter: ProgressReporter,
+                       private val ruleManagerFactory: RuleManagerFactory
+) : Runnable {
     override fun run() {
         try {
             val rules = ruleManagerFactory.create(DeviceRunRuleFactory::class.java,

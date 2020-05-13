@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.runner;
 
+import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCaseEvent;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;
@@ -21,9 +22,12 @@ import java.util.concurrent.CountDownLatch;
 
 public class PoolTestRunnerFactory {
     private final DeviceTestRunnerFactory deviceTestRunnerFactory;
+    private final RuleManagerFactory ruleManagerFactory;
 
-    public PoolTestRunnerFactory(DeviceTestRunnerFactory deviceTestRunnerFactory) {
+    public PoolTestRunnerFactory(DeviceTestRunnerFactory deviceTestRunnerFactory,
+                                 RuleManagerFactory ruleManagerFactory) {
         this.deviceTestRunnerFactory = deviceTestRunnerFactory;
+        this.ruleManagerFactory = ruleManagerFactory;
     }
 
     public Runnable createPoolTestRunner(Pool pool,
@@ -39,6 +43,7 @@ public class PoolTestRunnerFactory {
                 pool,
                 new TestCaseEventQueue(testCases, testCaseResults),
                 poolCountDownLatch,
-                progressReporter);
+                progressReporter,
+                ruleManagerFactory);
     }
 }

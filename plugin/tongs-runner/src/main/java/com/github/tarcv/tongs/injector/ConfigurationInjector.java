@@ -14,23 +14,19 @@
 package com.github.tarcv.tongs.injector;
 
 import com.github.tarcv.tongs.Configuration;
-
+import org.koin.java.KoinJavaComponent;
 import java.io.File;
 
-public class ConfigurationInjector {
-    private static Configuration configuration;
+import static org.koin.java.KoinJavaComponent.inject;
 
+public class ConfigurationInjector {
     private ConfigurationInjector() {}
 
-    public static void setConfiguration(Configuration configuration) {
-        ConfigurationInjector.configuration = configuration;
-    }
-
     public static Configuration configuration() {
-        return configuration;
+        return KoinJavaComponent.get(Configuration.class);
     }
 
     public static File configuredOutput() {
-        return configuration.getOutput();
+        return configuration().getOutput();
     }
 }

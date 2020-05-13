@@ -3,7 +3,6 @@ package com.github.tarcv.tongs.summary
 import com.github.tarcv.tongs.Configuration
 import com.github.tarcv.tongs.Configuration.aConfigurationBuilder
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
-import com.github.tarcv.tongs.injector.ConfigurationInjector.setConfiguration
 import com.github.tarcv.tongs.injector.summary.OutcomeAggregatorInjector.outcomeAggregator
 import com.github.tarcv.tongs.injector.summary.SummaryCompilerInjector.summaryCompiler
 import com.github.tarcv.tongs.injector.summary.SummaryPrinterInjector.summaryPrinter
@@ -20,6 +19,8 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import java.io.File
 import java.lang.reflect.Type
 import java.nio.file.Paths
@@ -75,7 +76,12 @@ class SummarizerIntegrationTest {
                 ))
                 .withOutput(temporaryFolder.root)
                 .build()
-        setConfiguration(configuration)
+        val runnerModule = module {
+            single { configuration }
+        }
+        startKoin {
+            modules(runnerModule)
+        }
     }
 
     internal class ComplexEnumDeserializer<T: Enum<*>>(val constants: Array<T>) : JsonDeserializer<T> {
