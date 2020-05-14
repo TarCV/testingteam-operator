@@ -16,12 +16,16 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 
+import com.github.tarcv.tongs.runner.StackTrace;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -56,18 +60,18 @@ class ConsoleLoggingTestRunListener extends TongsTestListener {
     @Override
     public void onTestFailed(TestCaseRunResult failureResult) {
         System.out.println(format("%s %s %s %s [%s] Failed %s\n %s", runningTime(), progress(), failures(), modelName,
-                serial, testCase(test), failureResult.getStackTrace()));
+                serial, testCase(test), joinStackTraces(failureResult)));
     }
 
     @Override
     public void onTestAssumptionFailure(TestCaseRunResult skipped) {
         logger.debug("test={}", testCase(test));
-        logger.debug("assumption failure {}", skipped.getStackTrace());
+        logger.debug("assumption failure {}", joinStackTraces(skipped));
     }
 
     @Override
     public void onTestSkipped(TestCaseRunResult skipped) {
-        logger.debug("ignored test {} {}", testCase(test), skipped.getStackTrace());
+        logger.debug("ignored test {} {}", testCase(test), joinStackTraces(skipped));
     }
 
 
@@ -91,5 +95,12 @@ class ConsoleLoggingTestRunListener extends TongsTestListener {
 
     private int failures() {
         return progressReporter.getFailures();
+    }
+
+    @NotNull
+    private static String joinStackTraces(TestCaseRunResult failureResult) {
+        return failureResult.getStackTraces().stream()
+                .map(stackTrace -> stackTrace.getFullTrace())
+                .collect(Collectors.joining(System.lineSeparator() + System.lineSeparator()));
     }
 }

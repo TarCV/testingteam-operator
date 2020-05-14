@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.model.Device;
 import com.github.tarcv.tongs.model.Pool;
 import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.runner.StackTrace;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -35,10 +36,9 @@ import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
-import static com.github.tarcv.tongs.summary.FakeDeviceTestFilesRetriever.aFakeDeviceTestFilesRetriever;
-import static com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT;
+import static com.github.tarcv.tongs.runner.TestCaseRunResult.NO_TRACE;
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
+import static java.util.Collections.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItems;
@@ -50,7 +50,6 @@ public class SummaryCompilerTest {
     @Mock
     private TongsConfiguration mockConfiguration;
 
-    private final FakeDeviceTestFilesRetriever fakeDeviceTestFilesRetriever = aFakeDeviceTestFilesRetriever();
     private SummaryCompiler summaryCompiler;
 
     private final Pool devicePool = aDevicePool()
@@ -65,23 +64,27 @@ public class SummaryCompilerTest {
             "com.example.CompletedClassTest",
             "doesJobProperly",
             ResultStatus.PASS,
-            "");
+            NO_TRACE
+    );
     private final TestCaseRunResult secondCompletedTest = TestCaseRunResult.Companion.aTestResult(
             devicePool, Device.TEST_DEVICE,
             "com.example.CompletedClassTest2",
             "doesJobProperly",
             ResultStatus.PASS,
-            ""
+            NO_TRACE
     );
 
-    private final HashMap<String, String> testMetricsForFailedTest = new HashMap<String, String>() {{
-        put(SUMMARY_KEY_TOTAL_FAILURE_COUNT, "10");
-    }};
     private final List<TestCaseRunResult> testResults = newArrayList(
             firstCompletedTest,
             secondCompletedTest,
-            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.FailedClassTest", "doesJobProperly", ResultStatus.FAIL, "a failure stacktrace", testMetricsForFailedTest),
-            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.IgnoredClassTest", "doesJobProperly", ResultStatus.IGNORED, "")
+            TestCaseRunResult.Companion.aTestResult(devicePool,
+                    Device.TEST_DEVICE,
+                    "com.example.FailedClassTest",
+                    "doesJobProperly",
+                    ResultStatus.FAIL,
+                    singletonList(new StackTrace("", "a failure stacktrace", "a failure stacktrace")),
+                    9),
+            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.IgnoredClassTest", "doesJobProperly", ResultStatus.IGNORED, NO_TRACE)
     );
 
     private final Map<Pool, Collection<TestCaseEvent>> testCaseEvents = ImmutableMap.<Pool, Collection<TestCaseEvent>>builder()
@@ -89,14 +92,14 @@ public class SummaryCompilerTest {
                 newTestCase(new TestCase("doesJobProperly", "com.example.CompletedClassTest")),
                 newTestCase(new TestCase("doesJobProperly", "com.example.CompletedClassTest2")),
                 newTestCase("doesJobProperly", "com.example.FailedClassTest",
-                        testMetricsForFailedTest, emptyList(), emptyList()),
+                        emptyMap(), emptyList(), emptyList(), 10),
                 newTestCase(new TestCase("doesJobProperly", "com.example.IgnoredClassTest")),
                 newTestCase(new TestCase("doesJobProperly", "com.example.SkippedClassTest"))
             )).build();
 
     @Before
     public void setUp() {
-        summaryCompiler = new SummaryCompiler(mockConfiguration, fakeDeviceTestFilesRetriever);
+        summaryCompiler = new SummaryCompiler(mockConfiguration);
         mockery.checking(new Expectations() {{
             allowing(mockConfiguration);
         }});

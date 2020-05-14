@@ -46,7 +46,6 @@ dependencies {
     implementation deps.slf4j
     implementation deps.gson
     implementation "org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
-    implementation 'org.simpleframework:simple-xml:2.7.1'
     implementation("org.lesscss:lesscss:1.7.0.1.1") {
         exclude(module: "slf4j-simple")
     }

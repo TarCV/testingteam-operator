@@ -12,19 +12,20 @@
  */
 package com.github.tarcv.tongs.runner.rules
 
-import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.TestCaseEvent
 import com.github.tarcv.tongs.runner.TestCaseRunResult
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
+import java.time.Instant
 
 class TestCaseRunRuleContext(
         val configuration: RunConfiguration,
         val fileManager: TestCaseFileManager,
         val pool: Pool,
         val device: Device,
-        val testCaseEvent: TestCaseEvent
+        val testCaseEvent: TestCaseEvent,
+        val startTimestampUtc: Instant
 )
 
 class TestCaseRunRuleAfterArguments(

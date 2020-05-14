@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -16,10 +16,14 @@ package com.github.tarcv.tongs.summary;
 import com.github.tarcv.tongs.TongsConfiguration;
 import com.github.tarcv.tongs.model.TestCase;
 import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.runner.StackTrace;
 import com.github.tarcv.tongs.runner.TestCaseRunResult;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,11 +37,9 @@ import static java.util.Locale.ENGLISH;
 
 public class SummaryCompiler {
     private final TongsConfiguration configuration;
-    private final DeviceTestFilesRetriever deviceTestFilesRetriever;
 
-    public SummaryCompiler(TongsConfiguration configuration, DeviceTestFilesRetriever deviceTestFilesRetriever) {
+    public SummaryCompiler(TongsConfiguration configuration) {
         this.configuration = configuration;
-        this.deviceTestFilesRetriever = deviceTestFilesRetriever;
     }
 
     Summary compileSummary(Collection<Pool> pools, Map<Pool, Collection<TestCaseEvent>> testCasesPerPool, List<TestCaseRunResult> results) {
@@ -83,48 +85,6 @@ public class SummaryCompiler {
                 });
     }
 
-    private Collection<TestResult> getTestResultsForPool(Pool pool, Map<com.github.tarcv.tongs.model.TestCase , TestCaseEvent> eventMap) {
-        Set<TestResult> testResults = Sets.newHashSet();
-
-        Collection<TestResult> testResultsForPoolDevices = pool.getDevices()
-                .stream()
-                .map(device -> {
-                    return deviceTestFilesRetriever
-                            .getTestResultsForDevice(pool, device).stream()
-                            .map(testResult -> {
-                                // TODO: In current Tongs implementation testMetrics and properties is the same, probably split them later
-                                TestCaseEvent testCaseEvent = eventMap.get(new TestCase(testResult.getTestMethod(), testResult.getTestClass()));
-                                if (testCaseEvent != null) {
-                                    Map<String, String> xmlMetrics = testResult.getMetrics();
-                                    Map<String, String> outMetrics = new HashMap<>();
-
-                                    // Metrics from XML Output take priority
-                                    outMetrics.putAll(testCaseEvent.getProperties());
-                                    outMetrics.putAll(xmlMetrics);
-
-                                    return new TestResult.Builder(testResult)
-                                            .withTestMetrics(outMetrics)
-                                            .build();
-                                } else {
-                                    return testResult;
-                                }
-                            })
-                            .collect(Collectors.toSet());
-                })
-                .reduce(Sets.newHashSet(), (accum, set) -> {
-                    accum.addAll(set);
-                    return accum;
-                });
-        testResults.addAll(testResultsForPoolDevices);
-
-        Device watchdog = getPoolWatchdog(pool.getName());
-        Collection<TestResult> testResultsForWatchdog =
-                deviceTestFilesRetriever.getTestResultsForDevice(pool, watchdog);
-        testResults.addAll(testResultsForWatchdog);
-
-        return testResults;
-    }
-
     private static Device getPoolWatchdog(String poolName) {
         return AndroidDevice.Builder.aDevice()
                 .withSerial(DROPPED_BY + poolName)
@@ -140,6 +100,8 @@ public class SummaryCompiler {
                 String failedTest = format(ENGLISH, "%d times %s", totalFailureCount, getTestResultData(testResult));
                 summaryBuilder.addFailedTests(testResult);
             } else if (testResult.getStatus() == ERROR || testResult.getStatus() == FAIL) {
+                // totalFailureCount of 0 here means something went wrong and this is actually a fatal crash
+                // TODO: handle this in a way that makes sure testResult.status == ERROR from plugins POV
                 summaryBuilder.addFatalCrashedTest(testResult);
             }
         }
@@ -158,9 +120,9 @@ public class SummaryCompiler {
                 .map(testResultItem -> {
                     return new TestCaseRunResult(pool, NO_DEVICE,
                             new TestCase(testResultItem.testMethod, testResultItem.testClass),
-                            ERROR, "Fatally crashed",
-                            0, 0,
-                            Collections.emptyMap(), null, Collections.emptyList());
+                            ERROR, Collections.singletonList(new StackTrace("FatalError", "Fatally crashed", "Fatally crashed")),
+                            Instant.now(), Instant.EPOCH, Instant.now(), Instant.EPOCH,
+                            0, Collections.emptyMap(), null, Collections.emptyList());
                 })
                 .forEach(testCaseRunResult -> {
                     summaryBuilder.addFatalCrashedTest(testCaseRunResult);
@@ -208,6 +170,12 @@ public class SummaryCompiler {
 
     private static final Device NO_DEVICE = new Device() {
         private final Object uniqueIdentifier = new Object();
+
+        @NotNull
+        @Override
+        public String getHost() {
+            return "N/A";
+        }
 
         @Override
         public String getSerial() {

@@ -11,10 +11,10 @@ package com.github.tarcv.tongs.model
 
 import com.github.tarcv.tongs.pooling.StubDevice
 import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.runner.TestCaseRunResult.Companion.NO_TRACE
 import com.github.tarcv.tongs.summary.ResultStatus
 import org.junit.Assert
 import org.junit.Test
-import java.lang.RuntimeException
 import java.lang.Thread.sleep
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
@@ -35,12 +35,12 @@ class TestCaseEventQueueTest {
             queue.pollForDevice(device1)!!.doWork {
                 Assert.assertEquals(test1, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, "")
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
             }
             queue.pollForDevice(device2)!!.doWork {
                 Assert.assertEquals(test2, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, "")
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
             }
         }
     }
@@ -61,12 +61,12 @@ class TestCaseEventQueueTest {
             queue.pollForDevice(device1)!!.doWork {
                 Assert.assertEquals(test2, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, "")
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
             }
             queue.pollForDevice(device2)!!.doWork {
                 Assert.assertEquals(test1, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, "")
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
             }
         }
     }
@@ -89,7 +89,11 @@ class TestCaseEventQueueTest {
         }
 
         withTimeout {
-            Assert.assertEquals(test2, queue.pollForDevice(device1))
+            queue.pollForDevice(device1)!!.doWork {
+                Assert.assertEquals(test2, it)
+
+                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
+            }
         }
     }
 }
@@ -120,6 +124,7 @@ private fun createStubDevice(serial: String): Device {
     val model = "Emu-$api"
     val stubDevice = StubDevice(serial, manufacturer, model, serial, api, "", 1)
     return object: Device() {
+        override fun getHost(): String = "localhost"
         override fun getSerial(): String = serial
         override fun getManufacturer(): String = manufacturer
         override fun getModelName(): String = model

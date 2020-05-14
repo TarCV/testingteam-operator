@@ -11,7 +11,7 @@
 package com.github.tarcv.test;
 
 public class Config {
-    final static long TEST_DURATION = 5_000;
+    public final static long TEST_DURATION = 5_000;
 
-    public final static String PACKAGE = "com.github.tarcv.test";
+    public final static String PACKAGE = "com.github.tarcv.test.happy";
 }

@@ -19,46 +19,114 @@ import com.github.tarcv.tongs.model.Pool.Builder.aDevicePool
 import com.github.tarcv.tongs.model.TestCase
 import com.github.tarcv.tongs.runner.Table.Companion.tableFromFile
 import com.github.tarcv.tongs.summary.ResultStatus
-import com.github.tarcv.tongs.summary.TestResult.SUMMARY_KEY_TOTAL_FAILURE_COUNT
 import com.github.tarcv.tongs.system.io.FileType
 import com.github.tarcv.tongs.system.io.TestCaseFileManager
 import com.google.gson.Gson
-import com.google.gson.JsonParseException
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.time.Instant
 
 // TODO: merge with com.github.tarcv.tongs.summary.TestResult
 data class TestCaseRunResult(
         val pool: Pool,
         val device: Device,
         val testCase: TestCase,
+
+        // TODO: Split result to a different class (sealed class hierarchy)
         val status: ResultStatus,
-        val stackTrace: String = "",
-        val timeTaken: Float,
-        val totalFailureCount: Int,
-        val metrics: Map<String, String>,
+        val stackTraces: List<StackTrace>,
+        val startTimestampUtc: Instant,
+        val endTimestampUtc: Instant = Instant.EPOCH,
+        val netStartTimestampUtc: Instant?,
+        val netEndTimestampUtc: Instant?,
+        private val baseTotalFailureCount: Int,
+        val additionalProperties: Map<String, String>,
         val coverageReport: TestCaseFile? = null,
         val data: List<TestReportData>
 ) {
+    val totalFailureCount: Int
+        get() {
+            val increment = when(status) {
+                ResultStatus.PASS, ResultStatus.IGNORED, ResultStatus.ASSUMPTION_FAILED -> 0
+                ResultStatus.FAIL, ResultStatus.ERROR -> 1
+            }
+            return baseTotalFailureCount + increment
+        }
+    val timeTaken: Duration
+        get() {
+            val endInstant = endTimestampUtc
+            return if (endInstant == Instant.EPOCH) {
+                throw IllegalStateException("Can't check timeTaken before the test case finishes execution")
+            } else {
+                Duration.between(startTimestampUtc, endInstant)
+            }
+        }
+
+    val timeNetTaken: Duration?
+        get() {
+            val startInstant = netStartTimestampUtc
+            val endInstant = netEndTimestampUtc
+            return if (startInstant == null || endInstant == null) {
+                null
+            } else {
+                Duration.between(startInstant, endInstant)
+            }
+        }
+
+    val timeTakenMillis: Long
+        get() = timeTaken.toMillis()
+    val timeNetTakenMillis: Long?
+        get() = timeNetTaken?.toMillis()
+
+    val timeTakenSeconds: Float
+        get() = timeTakenMillis / 1000f
+    val timeNetTakenSeconds: Float?
+        get() = timeNetTakenMillis?.div(1000f)
+
     companion object {
         private val pool = aDevicePool().addDevice(Device.TEST_DEVICE).build()
+        @JvmField val NO_TRACE = listOf(StackTrace("", "", ""))
 
         @JvmStatic
-        fun aTestResult(testClass: String, testMethod: String, status: ResultStatus, trace: String): TestCaseRunResult {
-            return aTestResult(pool, Device.TEST_DEVICE, testClass, testMethod, status, trace)
+        fun aTestResult(testClass: String, testMethod: String, status: ResultStatus, traces: List<StackTrace>): TestCaseRunResult {
+            return aTestResult(pool, Device.TEST_DEVICE, testClass, testMethod, status, traces)
         }
 
         @JvmStatic
         @JvmOverloads
-        fun aTestResult(pool: Pool, device: Device, testClass: String, testMethod: String, status: ResultStatus, trace: String, metrics: Map<String, String> = emptyMap()): TestCaseRunResult {
-            val totalFailureCount: Int = metrics
-                    .get(SUMMARY_KEY_TOTAL_FAILURE_COUNT)
-                    ?.let(Integer::parseInt)
-                    ?: 0
-            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, trace, 15f, totalFailureCount, metrics, null, emptyList())
+        fun aTestResult(
+                pool: Pool,
+                device: Device,
+                testClass: String,
+                testMethod: String,
+                status: ResultStatus,
+                traces: List<StackTrace>,
+                baseTotalFailureCount: Int = 0
+        ): TestCaseRunResult {
+            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, traces,
+                    Instant.now(), Instant.now().plusMillis(15), Instant.now(), Instant.now().plusMillis(15),
+                    baseTotalFailureCount, emptyMap(), null, emptyList())
         }
     }
 }
+
+data class StackTrace(
+        /**
+         * Should be the class type of an exception for compatible languages (and just the type of an error otherwise)
+         */
+        val errorType: String,
+
+        /**
+         * Any additional information besides [errorType] and a stack trace
+         */
+        val errorMessage: String,
+
+        /**
+         * Should include both [errorType] and [errorMessage] in some form in the first line
+         */
+        val fullTrace: String
+)
 
 class TestCaseFile(
         val fileManager: TestCaseFileManager,
@@ -84,18 +152,52 @@ class TestCaseFile(
 sealed class TestReportData(
     val title: String
 )
-class HtmlReportData(title: String, val html: String): TestReportData(title)
-class FileHtmlReportData(title: String, private val htmlPath: TestCaseFile): TestReportData(title) {
+
+interface MonoTextReportData {
+    val title: String
+    val type: SimpleMonoTextReportData.Type
+    val monoText: String
+}
+class SimpleMonoTextReportData(title: String, override val type: Type, override val monoText: String)
+    : TestReportData(title), MonoTextReportData {
+    enum class Type {
+        STDOUT,
+        STRERR,
+        OTHER
+    }
+}
+class FileMonoTextReportData(
+        title: String,
+        override val type: SimpleMonoTextReportData.Type,
+        private val monoTextPath: TestCaseFile
+): TestReportData(title), MonoTextReportData {
+    override val monoText: String
+        get() {
+            return monoTextPath.toFile()
+                    .readText(StandardCharsets.UTF_8)
+        }
+}
+
+interface HtmlReportData {
+    val title: String
     val html: String
+}
+class SimpleHtmlReportData(title: String, override val html: String): TestReportData(title), HtmlReportData
+class FileHtmlReportData(title: String, private val htmlPath: TestCaseFile): TestReportData(title), HtmlReportData {
+    override val html: String
         get() {
             return htmlPath.toFile()
                     .readText(StandardCharsets.UTF_8)
         }
 }
 
-class TableReportData(title: String, val table: Table): TestReportData(title)
-class FileTableReportData(title: String, private val tablePath: TestCaseFile): TestReportData(title) {
+interface TableReportData {
+    val title: String
     val table: Table
+}
+class SimpleTableReportData(title: String, override val table: Table): TestReportData(title), TableReportData
+class FileTableReportData(title: String, private val tablePath: TestCaseFile): TestReportData(title), TableReportData {
+    override val table: Table
         get() = tableFromFile(tablePath)
 }
 
