@@ -14,7 +14,6 @@
 package com.github.tarcv.tongs.injector
 
 import com.github.tarcv.tongs.TongsRunner
-import com.github.tarcv.tongs.injector.RuleManagerFactory.Companion.fixGenericClass
 import com.github.tarcv.tongs.injector.pooling.PoolLoaderInjector.poolLoader
 import com.github.tarcv.tongs.injector.runner.PoolTestRunnerFactoryInjector
 import com.github.tarcv.tongs.injector.runner.ProgressReporterInjector
@@ -30,7 +29,7 @@ object TongsRunnerInjector {
     private val logger = LoggerFactory.getLogger(TongsRunnerInjector::class.java)
 
     @JvmStatic
-    fun tongsRunner(): TongsRunner {
+    fun createTongsRunner(ruleManagerFactory: RuleManagerFactory): TongsRunner {
         val startNanos = System.nanoTime()
 
         val ruleManager: TestCaseRuleManager = ruleManagerFactory.create(
@@ -39,8 +38,8 @@ object TongsRunnerInjector {
                 { factory, context: TestCaseRuleContext -> factory.testCaseRules(context) }
         )
         val tongsRunner = TongsRunner(
-                poolLoader(),
-                PoolTestRunnerFactoryInjector.poolTestRunnerFactory(),
+                poolLoader(ruleManagerFactory),
+                PoolTestRunnerFactoryInjector.poolTestRunnerFactory(ruleManagerFactory),
                 ProgressReporterInjector.progressReporter(),
                 SummaryGeneratorHookInjector.summaryGeneratorHook(),
                 ruleManager

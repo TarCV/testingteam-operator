@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.injector.runner;
 
+import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.runner.PoolTestRunnerFactory;
 
 import static com.github.tarcv.tongs.injector.runner.DeviceTestRunnerFactoryInjector.deviceTestRunnerFactory;
@@ -19,7 +20,7 @@ public class PoolTestRunnerFactoryInjector {
 
     private PoolTestRunnerFactoryInjector() {}
 
-    public static PoolTestRunnerFactory poolTestRunnerFactory() {
-        return new PoolTestRunnerFactory(deviceTestRunnerFactory());
+    public static PoolTestRunnerFactory poolTestRunnerFactory(RuleManagerFactory ruleManagerFactory) {
+        return new PoolTestRunnerFactory(deviceTestRunnerFactory(), ruleManagerFactory);
     }
 }

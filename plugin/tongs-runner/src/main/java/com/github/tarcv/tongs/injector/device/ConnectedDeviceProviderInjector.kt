@@ -8,7 +8,6 @@ import org.apache.commons.io.FileUtils
 // TODO: make not singleton once Device has proper equals and hashCode implementations
 // For now .init() should be called only once to make sure reference comparison returns true for same devices
 object ConnectedDeviceProviderInjector {
-    private val PROVIDER = createDeviceProvider()
 
     private fun createDeviceProvider(): ConnectedDeviceProvider {
         val connectedDeviceProvider = ConnectedDeviceProvider(
@@ -20,6 +19,6 @@ object ConnectedDeviceProviderInjector {
     }
 
     fun connectedDeviceProvider(): ConnectedDeviceProvider {
-        return PROVIDER
+        return createDeviceProvider()
     }
 }

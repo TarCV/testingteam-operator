@@ -13,9 +13,8 @@
  */
 package com.github.tarcv.tongs
 
-import com.github.tarcv.tongs.injector.ConfigurationInjector
-import com.github.tarcv.tongs.injector.TongsRunnerInjector.tongsRunner
-import com.github.tarcv.tongs.injector.ruleManagerFactory
+import com.github.tarcv.tongs.injector.RuleManagerFactory
+import com.github.tarcv.tongs.injector.TongsRunnerInjector.createTongsRunner
 import com.github.tarcv.tongs.injector.withRules
 import com.github.tarcv.tongs.runner.AndroidDdmRunRuleFactory
 import com.github.tarcv.tongs.runner.rules.RunConfiguration
@@ -25,53 +24,72 @@ import com.github.tarcv.tongs.runner.rules.RunRuleFactory
 import com.github.tarcv.tongs.utils.Utils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DurationFormatUtils
+import org.koin.core.KoinComponent
+import org.koin.core.context.KoinContextHandler
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.core.inject
+import org.koin.dsl.module
 import org.slf4j.LoggerFactory
 import java.io.File
 
 class Tongs(configuration: Configuration) {
-    init {
-        ConfigurationInjector.setConfiguration(configuration)
+    private val runnerModule = module {
+        single { configuration }
+        single {
+            val conf = get<Configuration>()
+            RuleManagerFactory(conf, conf.pluginsInstances)
+        }
+        single { createTongsRunner(get()) }
     }
-    private val tongsRunner: TongsRunner = tongsRunner()
 
     fun run(): Boolean {
-        val startOfTestsMs = System.nanoTime()
-        val predefinedRulesFactories = listOf(
-                PrepareOutputDirectoryRuleFactory(),
-                AndroidDdmRunRuleFactory()
-        )
-        val runRules = ruleManagerFactory
-                .create<RunRuleContext, RunRule, RunRuleFactory<RunRule>>(
-                        RunRuleFactory::class.java,
-                        predefinedRulesFactories
-                ) { runRuleFactory: RunRuleFactory<RunRule>, runRuleContext: RunRuleContext ->
-                    runRuleFactory.runRules(runRuleContext)
-                }
-                .createRulesFrom { configuration: RunConfiguration ->
-                    RunRuleContext(configuration)
-                }
-
-        return try {
-            withRules(
-                    logger,
-                    "while executing a run rule",
-                    "while running Tongs",
-                    runRules,
-                    { it.before() },
-                    { it, ret ->
-                        it.after()
-                        ret
+        startKoin {
+            modules(runnerModule)
+        }
+        val tongsRunner by KoinContextHandler.get().inject<TongsRunner>()
+        try {
+            val startOfTestsMs = System.nanoTime()
+            val predefinedRulesFactories = listOf(
+                    PrepareOutputDirectoryRuleFactory(),
+                    AndroidDdmRunRuleFactory()
+            )
+            val ruleManagerFactory by KoinContextHandler.get().inject<RuleManagerFactory>()
+            val runRules = ruleManagerFactory
+                    .create<RunRuleContext, RunRule, RunRuleFactory<RunRule>>(
+                            RunRuleFactory::class.java,
+                            predefinedRulesFactories
+                    ) { runRuleFactory: RunRuleFactory<RunRule>, runRuleContext: RunRuleContext ->
+                        runRuleFactory.runRules(runRuleContext)
                     }
-            ) {
-                tongsRunner.run()
+                    .createRulesFrom { configuration: RunConfiguration ->
+                        RunRuleContext(configuration)
+                    }
+
+            return try {
+                withRules(
+                        logger,
+                        "while executing a run rule",
+                        "while running Tongs",
+                        runRules,
+                        { it.before() },
+                        { it, ret ->
+                            it.after()
+                            ret
+                        }
+                ) {
+                    tongsRunner.run()
+                }
+            } catch (e: Exception) {
+                // the exception is already logged inside withRules call
+                false
+            } finally {
+                val duration = Utils.millisSinceNanoTime(startOfTestsMs)
+                logger.info(DurationFormatUtils.formatPeriod(0, duration,
+                        "'Total time taken:' H 'hours' m 'minutes' s 'seconds'"))
             }
-        } catch (e: Exception) {
-            // the exception is already logged inside withRules call
-            false
         } finally {
-            val duration = Utils.millisSinceNanoTime(startOfTestsMs)
-            logger.info(DurationFormatUtils.formatPeriod(0, duration,
-                    "'Total time taken:' H 'hours' m 'minutes' s 'seconds'"))
+            stopKoin()
         }
     }
 

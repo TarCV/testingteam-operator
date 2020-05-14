@@ -14,7 +14,6 @@
 package com.github.tarcv.tongs
 
 import com.github.tarcv.tongs.injector.ConfigurationInjector
-import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.TestCaseRuleManager
 import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector

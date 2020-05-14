@@ -14,16 +14,11 @@ import com.github.tarcv.tongs.TongsConfiguration
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.runner.rules.HasConfiguration
 import com.github.tarcv.tongs.runner.rules.RunConfiguration
+import org.koin.core.context.KoinContextHandler.get
 import org.slf4j.Logger
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 import kotlin.collections.ArrayList
-
-@get:JvmName("ruleManagerFactory")
-val ruleManagerFactory by lazy {
-    val configuration = configuration()
-    RuleManagerFactory(configuration, configuration.pluginsInstances)
-}
 
 class RuleManagerFactory(
         private val configuration: Configuration,

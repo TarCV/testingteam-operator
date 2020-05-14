@@ -13,7 +13,6 @@ package com.github.tarcv.tongs.injector.pooling
 
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.RuleManagerFactory
-import com.github.tarcv.tongs.injector.ruleManagerFactory
 import com.github.tarcv.tongs.plugin.DeviceProvider
 import com.github.tarcv.tongs.plugin.DeviceProviderContext
 import com.github.tarcv.tongs.plugin.DeviceProviderFactory
@@ -23,14 +22,14 @@ import com.github.tarcv.tongs.pooling.PoolLoader
 object PoolLoaderInjector {
 
     @JvmStatic
-    fun poolLoader(): PoolLoader {
-        val loaders = createProviders()
+    fun poolLoader(ruleManagerFactory: RuleManagerFactory): PoolLoader {
+        val loaders = createProviders(ruleManagerFactory)
         return PoolLoader(configuration(), loaders)
     }
 
 }
 
-private fun createProviders(): DeviceProviderManager {
+private fun createProviders(ruleManagerFactory: RuleManagerFactory): DeviceProviderManager {
     val defaultProviderFactories: List<DeviceProviderFactory<DeviceProvider>> = listOf(
             LocalDeviceProviderFactory()
     )

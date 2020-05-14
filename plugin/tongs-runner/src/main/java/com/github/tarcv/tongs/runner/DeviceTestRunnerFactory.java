@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.runner;
 
+import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.system.adb.Installer;
 
@@ -28,14 +29,15 @@ public class DeviceTestRunnerFactory {
                                            TestCaseEventQueue testClassQueue,
                                            CountDownLatch deviceInPoolCountDownLatch,
                                            Device device,
-                                           ProgressReporter progressReporter
+                                           ProgressReporter progressReporter,
+                                           RuleManagerFactory ruleManagerFactory
                                            ) {
         return new DeviceTestRunner(
                 pool,
                 device,
                 testClassQueue,
                 deviceInPoolCountDownLatch,
-                progressReporter
-        );
+                progressReporter,
+                ruleManagerFactory);
     }
 }
