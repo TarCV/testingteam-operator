@@ -56,7 +56,7 @@
                                     {{#headers}}{{#if (eq title 'time')}}<th>Time</th>{{/if}}{{/headers}}
                                     {{#headers}}{{#if (eq title 'message')}}<th class="message">Message</th>{{/if}}{{/headers}}
                                 </tr>
-                                {{#rows}}
+{{#rows}}
                                 <tr class="line {{logLevel}}">
                                     {{#cells}}{{#if (eq header.title 'pid')}}<td>{{text}}</td>{{/if}}{{/cells}}
                                     {{#cells}}{{#if (eq header.title 'tag')}}<td>{{text}}</td>{{/if}}{{/cells}}
@@ -64,7 +64,7 @@
                                     {{#cells}}{{#if (eq header.title 'time')}}<td style="white-space:nowrap;">{{text}}</td>{{/if}}{{/cells}}
                                     {{#cells}}{{#if (eq header.title 'message')}}<td>{{text}}</td>{{/if}}{{/cells}}
                                 </tr>
-                                {{/rows}}
+{{/rows}}
                             </table>
                         </div>
                     {{else}}
