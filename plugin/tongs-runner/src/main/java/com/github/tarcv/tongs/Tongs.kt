@@ -21,14 +21,12 @@ import com.github.tarcv.tongs.runner.rules.RunConfiguration
 import com.github.tarcv.tongs.runner.rules.RunRule
 import com.github.tarcv.tongs.runner.rules.RunRuleContext
 import com.github.tarcv.tongs.runner.rules.RunRuleFactory
-import com.github.tarcv.tongs.utils.Utils
+import com.github.tarcv.tongs.Utils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DurationFormatUtils
-import org.koin.core.KoinComponent
 import org.koin.core.context.KoinContextHandler
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.core.inject
 import org.koin.dsl.module
 import org.slf4j.LoggerFactory
 import java.io.File

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.runner;
 
+import com.github.tarcv.tongs.Utils;
 import com.github.tarcv.tongs.model.*;
 
 import org.slf4j.Logger;
@@ -19,8 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.github.tarcv.tongs.utils.Utils.millisBetweenNanoTimes;
-import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
 
 /**
@@ -66,9 +65,9 @@ public class OverallProgressReporter implements ProgressReporter {
     @Override
     public long millisSinceTestsStarted() {
         if (endOfTests == 0) {
-            return millisSinceNanoTime(startOfTests);
+            return Utils.millisSinceNanoTime(startOfTests);
         }
-        return millisBetweenNanoTimes(startOfTests, endOfTests);
+        return Utils.millisBetweenNanoTimes(startOfTests, endOfTests);
     }
 
     @Override

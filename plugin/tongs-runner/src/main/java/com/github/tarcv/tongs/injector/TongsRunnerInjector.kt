@@ -22,7 +22,7 @@ import com.github.tarcv.tongs.plugin.android.PropertiesTestCaseRuleFactory
 import com.github.tarcv.tongs.runner.rules.TestCaseRule
 import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext
 import com.github.tarcv.tongs.runner.rules.TestCaseRuleFactory
-import com.github.tarcv.tongs.utils.Utils
+import com.github.tarcv.tongs.Utils
 import org.slf4j.LoggerFactory
 
 object TongsRunnerInjector {

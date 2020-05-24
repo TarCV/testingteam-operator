@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.*;
 import com.android.ddmlib.testrunner.TestIdentifier;
 
+import com.github.tarcv.tongs.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static com.github.tarcv.tongs.system.io.RemoteFileManager.remoteVideoForTest;
 import static com.github.tarcv.tongs.system.io.RemoteFileManager.removeRemotePath;
 import static java.lang.System.nanoTime;
@@ -67,20 +67,20 @@ class ScreenRecorder implements Runnable {
         logger.trace("Started recording video at: {}", remoteFilePath);
         long startNanos = nanoTime();
         deviceInterface.startScreenRecorder(remoteFilePath, RECORDER_OPTIONS, outputReceiver);
-        logger.trace("Recording finished in {}ms {}", millisSinceNanoTime(startNanos), remoteFilePath);
+        logger.trace("Recording finished in {}ms {}", Utils.millisSinceNanoTime(startNanos), remoteFilePath);
     }
 
     private void pullTestVideo() throws IOException, AdbCommandRejectedException, TimeoutException, SyncException {
         logger.trace("Started pulling file {} to {}", remoteFilePath, localVideoFile);
         long startNanos = nanoTime();
         deviceInterface.pullFile(remoteFilePath, localVideoFile.toString());
-        logger.trace("Pulling finished in {}ms {}", millisSinceNanoTime(startNanos), remoteFilePath);
+        logger.trace("Pulling finished in {}ms {}", Utils.millisSinceNanoTime(startNanos), remoteFilePath);
     }
 
     private void removeTestVideo() {
         logger.trace("Started removing file {}", remoteFilePath);
         long startNanos = nanoTime();
         removeRemotePath(deviceInterface, remoteFilePath);
-        logger.trace("Removed file in {}ms {}", millisSinceNanoTime(startNanos), remoteFilePath);
+        logger.trace("Removed file in {}ms {}", Utils.millisSinceNanoTime(startNanos), remoteFilePath);
     }
 }
