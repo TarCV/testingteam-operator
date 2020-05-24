@@ -19,7 +19,6 @@ import com.github.tarcv.tongs.runner.TestRetryerImpl;
 import com.github.tarcv.tongs.system.io.FileManager;
 import com.google.gson.Gson;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
