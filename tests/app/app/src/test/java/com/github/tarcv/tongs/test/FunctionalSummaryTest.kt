@@ -265,7 +265,7 @@ class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier)
         val testsPerDevice = getPerDeviceTestCounts(simplifiedResults, pattern)
 
         assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
-
+        // TODO: Actually check that there is some parameterized that got executed on both devices
         assert(testsPerDevice.size == 2) { "Variants should be executed on exactly 2 devices (got ${testsPerDevice.size})" }
         assert(testsPerDevice[0].value > 0) { "At least one parameterized test should be executed on ${testsPerDevice[0].key} device" }
         assert(testsPerDevice[1].value > 0) { "At least one parameterized test should be executed on ${testsPerDevice[1].key} device" }
