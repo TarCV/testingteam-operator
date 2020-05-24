@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ targetCompatibility = rootProject.sourceCompatibility
 apply from: '../dependencies.gradle'
 
 dependencies {
-    implementation project(":tongs-plugin-api")
+    api project(":tongs-plugin-api")
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
     implementation deps.jsr305

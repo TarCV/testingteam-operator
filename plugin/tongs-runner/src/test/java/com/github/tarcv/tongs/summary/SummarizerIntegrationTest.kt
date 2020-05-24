@@ -45,18 +45,19 @@ class SummarizerIntegrationTest {
         TongsFileManager(linkedFolderRoot)
     }
 
+    private val gson = Summarizer.testRecorderGsonBuilder()
+            .registerTypeAdapter(Device::class.java, ForceClassDeserializer(AndroidDevice::class.java))
+            .registerTypeAdapter(TestCaseFileManager::class.java, TestCaseFileManagerDeserializer())
+            .registerTypeAdapter(TestReportData::class.java, TestReportDataDeserializer())
+            .registerTypeAdapter(FileManager::class.java, ForceClassDeserializer(TongsFileManager::class.java))
+            .registerTypeAdapter(FileType::class.java, ComplexEnumDeserializer(StandardFileTypes.values()))
+            .create()
+
     @Test
     fun summarize() {
         initConfiguration()
         initLinkedFolder()
 
-        val gson = Summarizer.testRecorderGsonBuilder()
-                .registerTypeAdapter(Device::class.java, ForceClassDeserializer(AndroidDevice::class.java))
-                .registerTypeAdapter(TestCaseFileManager::class.java, TestCaseFileManagerDeserializer())
-                .registerTypeAdapter(TestReportData::class.java, TestReportDataDeserializer())
-                .registerTypeAdapter(FileManager::class.java, ForceClassDeserializer(TongsFileManager::class.java))
-                .registerTypeAdapter(FileType::class.java, ComplexEnumDeserializer(StandardFileTypes.values()))
-                .create()
 
         /*
               Preparation steps before adding new summarizeInputs.json to the repo:
@@ -139,14 +140,21 @@ class SummarizerIntegrationTest {
         }
     }
 
-    private class TestReportDataDeserializer : JsonDeserializer<TestReportData> {
+    private inner class TestReportDataDeserializer : JsonDeserializer<TestReportData> {
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): TestReportData {
             val obj = json.asJsonObject
             val title = obj.get("title").asString
             return when {
                 obj.has("html") -> SimpleHtmlReportData(title, obj.get("html").asString)
                 obj.has("table") -> SimpleTableReportData(title, context.deserialize(obj.get("table"), Table::class.java))
-                obj.has("tablePath") -> FileTableReportData(title, context.deserialize(obj.get("tablePath"), TestCaseFile::class.java))
+                obj.has("tablePath") -> FileTableReportData(
+                        title, context.deserialize(obj.get("tablePath"), TestCaseFile::class.java),
+                        { tableFile ->
+                            tableFile.bufferedReader().use {
+                                gson.fromJson(it, Table.TableJson::class.java)
+                            }
+                        }
+                )
                 obj.has("image") -> ImageReportData(title, context.deserialize(obj.get("image"), TestCaseFile::class.java))
                 obj.has("video") -> VideoReportData(title, context.deserialize(obj.get("video"), TestCaseFile::class.java))
                 obj.has("file") -> LinkedFileReportData(title, context.deserialize(obj.get("file"), TestCaseFile::class.java))

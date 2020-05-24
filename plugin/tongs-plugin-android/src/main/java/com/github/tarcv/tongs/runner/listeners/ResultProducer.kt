@@ -68,10 +68,17 @@ class ResultProducer(
     override fun getResult(): TestCaseRunResult {
         val shellResult = resultListener.result
 
+        val gson = gson()
         val reportBlocks = listOf(
                 addOutput(shellResult.output),
                 addTraceReport(screenTraceListener),
-                FileTableReportData("Logcat", logCatListener.tableFile),
+                FileTableReportData("Logcat", logCatListener.tableFile, { tableFile ->
+                    tableFile
+                            .bufferedReader(Charsets.UTF_8)
+                            .use { reader ->
+                                gson.fromJson(reader, Table.TableJson::class.java)
+                            }
+                }),
                 LinkedFileReportData("Logcat", logCatListener.rawFile),
                 LinkedFileReportData("Logcat as JSON", logCatListener.tableFile)
         ).filterNotNull()

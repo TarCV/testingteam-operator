@@ -27,7 +27,13 @@ class TableLogCatWriter(
 ) : LogCatWriter {
     override fun writeLogs(logCatMessages: List<LogCatMessage>) {
         convertToTable(logCatMessages)
-                .writeToFile(file, gson)
+                .writeToFile(file) { outputFile, tableJson ->
+                    outputFile
+                            .bufferedWriter(Charsets.UTF_8)
+                            .use { writer ->
+                                gson.toJson(tableJson, writer)
+                            }
+                }
     }
 
     fun convertToTable(messages: List<LogCatMessage>): Table {

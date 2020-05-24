@@ -17,7 +17,7 @@ val org.gradle.api.plugins.ExtraPropertiesExtension.deps: Map<String, String>
     get() = this["deps"] as Map<String, String>
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(project(":tongs-plugin-api"))
+    implementation(project(":tongs-common"))
 
     implementation("com.shazam:axmlparser:1.0")
     implementation(extra.deps.getValue("commonsIo"))

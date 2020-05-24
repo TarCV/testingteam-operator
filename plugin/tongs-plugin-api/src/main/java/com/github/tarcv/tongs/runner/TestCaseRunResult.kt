@@ -12,7 +12,6 @@
  */
 package com.github.tarcv.tongs.runner
 
-import com.github.tarcv.tongs.injector.GsonInjector.gson
 import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.model.Pool
 import com.github.tarcv.tongs.model.Pool.Builder.aDevicePool
@@ -196,9 +195,13 @@ interface TableReportData {
     val table: Table
 }
 class SimpleTableReportData(title: String, override val table: Table): TestReportData(title), TableReportData
-class FileTableReportData(title: String, private val tablePath: TestCaseFile): TestReportData(title), TableReportData {
+class FileTableReportData(
+        title: String,
+        private val tablePath: TestCaseFile,
+        private val tableJsonReader: (File) -> Table.TableJson
+): TestReportData(title), TableReportData {
     override val table: Table
-        get() = tableFromFile(tablePath)
+        get() = tableFromFile(tablePath, tableJsonReader)
 }
 
 class ImageReportData(title: String, private val image: TestCaseFile): TestReportData(title) {
@@ -223,12 +226,12 @@ class Table(headerStrings: Collection<String>, rowStrings: Collection<Collection
         rows = fixRows(rowStrings, headers)
     }
 
-    private class TableJson(
+    class TableJson(
             var headers: Collection<String>? = null,
             var rows: Collection<Collection<String>>? = null
     )
 
-    fun writeToFile(output: TestCaseFile, gson: Gson = gson()) {
+    fun writeToFile(output: TestCaseFile, jsonFileWriter: (File, TableJson) -> Unit) {
         val headerStrings = headers.map { it.title }
         val rowStringLists = rows
                 .map {
@@ -236,20 +239,13 @@ class Table(headerStrings: Collection<String>, rowStrings: Collection<Collection
                 }
         val adaptedForJson = TableJson(headerStrings, rowStringLists)
 
-        output.create()
-                .bufferedWriter(Charsets.UTF_8)
-                .use { writer ->
-                    gson.toJson(adaptedForJson, writer)
-                }
+        val outputFile = output.create()
+        jsonFileWriter(outputFile, adaptedForJson)
     }
 
     companion object {
-        fun tableFromFile(tablePath: TestCaseFile, gson: Gson = gson()): Table {
-            return tablePath.toFile()
-                    .bufferedReader(Charsets.UTF_8)
-                    .use { reader ->
-                        gson.fromJson(reader, TableJson::class.java)
-                    }
+        fun tableFromFile(tablePath: TestCaseFile, tableJsonReader: (File) -> TableJson): Table {
+            return tableJsonReader(tablePath.toFile())
                     .let {
                         val headers = it.headers
                         val rowsStringLists = it.rows
