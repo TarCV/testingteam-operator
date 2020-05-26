@@ -13,7 +13,7 @@
  */
 package com.github.tarcv.tongs.injector.system;
 
-import com.github.tarcv.tongs.TongsConfiguration;
+import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.system.adb.Installer;
 
 public class InstallerInjector {

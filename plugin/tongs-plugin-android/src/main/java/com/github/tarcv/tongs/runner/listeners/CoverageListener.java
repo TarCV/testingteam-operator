@@ -12,12 +12,15 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
-import com.github.tarcv.tongs.runner.TestCaseFile;
+import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 
-import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.github.tarcv.tongs.api.result.TestCaseFileManager;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Map;
 
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.COVERAGE;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.COVERAGE;
 
 public class CoverageListener extends BaseListener {
 

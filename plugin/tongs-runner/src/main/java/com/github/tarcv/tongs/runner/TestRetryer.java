@@ -11,7 +11,7 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 
 public interface TestRetryer {
     boolean rescheduleTestExecution(TestCaseEvent testCaseEvent);

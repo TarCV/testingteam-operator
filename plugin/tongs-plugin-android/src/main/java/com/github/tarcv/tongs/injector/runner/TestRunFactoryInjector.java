@@ -11,11 +11,11 @@
 
 package com.github.tarcv.tongs.injector.runner;
 
-import com.github.tarcv.tongs.TongsConfiguration;
+import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.runner.AndroidTestRunFactory;
 import com.github.tarcv.tongs.runner.TestAndroidTestRunFactory;
 
-import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN;
+import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN;
 
 public class TestRunFactoryInjector {
 

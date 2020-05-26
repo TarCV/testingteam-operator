@@ -12,10 +12,10 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.github.tarcv.tongs.runner.TestRetryer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;

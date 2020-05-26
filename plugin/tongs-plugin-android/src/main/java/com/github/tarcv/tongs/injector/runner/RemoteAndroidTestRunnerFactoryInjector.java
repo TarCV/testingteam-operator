@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@
 
 package com.github.tarcv.tongs.injector.runner;
 
-import com.github.tarcv.tongs.TongsConfiguration;
+import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory;
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory;
 

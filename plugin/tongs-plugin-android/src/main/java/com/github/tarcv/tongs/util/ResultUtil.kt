@@ -9,7 +9,7 @@
  */
 package com.github.tarcv.tongs.util
 
-import com.github.tarcv.tongs.runner.StackTrace
+import com.github.tarcv.tongs.api.result.StackTrace
 
 fun parseJavaTrace(trace: String): StackTrace {
     val firstLine = trace.lines().first()

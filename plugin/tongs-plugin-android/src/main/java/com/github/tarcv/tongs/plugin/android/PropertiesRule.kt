@@ -11,11 +11,10 @@
 
 package com.github.tarcv.tongs.plugin.android
 
-import com.github.tarcv.tongs.model.TestCaseEvent
-import com.github.tarcv.tongs.runner.rules.TestCaseRule
-import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext
-import com.github.tarcv.tongs.runner.rules.TestCaseRuleFactory
-import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
+import com.github.tarcv.tongs.api.run.TestCaseEvent
+import com.github.tarcv.tongs.api.testcases.TestCaseRule
+import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
+import com.github.tarcv.tongs.api.testcases.TestCaseRuleFactory
 
 class PropertiesTestCaseRuleFactory: TestCaseRuleFactory<PropertiesTestCaseRule> {
     override fun testCaseRules(context: TestCaseRuleContext): Array<out PropertiesTestCaseRule> {

@@ -9,10 +9,14 @@
  */
 package com.github.tarcv.tongs.model
 
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.devices.Diagnostics
+import com.github.tarcv.tongs.api.devices.DisplayGeometry
 import com.github.tarcv.tongs.pooling.StubDevice
-import com.github.tarcv.tongs.runner.TestCaseRunResult
-import com.github.tarcv.tongs.runner.TestCaseRunResult.Companion.NO_TRACE
-import com.github.tarcv.tongs.summary.ResultStatus
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.result.TestCaseRunResult.Companion.NO_TRACE
+import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.api.run.TestCaseEvent
 import org.junit.Assert
 import org.junit.Test
 import java.lang.Thread.sleep

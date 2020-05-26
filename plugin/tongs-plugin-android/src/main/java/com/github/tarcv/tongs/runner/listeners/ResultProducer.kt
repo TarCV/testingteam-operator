@@ -12,15 +12,19 @@
  */
 package com.github.tarcv.tongs.runner.listeners
 
-import com.github.tarcv.tongs.TongsConfiguration
+import com.github.tarcv.tongs.api.TongsConfiguration
+import com.github.tarcv.tongs.api.devices.Diagnostics
+import com.github.tarcv.tongs.api.devices.Pool
 import com.github.tarcv.tongs.injector.GsonInjector.gson
 import com.github.tarcv.tongs.model.*
+import com.github.tarcv.tongs.api.result.*
 import com.github.tarcv.tongs.runner.*
-import com.github.tarcv.tongs.runner.SimpleMonoTextReportData.Type
-import com.github.tarcv.tongs.runner.TestCaseRunResult.Companion.NO_TRACE
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
-import com.github.tarcv.tongs.summary.ResultStatus
-import com.github.tarcv.tongs.system.io.TestCaseFileManager
+import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData.Type
+import com.github.tarcv.tongs.api.result.TestCaseRunResult.Companion.NO_TRACE
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
+import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.api.run.TestCaseEvent
+import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.util.parseJavaTrace
 import java.time.Instant
 
@@ -68,10 +72,17 @@ class ResultProducer(
     override fun getResult(): TestCaseRunResult {
         val shellResult = resultListener.result
 
+        val gson = gson()
         val reportBlocks = listOf(
                 addOutput(shellResult.output),
                 addTraceReport(screenTraceListener),
-                FileTableReportData("Logcat", logCatListener.tableFile),
+                FileTableReportData("Logcat", logCatListener.tableFile, { tableFile ->
+                    tableFile
+                            .bufferedReader(Charsets.UTF_8)
+                            .use { reader ->
+                                gson.fromJson(reader, Table.TableJson::class.java)
+                            }
+                }),
                 LinkedFileReportData("Logcat", logCatListener.rawFile),
                 LinkedFileReportData("Logcat as JSON", logCatListener.tableFile)
         ).filterNotNull()

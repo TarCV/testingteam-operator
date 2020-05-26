@@ -11,8 +11,7 @@
 package com.github.tarcv.tongs.device;
 
 import com.android.ddmlib.IDevice;
-import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.model.Device;
+import com.github.tarcv.tongs.api.devices.Device;
 
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 

@@ -10,13 +10,15 @@
  */
 package com.github.tarcv.tongs;
 
+import com.github.tarcv.tongs.api.TongsConfiguration;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.NONE;
+import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.NONE;
 
 /**
  * Tongs extension.

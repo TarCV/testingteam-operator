@@ -11,8 +11,7 @@
 package com.github.tarcv.tongs.device;
 
 import com.android.ddmlib.IDevice;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.DisplayGeometry;
+import com.github.tarcv.tongs.api.devices.DisplayGeometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

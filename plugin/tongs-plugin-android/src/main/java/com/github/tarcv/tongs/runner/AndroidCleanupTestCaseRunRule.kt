@@ -14,10 +14,10 @@ package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.*
 import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory
+import com.github.tarcv.tongs.api.run.TestCaseRunRule
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleAfterArguments
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleFactory
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.String.format

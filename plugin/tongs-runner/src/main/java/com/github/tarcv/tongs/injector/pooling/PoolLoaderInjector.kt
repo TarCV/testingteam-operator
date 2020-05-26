@@ -13,9 +13,9 @@ package com.github.tarcv.tongs.injector.pooling
 
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.RuleManagerFactory
-import com.github.tarcv.tongs.plugin.DeviceProvider
-import com.github.tarcv.tongs.plugin.DeviceProviderContext
-import com.github.tarcv.tongs.plugin.DeviceProviderFactory
+import com.github.tarcv.tongs.api.devices.DeviceProvider
+import com.github.tarcv.tongs.api.devices.DeviceProviderContext
+import com.github.tarcv.tongs.api.devices.DeviceProviderFactory
 import com.github.tarcv.tongs.plugin.android.LocalDeviceProviderFactory
 import com.github.tarcv.tongs.pooling.PoolLoader
 

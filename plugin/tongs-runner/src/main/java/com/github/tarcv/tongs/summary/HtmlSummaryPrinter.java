@@ -14,7 +14,7 @@
 package com.github.tarcv.tongs.summary;
 
 import com.github.tarcv.tongs.io.HtmlGenerator;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.github.tarcv.tongs.system.io.FileManager;
 import com.github.tarcv.tongs.system.io.FileUtils;
 import com.google.common.io.Resources;
@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.io.Files.copyResource;
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.DOT_WITHOUT_EXTENSION;
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.HTML;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.DOT_WITHOUT_EXTENSION;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.HTML;
 import static com.google.common.base.Charsets.UTF_8;
 import static java.util.function.Function.identity;
 import static org.apache.commons.io.FileUtils.writeStringToFile;

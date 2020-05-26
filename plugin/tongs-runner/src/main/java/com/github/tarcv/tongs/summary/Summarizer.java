@@ -12,9 +12,9 @@
 package com.github.tarcv.tongs.summary;
 
 import com.github.tarcv.tongs.Configuration;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -23,12 +23,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.RECORD_LISTENER_EVENTS;
+import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.RECORD_LISTENER_EVENTS;
 import static java.nio.file.StandardOpenOption.*;
 
 public class Summarizer {

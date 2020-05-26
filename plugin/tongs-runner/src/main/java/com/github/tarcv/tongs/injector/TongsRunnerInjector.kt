@@ -19,10 +19,10 @@ import com.github.tarcv.tongs.injector.runner.PoolTestRunnerFactoryInjector
 import com.github.tarcv.tongs.injector.runner.ProgressReporterInjector
 import com.github.tarcv.tongs.injector.summary.SummaryGeneratorHookInjector
 import com.github.tarcv.tongs.plugin.android.PropertiesTestCaseRuleFactory
-import com.github.tarcv.tongs.runner.rules.TestCaseRule
-import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext
-import com.github.tarcv.tongs.runner.rules.TestCaseRuleFactory
-import com.github.tarcv.tongs.utils.Utils
+import com.github.tarcv.tongs.api.testcases.TestCaseRule
+import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
+import com.github.tarcv.tongs.api.testcases.TestCaseRuleFactory
+import com.github.tarcv.tongs.Utils
 import org.slf4j.LoggerFactory
 
 object TongsRunnerInjector {

@@ -12,9 +12,10 @@
 package com.github.tarcv.tongs.runner;
 
 import com.github.tarcv.tongs.injector.RuleManagerFactory;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 
 import java.util.Collection;
 import java.util.List;

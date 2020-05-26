@@ -11,13 +11,13 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.Utils;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
 
 class SlowWarningTestRunListener extends TongsTestListener {
@@ -36,7 +36,7 @@ class SlowWarningTestRunListener extends TongsTestListener {
     }
 
     public void onTestEnded() {
-        long testDuration = millisSinceNanoTime(startTime);
+        long testDuration = Utils.millisSinceNanoTime(startTime);
         if (testDuration > TEST_LENGTH_THRESHOLD_MILLIS) {
             logger.warn("Slow test ({}ms): {} {}" , testDuration, test.getTestClass(), test.getTestMethod());
 

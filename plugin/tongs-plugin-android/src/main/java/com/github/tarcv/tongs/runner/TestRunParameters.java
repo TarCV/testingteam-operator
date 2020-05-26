@@ -14,10 +14,8 @@
 package com.github.tarcv.tongs.runner;
 
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class TestRunParameters {

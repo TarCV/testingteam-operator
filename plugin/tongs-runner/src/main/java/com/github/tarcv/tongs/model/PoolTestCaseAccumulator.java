@@ -11,6 +11,9 @@
 
 package com.github.tarcv.tongs.model;
 
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
+
 public interface PoolTestCaseAccumulator {
     void record(Pool pool, TestCaseEvent testCaseEvent);
 

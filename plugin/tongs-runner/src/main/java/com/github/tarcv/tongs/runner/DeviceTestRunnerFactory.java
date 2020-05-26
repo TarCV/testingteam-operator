@@ -11,6 +11,8 @@
 
 package com.github.tarcv.tongs.runner;
 
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.system.adb.Installer;

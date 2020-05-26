@@ -11,15 +11,18 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.github.tarcv.tongs.TongsConfiguration;
+import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.device.DeviceTestFilesCleanerImpl;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.model.*;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 import com.github.tarcv.tongs.runner.TestRetryerImpl;
 import com.github.tarcv.tongs.system.io.FileManager;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.google.gson.Gson;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

@@ -12,10 +12,10 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.runner.TestRetryer;
 import com.github.tarcv.tongs.util.TestPipelineEmulator;
@@ -26,8 +26,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
-import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
-import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
+import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
 import static com.github.tarcv.tongs.util.TestPipelineEmulator.Builder.testPipelineEmulator;
 
 public class RetryListenerTest {

@@ -16,10 +16,10 @@ package com.github.tarcv.tongs.runner
 import com.github.tarcv.tongs.Utils
 import com.github.tarcv.tongs.injector.RuleManagerFactory
 import com.github.tarcv.tongs.injector.withRules
-import com.github.tarcv.tongs.model.Pool
+import com.github.tarcv.tongs.api.devices.Pool
 import com.github.tarcv.tongs.model.TestCaseEventQueue
-import com.github.tarcv.tongs.runner.rules.PoolRunRuleContext
-import com.github.tarcv.tongs.runner.rules.PoolRunRuleFactory
+import com.github.tarcv.tongs.api.run.PoolRunRuleContext
+import com.github.tarcv.tongs.api.run.PoolRunRuleFactory
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService

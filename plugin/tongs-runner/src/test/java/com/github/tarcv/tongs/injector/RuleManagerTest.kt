@@ -13,8 +13,8 @@
 package com.github.tarcv.tongs.injector
 
 import com.github.tarcv.tongs.Configuration
-import com.github.tarcv.tongs.runner.rules.HasConfiguration
-import com.github.tarcv.tongs.runner.rules.RunConfiguration
+import com.github.tarcv.tongs.api.HasConfiguration
+import com.github.tarcv.tongs.api.run.RunConfiguration
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert

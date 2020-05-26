@@ -13,18 +13,16 @@
  */
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.github.tarcv.tongs.model.TestCase;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 
-import com.github.tarcv.tongs.runner.StackTrace;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;

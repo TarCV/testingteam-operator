@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.*;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.runner.TestCaseFile;
-import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.github.tarcv.tongs.Utils;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.result.TestCaseFile;
+import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
-import com.github.tarcv.tongs.model.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +32,8 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.ANIMATION;
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.SCREENSHOT;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.ANIMATION;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.SCREENSHOT;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static java.lang.System.nanoTime;
 
@@ -93,7 +94,7 @@ class ScreenCapturer implements Runnable {
             File file = fileManager.createFile(SCREENSHOT);
             files.add(file);
             ImageIO.write(bufferedImageFrom(screenshot), SCREENSHOT.getSuffix(), file);
-            logger.trace("Finished writing screenshot in {}ms to: {}", millisSinceNanoTime(startNanos), file);
+            logger.trace("Finished writing screenshot in {}ms to: {}", Utils.millisSinceNanoTime(startNanos), file);
         } catch (TimeoutException | AdbCommandRejectedException | IOException e) {
             logger.error("Error when getting screenshot of device", e);
         }

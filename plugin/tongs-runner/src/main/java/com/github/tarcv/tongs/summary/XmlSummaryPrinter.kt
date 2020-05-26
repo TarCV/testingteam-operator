@@ -13,7 +13,7 @@
 package com.github.tarcv.tongs.summary
 
 import com.github.tarcv.tongs.system.io.FileManager
-import com.github.tarcv.tongs.system.io.StandardFileTypes
+import com.github.tarcv.tongs.api.result.StandardFileTypes
 import java.io.File
 
 class XmlSummaryPrinter(

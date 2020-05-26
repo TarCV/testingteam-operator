@@ -20,7 +20,7 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.TestIdentifier;
 
-import com.github.tarcv.tongs.model.TestCase;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.system.DdmsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

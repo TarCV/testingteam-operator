@@ -16,10 +16,10 @@ package com.github.tarcv.tongs.summary
 import com.github.jknack.handlebars.Handlebars
 import com.github.jknack.handlebars.Helper
 import com.github.jknack.handlebars.Options
-import com.github.tarcv.tongs.model.TestCase
-import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
 import com.github.tarcv.tongs.system.io.FileUtils
-import com.github.tarcv.tongs.system.io.StandardFileTypes
+import com.github.tarcv.tongs.api.result.StandardFileTypes
 import org.apache.commons.lang3.text.WordUtils.capitalizeFully
 import java.nio.file.Paths
 

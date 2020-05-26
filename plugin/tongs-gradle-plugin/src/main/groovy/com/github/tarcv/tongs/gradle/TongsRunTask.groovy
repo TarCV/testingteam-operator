@@ -15,7 +15,7 @@ package com.github.tarcv.tongs.gradle
 
 import com.github.tarcv.tongs.Configuration
 import com.github.tarcv.tongs.Tongs
-import com.github.tarcv.tongs.TongsConfiguration
+import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.PoolingStrategy
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException

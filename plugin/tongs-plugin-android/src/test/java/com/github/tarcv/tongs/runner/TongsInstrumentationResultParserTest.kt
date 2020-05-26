@@ -9,16 +9,12 @@
  */
 package com.github.tarcv.tongs.runner
 
-import com.android.ddmlib.testrunner.ITestRunListener
-import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.utils.toSystemLineSeparator
-import com.github.tarcv.tongs.model.TestCase
-import com.github.tarcv.tongs.model.TestCaseEvent
+import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.runner.listeners.ResultListener
-import com.github.tarcv.tongs.summary.ResultStatus
+import com.github.tarcv.tongs.api.run.ResultStatus
 import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 class TongsInstrumentationResultParserTest {

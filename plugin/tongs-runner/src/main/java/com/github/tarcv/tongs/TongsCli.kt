@@ -18,12 +18,10 @@ import com.beust.jcommander.JCommander
 import com.beust.jcommander.Parameter
 import com.beust.jcommander.ParameterException
 import com.github.tarcv.tongs.injector.GsonInjector
-import com.github.tarcv.tongs.utils.Utils
+import com.github.tarcv.tongs.Utils
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
-import java.io.FileReader
-import java.io.Reader
 
 object TongsCli {
     private val logger = LoggerFactory.getLogger(TongsCli::class.java)

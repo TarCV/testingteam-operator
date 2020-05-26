@@ -13,16 +13,16 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
-import com.github.tarcv.tongs.runner.TestCaseFile;
-import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.github.tarcv.tongs.api.result.TestCaseFile;
+import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Map;
 
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.SCREENRECORD;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.SCREENRECORD;
 
 class ScreenRecorderTestRunListener extends BaseListener {
     private final TestCaseFileManager fileManager;

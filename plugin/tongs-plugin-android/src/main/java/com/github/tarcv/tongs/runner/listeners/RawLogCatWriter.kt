@@ -14,12 +14,11 @@
 package com.github.tarcv.tongs.runner.listeners
 
 import com.android.ddmlib.logcat.LogCatMessage
-import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.model.Pool
-import com.github.tarcv.tongs.runner.TestCaseFile
-import com.github.tarcv.tongs.system.io.TestCaseFileManager
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.devices.Pool
+import com.github.tarcv.tongs.api.result.TestCaseFile
+import com.github.tarcv.tongs.api.result.TestCaseFileManager
 import org.apache.commons.io.IOUtils
-import java.io.IOException
 
 internal class RawLogCatWriter(
         private val fileManager: TestCaseFileManager,

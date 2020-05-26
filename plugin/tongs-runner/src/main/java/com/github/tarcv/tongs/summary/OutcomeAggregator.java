@@ -13,7 +13,7 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.google.common.base.Function;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
@@ -23,8 +23,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.github.tarcv.tongs.summary.ResultStatus.IGNORED;
-import static com.github.tarcv.tongs.summary.ResultStatus.PASS;
+import static com.github.tarcv.tongs.api.run.ResultStatus.IGNORED;
+import static com.github.tarcv.tongs.api.run.ResultStatus.PASS;
 import static com.google.common.collect.Collections2.transform;
 
 public class OutcomeAggregator {

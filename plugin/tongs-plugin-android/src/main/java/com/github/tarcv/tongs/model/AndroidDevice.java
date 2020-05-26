@@ -14,6 +14,9 @@
 package com.github.tarcv.tongs.model;
 
 import com.android.ddmlib.IDevice;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Diagnostics;
+import com.github.tarcv.tongs.api.devices.DisplayGeometry;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;

@@ -13,18 +13,18 @@
  */
 package com.github.tarcv.tongs.summary
 
-import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
 
 /**
  * Plain bean class, to feed to Moustache markup files.
  */
 class HtmlSummary(
-    val pools: Collection<HtmlPoolSummary>,
-    val title: String,
-    val subtitle: String,
-    val ignoredTests: List<TestCaseRunResult>,
-    val overallStatus: String, // TODO: replace strings with appropriate objects
-    val failedTests: List<TestCaseRunResult>,
-    val fatalCrashedTests: List<TestCaseRunResult>,
-    val fatalErrors: List<String>
+        val pools: Collection<HtmlPoolSummary>,
+        val title: String,
+        val subtitle: String,
+        val ignoredTests: List<TestCaseRunResult>,
+        val overallStatus: String, // TODO: replace strings with appropriate objects
+        val failedTests: List<TestCaseRunResult>,
+        val fatalCrashedTests: List<TestCaseRunResult>,
+        val fatalErrors: List<String>
 )

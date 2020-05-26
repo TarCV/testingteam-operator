@@ -13,14 +13,18 @@
  */
 package com.github.tarcv.tongs.runner
 
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.devices.Pool
 import com.github.tarcv.tongs.injector.*
 import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.runner.rules.*
-import com.github.tarcv.tongs.summary.ResultStatus
-import com.github.tarcv.tongs.system.io.TestCaseFileManager
+import com.github.tarcv.tongs.api.result.StackTrace
+import com.github.tarcv.tongs.api.run.*
+import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.api.result.TestCaseFileManager
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
 import org.slf4j.LoggerFactory
 import java.io.BufferedOutputStream
@@ -154,7 +158,8 @@ class DeviceTestRunner(private val pool: Pool,
         return TestCaseRunResult(
                 pool, device,
                 testCaseEvent.testCase, ResultStatus.ERROR,
-                listOf(StackTrace(error.javaClass.typeName, error.message ?: "", traceAsString(error))),
+                listOf(StackTrace(error.javaClass.typeName, error.message
+                        ?: "", traceAsString(error))),
                 startTimestampUtc,
                 Instant.EPOCH,
                 Instant.EPOCH,

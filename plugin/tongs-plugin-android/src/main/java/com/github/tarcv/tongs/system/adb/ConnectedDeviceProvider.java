@@ -28,7 +28,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
 import com.github.tarcv.tongs.device.DeviceGeometryRetriever;
 import com.github.tarcv.tongs.device.DeviceLoader;
-import com.github.tarcv.tongs.model.Device;
+import com.github.tarcv.tongs.api.devices.Device;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;

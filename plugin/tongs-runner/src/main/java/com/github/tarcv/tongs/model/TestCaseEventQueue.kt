@@ -1,6 +1,8 @@
 package com.github.tarcv.tongs.model
 
-import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.run.TestCaseEvent
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
