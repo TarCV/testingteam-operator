@@ -113,18 +113,18 @@ public class SummaryCompiler {
     }
 
     private static void addFatalCrashedTests(Pool pool, Collection<TestCaseEvent> testCasesForPool, Collection<TestCaseRunResult> testResultsForPool, Summary.Builder summaryBuilder) {
-        Set<TestResultItem> processedTests = testResultsForPool.stream()
-                .map(testResult -> new TestResultItem(testResult.getTestCase().getTestClass(), testResult.getTestCase().getTestMethod()))
+        Set<TestCase> processedTests = testResultsForPool.stream()
+                .map(testResult -> testResult.getTestCase())
                 .collect(Collectors.toSet());
-        Set<TestResultItem> allTests = testCasesForPool.stream()
-                .map(testCaseEvent -> new TestResultItem(testCaseEvent.getTestClass(), testCaseEvent.getTestMethod()))
+        Set<TestCase> allTests = testCasesForPool.stream()
+                .map(testCaseEvent -> testCaseEvent.getTestCase())
                 .collect(Collectors.toSet());
 
         Sets.difference(allTests, processedTests)
                 .stream()
                 .map(testResultItem -> {
                     return new TestCaseRunResult(pool, NO_DEVICE,
-                            new TestCase(testResultItem.testMethod, testResultItem.testClass),
+                            testResultItem,
                             ERROR, Collections.singletonList(new StackTrace("FatalError", "Fatally crashed", "Fatally crashed")),
                             Instant.now(), Instant.EPOCH, Instant.now(), Instant.EPOCH,
                             0, Collections.emptyMap(), null, Collections.emptyList());
@@ -147,30 +147,6 @@ public class SummaryCompiler {
     private static String getTestResultData(TestCaseRunResult testResult) {
         return format(ENGLISH, "%s#%s on %s", testResult.getTestCase().getTestClass(), testResult.getTestCase().getTestMethod(),
                 testResult.getDevice().getSerial());
-    }
-
-    private static class TestResultItem {
-        private final String testClass;
-        private final String testMethod;
-
-        TestResultItem(String testClass, String testMethod) {
-            this.testClass = testClass;
-            this.testMethod = testMethod;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            TestResultItem that = (TestResultItem) o;
-            return Objects.equals(testClass, that.testClass) &&
-                    Objects.equals(testMethod, that.testMethod);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(testClass, testMethod);
-        }
     }
 
     private static final Device NO_DEVICE = new Device() {

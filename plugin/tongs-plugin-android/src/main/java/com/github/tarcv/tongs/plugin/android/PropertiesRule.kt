@@ -40,10 +40,12 @@ class PropertiesTestCaseRule: TestCaseRule {
         }
 
         return TestCaseEvent.newTestCase(
+                testCaseEvent.testCase.typeTag,
                 testCaseEvent.testCase.testMethod,
                 testCaseEvent.testCase.testClass,
                 properties,
                 testCaseEvent.testCase.annotations,
+                testCaseEvent.testCase.extra,
                 testCaseEvent.excludedDevices
         )
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ public class CoverageListener extends BaseListener {
     @Override
     public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
         try {
-            TestCase testIdentifier = new TestCase(testCase.getTestMethod(), testCase.getTestClass());
+            TestCase testIdentifier = testCase.getTestCase();
             final String remoteFile = RemoteFileManager.getCoverageFileName(testIdentifier);
             final File file = coverageFile.create();
             try {

@@ -66,19 +66,24 @@ class TestCaseEvent private constructor(
     }
 
     companion object {
+        @JvmField
+        val TEST_TYPE_TAG = TestTypeTag::class.java
+
         // TODO: Refactor to usual constructors
 
         @JvmStatic
         @JvmOverloads
         fun newTestCase(
+                typeTag: Class<*>,
                 testMethod: String,
                 testClass: String,
                 properties: Map<String, String>,
                 annotations: List<AnnotationInfo>,
+                extra: Any,
                 excludedDevices: Collection<Device>,
                 totalFailureCount: Int = 0
         ): TestCaseEvent {
-            val testCase = TestCase(testMethod, testClass, properties, annotations)
+            val testCase = TestCase(typeTag, testMethod, testClass, properties, annotations, extra)
             return TestCaseEvent(testCase, excludedDevices, totalFailureCount)
         }
 
@@ -88,3 +93,5 @@ class TestCaseEvent private constructor(
         }
     }
 }
+
+class TestTypeTag

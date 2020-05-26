@@ -234,10 +234,12 @@ public class JUnitTestSuiteLoader(
                 val excludedDevices = excludes[it] ?: emptyList()
                 val info = infos[it] ?: ExtraInfo(emptyMap(), emptyList())
                 TestCaseEvent.newTestCase(
+                        ApkTestCase::class.java,
                         it.testName,
                         it.className,
                         info.properties,
                         info.info,
+                        Any(),
                         excludedDevices
                 )
             }

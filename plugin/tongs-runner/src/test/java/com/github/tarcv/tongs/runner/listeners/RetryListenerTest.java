@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
@@ -44,7 +45,7 @@ public class RetryListenerTest {
             .addDevice(device)
             .build();
 
-    private final TestCase fatalCrashedTest = new TestCase("com.example.FatalCrashedTest", "testMethod");
+    private final TestCase fatalCrashedTest = new TestCase(TEST_TYPE_TAG, "com.example.FatalCrashedTest", "testMethod");
     private final TestCaseEvent fatalCrashedTestCaseEvent = newTestCase(fatalCrashedTest);
 
     @Test

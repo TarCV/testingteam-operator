@@ -17,6 +17,7 @@ import com.github.tarcv.tongs.api.result.TestCaseRunResult
 import com.github.tarcv.tongs.api.result.TestCaseRunResult.Companion.NO_TRACE
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
+import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
 import org.junit.Assert
 import org.junit.Test
 import java.lang.Thread.sleep
@@ -120,7 +121,7 @@ private fun withTimeout(block: () -> Unit) {
 }
 
 private fun createTestCaseEvent(name: String, excludes: List<Device>) =
-        TestCaseEvent.newTestCase(name, "class", emptyMap(), emptyList(), excludes)
+        TestCaseEvent.newTestCase(TEST_TYPE_TAG, name, "class", emptyMap(), emptyList(), Any(), excludes)
 
 private fun createStubDevice(serial: String): Device {
     val api = 20

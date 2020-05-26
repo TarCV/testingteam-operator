@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 
+import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
 import static java.lang.String.format;
 
 public class AndroidInstrumentedTestRun {
@@ -73,7 +74,7 @@ public class AndroidInstrumentedTestRun {
 		if (test != null) {
 			testClassName = test.getTestClass();
 			testMethodName = test.getTestMethod();
-			testCase = new TestCase(testMethodName, testClassName);
+			testCase = test.getTestCase();
 
 			String encodedClassName = remoteAndroidTestRunnerFactory.encodeTestName(testClassName);
 			String encodedMethodName = remoteAndroidTestRunnerFactory.encodeTestName(testMethodName);
@@ -90,7 +91,7 @@ public class AndroidInstrumentedTestRun {
 		} else {
 			testClassName = "Test case collection";
 			testMethodName = "";
-			testCase = new TestCase(testMethodName, testClassName);
+			testCase = new TestCase(TEST_TYPE_TAG, testMethodName, testClassName);
 
 			runner.addBooleanArg("log", true);
 			addFilterAndCustomArgs(runner, COLLECTING_RUN_FILTER);

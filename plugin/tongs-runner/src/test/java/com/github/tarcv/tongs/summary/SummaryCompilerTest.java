@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
 import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
 import static com.github.tarcv.tongs.api.result.TestCaseRunResult.NO_TRACE;
 import static com.google.common.collect.Lists.newArrayList;
@@ -88,12 +89,12 @@ public class SummaryCompilerTest {
 
     private final Map<Pool, Collection<TestCaseEvent>> testCaseEvents = ImmutableMap.<Pool, Collection<TestCaseEvent>>builder()
             .put(devicePool, newArrayList(
-                newTestCase(new TestCase("doesJobProperly", "com.example.CompletedClassTest")),
-                newTestCase(new TestCase("doesJobProperly", "com.example.CompletedClassTest2")),
-                newTestCase("doesJobProperly", "com.example.FailedClassTest",
-                        emptyMap(), emptyList(), emptyList(), 10),
-                newTestCase(new TestCase("doesJobProperly", "com.example.IgnoredClassTest")),
-                newTestCase(new TestCase("doesJobProperly", "com.example.SkippedClassTest"))
+                newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.CompletedClassTest")),
+                newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.CompletedClassTest2")),
+                newTestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.FailedClassTest",
+                        emptyMap(), emptyList(), new Object(),emptyList(), 10),
+                newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.IgnoredClassTest")),
+                newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.SkippedClassTest"))
             )).build();
 
     @Before
