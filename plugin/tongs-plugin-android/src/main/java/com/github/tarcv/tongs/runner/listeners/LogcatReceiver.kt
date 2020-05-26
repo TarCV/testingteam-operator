@@ -15,7 +15,6 @@ import com.android.ddmlib.logcat.LogCatListener
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.logcat.LogCatReceiverTask
 import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.model.Device
 import java.util.*
 import kotlin.collections.ArrayList
 

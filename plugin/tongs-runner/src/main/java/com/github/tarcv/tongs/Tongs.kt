@@ -17,11 +17,10 @@ import com.github.tarcv.tongs.injector.RuleManagerFactory
 import com.github.tarcv.tongs.injector.TongsRunnerInjector.createTongsRunner
 import com.github.tarcv.tongs.injector.withRules
 import com.github.tarcv.tongs.runner.AndroidDdmRunRuleFactory
-import com.github.tarcv.tongs.runner.rules.RunConfiguration
-import com.github.tarcv.tongs.runner.rules.RunRule
-import com.github.tarcv.tongs.runner.rules.RunRuleContext
-import com.github.tarcv.tongs.runner.rules.RunRuleFactory
-import com.github.tarcv.tongs.Utils
+import com.github.tarcv.tongs.api.run.RunConfiguration
+import com.github.tarcv.tongs.api.run.RunRule
+import com.github.tarcv.tongs.api.run.RunRuleContext
+import com.github.tarcv.tongs.api.run.RunRuleFactory
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DurationFormatUtils
 import org.koin.core.context.KoinContextHandler

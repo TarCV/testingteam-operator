@@ -12,17 +12,17 @@
 package com.github.tarcv.tongs.util;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
-import com.github.tarcv.tongs.summary.ResultStatus;
+import com.github.tarcv.tongs.api.run.ResultStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 
-import static com.github.tarcv.tongs.model.Device.TEST_DEVICE;
-import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.api.devices.Device.TEST_DEVICE;
+import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.util.ResultUtilKt.parseJavaTrace;
 import static java.util.Collections.*;
 

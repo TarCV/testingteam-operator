@@ -11,15 +11,15 @@
 
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.TongsConfiguration;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.runner.StackTrace;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.TongsConfiguration;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.api.result.StackTrace;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
@@ -29,14 +29,13 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
-import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
-import static com.github.tarcv.tongs.runner.TestCaseRunResult.NO_TRACE;
+import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
+import static com.github.tarcv.tongs.api.result.TestCaseRunResult.NO_TRACE;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.*;
 import static org.hamcrest.MatcherAssert.assertThat;

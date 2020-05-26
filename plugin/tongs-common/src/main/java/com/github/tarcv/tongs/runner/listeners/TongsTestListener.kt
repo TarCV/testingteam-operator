@@ -10,10 +10,10 @@
 
 package com.github.tarcv.tongs.runner.listeners
 
-import com.github.tarcv.tongs.runner.TestCaseRunResult
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
-import com.github.tarcv.tongs.summary.ResultStatus
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.run.TestCaseRunRule
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleAfterArguments
+import com.github.tarcv.tongs.api.run.ResultStatus
 
 abstract class TongsTestListener: TestCaseRunRule {
     abstract fun onTestStarted()

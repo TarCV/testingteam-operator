@@ -11,7 +11,8 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.github.tarcv.tongs.runner.*;
 import org.jetbrains.annotations.NotNull;
 

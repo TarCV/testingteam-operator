@@ -13,11 +13,10 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
-import com.github.tarcv.tongs.runner.TestCaseFile;
-import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.github.tarcv.tongs.api.result.TestCaseFile;
+import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

@@ -11,7 +11,7 @@
 
 package com.github.tarcv.tongs.injector.listeners;
 
-import com.github.tarcv.tongs.TongsConfiguration;
+import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.injector.GsonInjector;
 import com.github.tarcv.tongs.runner.listeners.TestRunListenersFactoryTongs;
 

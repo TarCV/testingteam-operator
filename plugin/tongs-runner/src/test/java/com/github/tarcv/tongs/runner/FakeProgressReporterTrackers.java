@@ -11,7 +11,7 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Pool;
 
 import java.util.AbstractMap;
 import java.util.Map;

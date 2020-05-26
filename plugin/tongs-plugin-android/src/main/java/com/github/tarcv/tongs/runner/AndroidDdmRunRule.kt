@@ -13,9 +13,9 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.github.tarcv.tongs.runner.rules.RunRule
-import com.github.tarcv.tongs.runner.rules.RunRuleContext
-import com.github.tarcv.tongs.runner.rules.RunRuleFactory
+import com.github.tarcv.tongs.api.run.RunRule
+import com.github.tarcv.tongs.api.run.RunRuleContext
+import com.github.tarcv.tongs.api.run.RunRuleFactory
 
 class AndroidDdmRunRuleFactory: RunRuleFactory<AndroidDdmRunRule> {
     override fun runRules(context: RunRuleContext): Array<out AndroidDdmRunRule> {

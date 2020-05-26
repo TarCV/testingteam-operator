@@ -11,15 +11,13 @@
 package com.github.tarcv.tongs.plugin.android
 
 import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.model.DisplayGeometry
-import com.github.tarcv.tongs.plugin.DeviceProvider
-import com.github.tarcv.tongs.plugin.DeviceProviderContext
-import com.github.tarcv.tongs.plugin.DeviceProviderFactory
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.devices.DisplayGeometry
+import com.github.tarcv.tongs.api.devices.DeviceProvider
+import com.github.tarcv.tongs.api.devices.DeviceProviderContext
+import com.github.tarcv.tongs.api.devices.DeviceProviderFactory
 import com.github.tarcv.tongs.pooling.StubDevice
-import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory.Companion.functionalTestTestIdentifierDuration
-import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext
 
 class StubDeviceProviderFactory: DeviceProviderFactory<StubDeviceProvider> {
     override fun deviceProviders(context: DeviceProviderContext): Array<out StubDeviceProvider> {

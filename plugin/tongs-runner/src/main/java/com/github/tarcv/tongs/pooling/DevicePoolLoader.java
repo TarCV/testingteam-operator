@@ -13,8 +13,8 @@
  */
 package com.github.tarcv.tongs.pooling;
 
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
 
 import java.util.Collection;
 import java.util.List;

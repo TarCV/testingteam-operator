@@ -13,8 +13,8 @@
 package com.github.tarcv.tongs.runner.listeners
 
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory
-import com.github.tarcv.tongs.runner.TestCaseRunResult
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
 import java.time.Instant
 
 class TestResultProducer(private val context: TestCaseRunRuleContext): IResultProducer {

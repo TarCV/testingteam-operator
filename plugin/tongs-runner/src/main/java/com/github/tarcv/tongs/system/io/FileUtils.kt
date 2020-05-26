@@ -10,7 +10,8 @@
 
 package com.github.tarcv.tongs.system.io
 
-import com.github.tarcv.tongs.model.TestCase
+import com.github.tarcv.tongs.api.result.FileType
+import com.github.tarcv.tongs.api.testcases.TestCase
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException

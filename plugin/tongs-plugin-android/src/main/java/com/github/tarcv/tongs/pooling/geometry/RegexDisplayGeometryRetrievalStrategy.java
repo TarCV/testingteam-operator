@@ -15,9 +15,7 @@ package com.github.tarcv.tongs.pooling.geometry;
 
 import com.android.ddmlib.IDevice;
 import com.github.tarcv.tongs.device.DisplayGeometryRetrievalStrategy;
-import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.DisplayGeometry;
+import com.github.tarcv.tongs.api.devices.DisplayGeometry;
 import com.github.tarcv.tongs.system.adb.CollectingShellOutputReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

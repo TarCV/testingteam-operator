@@ -16,12 +16,11 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
-import com.github.tarcv.tongs.model.TestCase;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRule;
-import com.github.tarcv.tongs.system.PermissionGrantingManager;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -29,8 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 
 import static java.lang.String.format;

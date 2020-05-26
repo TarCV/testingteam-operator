@@ -10,7 +10,8 @@
 
 package com.github.tarcv.tongs.plugin
 
-import com.github.tarcv.tongs.TongsConfiguration
+import com.github.tarcv.tongs.api.TongsConfiguration
+import com.github.tarcv.tongs.api.devices.DeviceProviderContext
 
 // TODO: move to runner module
 class DeviceProviderContextImpl(

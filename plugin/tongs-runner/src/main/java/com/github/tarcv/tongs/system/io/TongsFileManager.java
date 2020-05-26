@@ -11,9 +11,10 @@
 
 package com.github.tarcv.tongs.system.io;
 
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCase;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.result.FileType;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -24,7 +25,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import static com.github.tarcv.tongs.CommonDefaults.TONGS_SUMMARY_FILENAME_FORMAT;
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.TEST;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.TEST;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Paths.get;
 

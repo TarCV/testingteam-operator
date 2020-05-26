@@ -11,6 +11,8 @@
 
 package com.github.tarcv.tongs;
 
+import com.github.tarcv.tongs.PoolingStrategy;
+
 public class TongsConfigurationJsonExtension extends TongsConfigurationExtension {
     /**
      * The strategy that will be used to calculate the grouping of devices to pools.

@@ -14,8 +14,8 @@
 package com.github.tarcv.tongs.runner.listeners
 
 import com.android.ddmlib.logcat.LogCatMessage
-import com.github.tarcv.tongs.runner.Table
-import com.github.tarcv.tongs.runner.TestCaseFile
+import com.github.tarcv.tongs.api.result.Table
+import com.github.tarcv.tongs.api.result.TestCaseFile
 import com.google.gson.Gson
 import java.util.*
 import java.util.function.Function

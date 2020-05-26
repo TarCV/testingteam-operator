@@ -13,9 +13,11 @@
  */
 package com.github.tarcv.tongs.system.io
 
-import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.model.Pool
-import com.github.tarcv.tongs.model.TestCase
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.devices.Pool
+import com.github.tarcv.tongs.api.result.FileType
+import com.github.tarcv.tongs.api.result.TestCaseFileManager
+import com.github.tarcv.tongs.api.testcases.TestCase
 import java.io.File
 
 class TestCaseFileManagerImpl(

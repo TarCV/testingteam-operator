@@ -14,9 +14,12 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.TestIdentifier
+import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData
+import com.github.tarcv.tongs.api.result.StackTrace
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
 import com.github.tarcv.tongs.runner.listeners.BroadcastingListener
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
-import com.github.tarcv.tongs.summary.ResultStatus
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
+import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.system.DdmsUtils
 import com.github.tarcv.tongs.system.DdmsUtils.unescapeInstrumentationArg
 import java.nio.charset.StandardCharsets
@@ -200,7 +203,7 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                     testCaseContext.device,
                     testCaseContext.testCaseEvent.testCase,
                     status,
-                    stackTraces.lastOrNull()?.let{ listOf(it) } ?: emptyList(),
+                    stackTraces.lastOrNull()?.let { listOf(it) } ?: emptyList(),
                     Instant.EPOCH,
                     Instant.EPOCH,
                     timeStart,

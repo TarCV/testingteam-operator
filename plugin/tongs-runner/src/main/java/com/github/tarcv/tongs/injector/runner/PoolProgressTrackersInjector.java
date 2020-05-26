@@ -11,7 +11,7 @@
 
 package com.github.tarcv.tongs.injector.runner;
 
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.runner.PoolProgressTracker;
 
 import java.util.Map;

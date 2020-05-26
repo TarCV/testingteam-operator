@@ -17,18 +17,18 @@ import com.github.tarcv.tongs.injector.ConfigurationInjector
 import com.github.tarcv.tongs.injector.TestCaseRuleManager
 import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
-import com.github.tarcv.tongs.model.Pool
-import com.github.tarcv.tongs.model.TestCaseEvent
+import com.github.tarcv.tongs.api.devices.Pool
+import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.pooling.NoDevicesForPoolException
 import com.github.tarcv.tongs.pooling.NoPoolLoaderConfiguredException
 import com.github.tarcv.tongs.pooling.PoolLoader
 import com.github.tarcv.tongs.runner.PoolTestRunnerFactory
 import com.github.tarcv.tongs.runner.ProgressReporter
-import com.github.tarcv.tongs.runner.TestCaseRunResult
-import com.github.tarcv.tongs.runner.rules.TestCaseRuleContext
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
-import com.github.tarcv.tongs.suite.NoTestCasesFoundException
-import com.github.tarcv.tongs.suite.TestSuiteLoaderContext
+import com.github.tarcv.tongs.api.testcases.NoTestCasesFoundException
+import com.github.tarcv.tongs.api.testcases.TestSuiteLoaderContext
 import com.github.tarcv.tongs.summary.SummaryGeneratorHook
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -52,7 +52,8 @@ class TongsRunner(private val poolLoader: PoolLoader,
                     .map { pool ->
                         val testCaseRules = testCaseRuleManager
                                 .createRulesFrom {
-                                    configuration -> TestCaseRuleContext(configuration, pool)
+                                    configuration ->
+                                    TestCaseRuleContext(configuration, pool)
                                 }
                         val testCases = createTestSuiteLoaderForPool(pool)
                                 .map { testCaseEvent: TestCaseEvent ->

@@ -10,13 +10,16 @@
 package com.github.tarcv.tongs.summary
 
 import com.github.tarcv.tongs.Configuration.aConfigurationBuilder
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.devices.Pool
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.summary.OutcomeAggregatorInjector.outcomeAggregator
 import com.github.tarcv.tongs.injector.summary.SummaryCompilerInjector.summaryCompiler
 import com.github.tarcv.tongs.injector.summary.SummaryPrinterInjector.summaryPrinter
 import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.runner.*
+import com.github.tarcv.tongs.api.result.*
 import com.github.tarcv.tongs.system.io.*
+import com.github.tarcv.tongs.api.testcases.TestCase
 import com.google.gson.*
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.startsWith

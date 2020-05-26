@@ -12,14 +12,10 @@
  */
 package com.github.tarcv.tongs.runner
 
-import com.github.tarcv.tongs.TongsConfiguration
-import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.model.Pool
-import com.github.tarcv.tongs.model.TestCaseEvent
+import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.runner.listeners.IResultProducer
-import com.github.tarcv.tongs.runner.listeners.ResultProducer
 import com.github.tarcv.tongs.runner.listeners.TestResultProducer
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
 
 class TestAndroidTestRunFactory(configuration: TongsConfiguration): AndroidTestRunFactory(configuration) {
     override fun createResultProducer(

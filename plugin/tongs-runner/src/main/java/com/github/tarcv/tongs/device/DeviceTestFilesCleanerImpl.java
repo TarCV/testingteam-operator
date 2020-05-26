@@ -11,17 +11,16 @@
 
 package com.github.tarcv.tongs.device;
 
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.system.io.FileManager;
-import com.github.tarcv.tongs.system.io.FileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.TEST;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.TEST;
 
 public class DeviceTestFilesCleanerImpl implements DeviceTestFilesCleaner {
     private static final Logger logger = LoggerFactory.getLogger(DeviceTestFilesCleanerImpl.class);

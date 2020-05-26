@@ -14,10 +14,11 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.*;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.Utils;
-import com.github.tarcv.tongs.runner.TestCaseFile;
-import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.result.TestCaseFile;
+import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
-import com.github.tarcv.tongs.model.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +32,8 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.ANIMATION;
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.SCREENSHOT;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.ANIMATION;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.SCREENSHOT;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static java.lang.System.nanoTime;
 

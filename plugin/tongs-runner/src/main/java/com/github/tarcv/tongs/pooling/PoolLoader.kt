@@ -13,7 +13,7 @@ package com.github.tarcv.tongs.pooling
 
 import com.github.tarcv.tongs.Configuration
 import com.github.tarcv.tongs.injector.pooling.DeviceProviderManager
-import com.github.tarcv.tongs.model.Pool
+import com.github.tarcv.tongs.api.devices.Pool
 import com.github.tarcv.tongs.plugin.DeviceProviderContextImpl
 import org.slf4j.LoggerFactory
 

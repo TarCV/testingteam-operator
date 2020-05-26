@@ -13,24 +13,29 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.TongsConfiguration;
-import com.github.tarcv.tongs.model.TestCase;
+import com.github.tarcv.tongs.api.TongsConfiguration;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Diagnostics;
+import com.github.tarcv.tongs.api.devices.DisplayGeometry;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.model.*;
-import com.github.tarcv.tongs.runner.StackTrace;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.result.StackTrace;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.runner.PoolTestRunner.DROPPED_BY;
 import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
-import static com.github.tarcv.tongs.summary.ResultStatus.ERROR;
-import static com.github.tarcv.tongs.summary.ResultStatus.FAIL;
+import static com.github.tarcv.tongs.api.run.ResultStatus.ERROR;
+import static com.github.tarcv.tongs.api.run.ResultStatus.FAIL;
 import static com.github.tarcv.tongs.summary.Summary.Builder.aSummary;
 import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;

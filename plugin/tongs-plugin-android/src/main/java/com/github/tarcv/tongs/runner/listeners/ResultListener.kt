@@ -11,9 +11,9 @@
 package com.github.tarcv.tongs.runner.listeners
 
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.github.tarcv.tongs.model.TestCaseEvent
+import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.runner.PreregisteringLatch
-import com.github.tarcv.tongs.summary.ResultStatus
+import com.github.tarcv.tongs.api.run.ResultStatus
 import org.slf4j.LoggerFactory
 import javax.annotation.concurrent.GuardedBy
 import javax.annotation.concurrent.ThreadSafe

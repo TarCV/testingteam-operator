@@ -13,7 +13,8 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.github.tarcv.tongs.system.io.FileManager;
 import com.google.common.base.Function;
 

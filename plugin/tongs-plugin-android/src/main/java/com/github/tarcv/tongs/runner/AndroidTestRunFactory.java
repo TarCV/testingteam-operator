@@ -11,30 +11,22 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.github.tarcv.tongs.TongsConfiguration;
+import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector;
 import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
 import com.github.tarcv.tongs.runner.listeners.ResultProducer;
 import com.github.tarcv.tongs.runner.listeners.TestCollectorResultProducer;
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRule;
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleContext;
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleFactory;
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext;
 import com.github.tarcv.tongs.suite.TestCollectingListener;
-import com.github.tarcv.tongs.summary.ResultStatus;
-import com.github.tarcv.tongs.system.PermissionGrantingManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class AndroidTestRunFactory {
 

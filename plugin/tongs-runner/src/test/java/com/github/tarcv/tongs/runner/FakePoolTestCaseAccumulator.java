@@ -11,9 +11,9 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.model.PoolTestCaseAccumulator;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 
 public class FakePoolTestCaseAccumulator implements PoolTestCaseAccumulator {
 

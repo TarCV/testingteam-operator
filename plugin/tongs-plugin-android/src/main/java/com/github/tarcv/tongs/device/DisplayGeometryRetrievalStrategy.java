@@ -11,7 +11,7 @@
 package com.github.tarcv.tongs.device;
 
 import com.android.ddmlib.IDevice;
-import com.github.tarcv.tongs.model.DisplayGeometry;
+import com.github.tarcv.tongs.api.devices.DisplayGeometry;
 
 /**
  * Determines a display geometry for a device.

@@ -11,12 +11,14 @@
 
 package com.github.tarcv.tongs.model;
 
-import com.google.gson.JsonObject;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
-import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
+import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.CoreMatchers.equalTo;

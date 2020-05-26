@@ -16,10 +16,9 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.device.clearLogcat
 import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.model.Device
 import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRule
-import com.github.tarcv.tongs.runner.rules.TestCaseRunRuleAfterArguments
+import com.github.tarcv.tongs.api.run.TestCaseRunRule
+import com.github.tarcv.tongs.api.run.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader.Companion.logcatWaiterSleep
 import com.github.tarcv.tongs.suite.TestCollectingListener

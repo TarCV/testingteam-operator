@@ -16,23 +16,19 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.runner.PreregisteringLatch;
-import com.github.tarcv.tongs.runner.Table;
-import com.github.tarcv.tongs.runner.TestCaseFile;
-import com.github.tarcv.tongs.system.io.TestCaseFileManager;
+import com.github.tarcv.tongs.api.result.TestCaseFile;
+import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import com.google.gson.Gson;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.JSON_LOG;
-import static com.github.tarcv.tongs.system.io.StandardFileTypes.RAW_LOG;
-import static java.util.Arrays.asList;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.JSON_LOG;
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.RAW_LOG;
 
 class LogCatTestRunListener extends BaseListener {
 	private final LogcatReceiver logcatReceiver;

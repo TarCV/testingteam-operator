@@ -10,11 +10,9 @@
 package com.github.tarcv.tongs.injector
 
 import com.github.tarcv.tongs.Configuration
-import com.github.tarcv.tongs.TongsConfiguration
-import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
-import com.github.tarcv.tongs.runner.rules.HasConfiguration
-import com.github.tarcv.tongs.runner.rules.RunConfiguration
-import org.koin.core.context.KoinContextHandler.get
+import com.github.tarcv.tongs.api.TongsConfiguration
+import com.github.tarcv.tongs.api.HasConfiguration
+import com.github.tarcv.tongs.api.run.RunConfiguration
 import org.slf4j.Logger
 import java.lang.reflect.InvocationTargetException
 import java.util.*
@@ -169,7 +167,7 @@ class RuleManagerFactory(
 }
 
 class ActualConfiguration(configuration: Configuration)
-    : com.github.tarcv.tongs.runner.rules.RunConfiguration,
+    : RunConfiguration,
         TongsConfiguration by configuration
 
 inline fun <R, V>withRulesWithoutAfter(

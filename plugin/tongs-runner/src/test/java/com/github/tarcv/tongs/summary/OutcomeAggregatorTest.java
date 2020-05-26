@@ -11,17 +11,18 @@
 
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.runner.StackTrace;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.result.StackTrace;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import org.junit.Test;
 
-import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
-import static com.github.tarcv.tongs.runner.TestCaseRunResult.NO_TRACE;
-import static com.github.tarcv.tongs.runner.TestCaseRunResult.aTestResult;
+import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.api.result.TestCaseRunResult.NO_TRACE;
+import static com.github.tarcv.tongs.api.result.TestCaseRunResult.aTestResult;
 import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
-import static com.github.tarcv.tongs.summary.ResultStatus.*;
+import static com.github.tarcv.tongs.api.run.ResultStatus.*;
 import static com.github.tarcv.tongs.summary.Summary.Builder.aSummary;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;

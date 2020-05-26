@@ -10,8 +10,8 @@
 
 package com.github.tarcv.tongs.runner.listeners
 
-import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.runner.TestCaseRunResult
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
 import java.io.File
 import java.io.FileWriter
 

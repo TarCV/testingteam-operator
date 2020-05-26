@@ -13,7 +13,8 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.google.common.base.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.github.tarcv.tongs.summary.ResultStatus.*;
+import static com.github.tarcv.tongs.api.run.ResultStatus.*;
 import static com.google.common.collect.Collections2.filter;
 import static java.lang.String.format;
 

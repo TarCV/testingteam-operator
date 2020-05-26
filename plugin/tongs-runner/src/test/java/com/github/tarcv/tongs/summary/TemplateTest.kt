@@ -13,13 +13,12 @@
 package com.github.tarcv.tongs.summary
 
 import com.github.tarcv.tongs.injector.summary.HtmlGeneratorInjector.htmlGenerator
-import com.github.tarcv.tongs.model.Device.TEST_DEVICE
-import com.github.tarcv.tongs.model.Pool.Builder.aDevicePool
-import com.github.tarcv.tongs.model.TestCase
-import com.github.tarcv.tongs.runner.*
-import com.github.tarcv.tongs.system.io.FileType
-import com.github.tarcv.tongs.system.io.StandardFileTypes.*
-import com.github.tarcv.tongs.system.io.TestCaseFileManager
+import com.github.tarcv.tongs.api.devices.Device.TEST_DEVICE
+import com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool
+import com.github.tarcv.tongs.api.result.*
+import com.github.tarcv.tongs.api.run.*
+import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.api.result.StandardFileTypes.*
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test

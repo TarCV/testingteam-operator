@@ -12,8 +12,10 @@
 package com.github.tarcv.tongs.runner;
 
 import com.github.tarcv.tongs.Utils;
+import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.model.*;
 
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

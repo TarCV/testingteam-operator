@@ -12,10 +12,10 @@
 package com.github.tarcv.tongs.plugin.android
 
 import com.github.tarcv.tongs.injector.device.ConnectedDeviceProviderInjector
-import com.github.tarcv.tongs.model.Device
-import com.github.tarcv.tongs.plugin.DeviceProvider
-import com.github.tarcv.tongs.plugin.DeviceProviderContext
-import com.github.tarcv.tongs.plugin.DeviceProviderFactory
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.devices.DeviceProvider
+import com.github.tarcv.tongs.api.devices.DeviceProviderContext
+import com.github.tarcv.tongs.api.devices.DeviceProviderFactory
 import com.github.tarcv.tongs.system.adb.ConnectedDeviceProvider
 import java.util.stream.Collectors
 

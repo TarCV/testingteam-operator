@@ -13,9 +13,9 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

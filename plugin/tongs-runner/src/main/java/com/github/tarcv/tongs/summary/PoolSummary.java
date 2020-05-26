@@ -13,7 +13,7 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.runner.TestCaseRunResult;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -13,6 +13,8 @@
  */
 package com.github.tarcv.tongs;
 
+import com.github.tarcv.tongs.api.TongsConfiguration;
+import com.github.tarcv.tongs.PoolingStrategy;
 import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
 
@@ -27,7 +29,7 @@ import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.NONE;
+import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.NONE;
 import static com.github.tarcv.tongs.system.axmlparser.InstrumentationInfoFactory.parseFromFile;
 import static java.util.Arrays.asList;
 
