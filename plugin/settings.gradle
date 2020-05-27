@@ -10,6 +10,7 @@
  */
 
 include ':tongs-common'
+include ':tongs-common-test'
 include ':tongs-runner'
 include ':tongs-gradle-plugin'
 include ':tongs-ondevice'

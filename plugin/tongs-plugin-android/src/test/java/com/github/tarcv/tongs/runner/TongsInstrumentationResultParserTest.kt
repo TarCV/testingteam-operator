@@ -15,6 +15,7 @@ import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.runner.listeners.ResultListener
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
+import com.github.tarcv.tongs.api.run.newTestCase
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

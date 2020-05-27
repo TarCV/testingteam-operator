@@ -100,11 +100,6 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
             val testCase = TestCase(typeTag, testMethod, testClass, properties, annotations, extra)
             return TestCaseEvent(testCase, includedDevices, excludedDevices, totalFailureCount)
         }
-
-        @JvmStatic
-        fun newTestCase(testIdentifier: TestCase): TestCaseEvent {
-            return TestCaseEvent(testIdentifier, emptyList(), emptyList())
-        }
     }
 }
 
