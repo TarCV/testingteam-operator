@@ -40,7 +40,7 @@ public class GsonInjector {
         return (json, typeOfT, context) -> valueOf(json.getAsJsonPrimitive().getAsString());
     }
 
-    private static JsonSerializer<Class<?>> classSerializer() {
+    public static JsonSerializer<Class<?>> classSerializer() {
         return (src, typeOfSrc, context) -> new JsonPrimitive(src.getName());
     }
 

@@ -24,10 +24,10 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
         val testCase: TestCase,
         val includedDevices: Collection<Device>,
         excludedDevices: Collection<Device>,
-        val totalFailureCount: Int = 0
+        val totalFailureCount: Int = 0,
+        private val deviceRunners: MutableMap<Device, MutableList<TestCaseRunner>> = HashMap()
 ) {
 
-    private val deviceRunners: MutableMap<Device, MutableList<TestCaseRunner>> = HashMap()
     val testMethod: String
         get() = testCase.testMethod
     val testClass: String
@@ -68,7 +68,7 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
     }
 
     fun withFailureCount(totalFailureCount: Int): TestCaseEvent {
-        return TestCaseEvent(testCase, includedDevices, excludedDevices, totalFailureCount)
+        return TestCaseEvent(testCase, includedDevices, excludedDevices, totalFailureCount, deviceRunners)
     }
 
     fun addDeviceRunner(device: Device, runner: TestCaseRunner) {
