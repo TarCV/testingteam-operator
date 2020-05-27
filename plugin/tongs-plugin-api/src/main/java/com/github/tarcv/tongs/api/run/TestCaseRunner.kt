@@ -19,20 +19,24 @@ import com.github.tarcv.tongs.api.result.TestCaseFileManager
 import com.github.tarcv.tongs.api.testcases.TestCase
 import java.time.Instant
 
+interface TestCaseRunnerFactory<out T: TestCaseRunner> {
+    fun testCaseRunners(context: TestCaseRunnerContext): Array<out T>
+}
+
 interface TestCaseRunner {
     fun supports(device: Device, testCase: TestCase): Boolean
     fun run(arguments: TestCaseRunnerArguments): RunTesult
 }
 
+// TODO: review arguments
 data class TestCaseRunnerContext(
         val configuration: RunConfiguration,
-        val fileManager: TestCaseFileManager,
         val pool: Pool,
-        val device: Device,
-        val testCaseEvent: TestCaseEvent,
-        val startTimestampUtc: Instant
+        val device: Device
 )
+// TODO: review arguments
 data class TestCaseRunnerArguments(
+        val fileManager: TestCaseFileManager,
         val testCaseEvent: TestCaseEvent,
         val startTimestampUtc: Instant
 )

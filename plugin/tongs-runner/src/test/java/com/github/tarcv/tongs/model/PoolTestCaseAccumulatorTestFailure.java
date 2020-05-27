@@ -45,9 +45,9 @@ public class PoolTestCaseAccumulatorTestFailure {
             .build();
     
     private final TestCaseEvent A_TEST_CASE =
-            newTestCase(TEST_TYPE_TAG, "a_method", "a_class", emptyMap(), emptyList(), new Object(), emptyList());
+            newTestCase(TEST_TYPE_TAG, "a_method", "a_class", emptyMap(), emptyList(), new Object(), emptyList(), emptyList());
     private final TestCaseEvent ANOTHER_TEST_CASE =
-            newTestCase(TEST_TYPE_TAG, "another_method", "a_class", emptyMap(), emptyList(), new Object(), emptyList());
+            newTestCase(TEST_TYPE_TAG, "another_method", "a_class", emptyMap(), emptyList(), new Object(), emptyList(), emptyList());
 
     PoolTestCaseFailureAccumulator subject;
 

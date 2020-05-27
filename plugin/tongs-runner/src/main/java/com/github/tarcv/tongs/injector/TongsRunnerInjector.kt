@@ -23,6 +23,11 @@ import com.github.tarcv.tongs.api.testcases.TestCaseRule
 import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
 import com.github.tarcv.tongs.api.testcases.TestCaseRuleFactory
 import com.github.tarcv.tongs.Utils
+import com.github.tarcv.tongs.api.run.TestCaseRunner
+import com.github.tarcv.tongs.api.run.TestCaseRunnerContext
+import com.github.tarcv.tongs.api.run.TestCaseRunnerFactory
+import com.github.tarcv.tongs.runner.AndroidInstrumentedTestCaseRunner
+import com.github.tarcv.tongs.runner.AndroidInstrumentedTestCaseRunnerFactory
 import org.slf4j.LoggerFactory
 
 object TongsRunnerInjector {
@@ -37,12 +42,18 @@ object TongsRunnerInjector {
                 listOf(PropertiesTestCaseRuleFactory()),
                 { factory, context: TestCaseRuleContext -> factory.testCaseRules(context) }
         )
+        val runnerManager: TestCaseRunnerManager = ruleManagerFactory.create(
+                TestCaseRunnerFactory::class.java,
+                listOf(AndroidInstrumentedTestCaseRunnerFactory()),
+                { factory, context: TestCaseRunnerContext -> factory.testCaseRunners(context) }
+        )
         val tongsRunner = TongsRunner(
                 poolLoader(ruleManagerFactory),
                 PoolTestRunnerFactoryInjector.poolTestRunnerFactory(ruleManagerFactory),
                 ProgressReporterInjector.progressReporter(),
                 SummaryGeneratorHookInjector.summaryGeneratorHook(),
-                ruleManager
+                ruleManager,
+                runnerManager
         )
 
         logger.debug("Bootstrap of TongsRunner took: {} milliseconds", Utils.millisSinceNanoTime(startNanos))
@@ -51,3 +62,4 @@ object TongsRunnerInjector {
 }
 
 typealias TestCaseRuleManager = RuleManagerFactory.RuleManager<TestCaseRuleContext, TestCaseRule, TestCaseRuleFactory<TestCaseRule>>
+typealias TestCaseRunnerManager = RuleManagerFactory.RuleManager<TestCaseRunnerContext, TestCaseRunner, TestCaseRunnerFactory<TestCaseRunner>>

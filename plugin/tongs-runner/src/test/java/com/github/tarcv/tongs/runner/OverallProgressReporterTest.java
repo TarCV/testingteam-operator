@@ -40,7 +40,7 @@ public class OverallProgressReporterTest {
             .addDevice(A_DEVICE)
             .build();
     private final TestCaseEvent A_TEST_CASE =
-            newTestCase(TEST_TYPE_TAG, "aTestMethod", "aTestClass", emptyMap(), emptyList(), new Object(), emptyList());
+            newTestCase(TEST_TYPE_TAG, "aTestMethod", "aTestClass", emptyMap(), emptyList(), new Object(), emptyList(), emptyList());
 
     private OverallProgressReporter overallProgressReporter;
 

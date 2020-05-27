@@ -25,12 +25,15 @@ import com.github.tarcv.tongs.pooling.PoolLoader
 import com.github.tarcv.tongs.runner.PoolTestRunnerFactory
 import com.github.tarcv.tongs.runner.ProgressReporter
 import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.run.TestCaseRunnerContext
 import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
 import com.github.tarcv.tongs.api.testcases.NoTestCasesFoundException
 import com.github.tarcv.tongs.api.testcases.TestSuiteLoaderContext
+import com.github.tarcv.tongs.injector.TestCaseRunnerManager
 import com.github.tarcv.tongs.summary.SummaryGeneratorHook
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -39,7 +42,9 @@ class TongsRunner(private val poolLoader: PoolLoader,
                   private val poolTestRunnerFactory: PoolTestRunnerFactory,
                   private val progressReporter: ProgressReporter,
                   private val summaryGeneratorHook: SummaryGeneratorHook,
-                  private val testCaseRuleManager: TestCaseRuleManager) {
+                  private val testCaseRuleManager: TestCaseRuleManager,
+                  private val testCaseRunnerManager: TestCaseRunnerManager
+) {
     fun run(): Boolean {
         var poolExecutor: ExecutorService? = null
         return try {
@@ -59,6 +64,34 @@ class TongsRunner(private val poolLoader: PoolLoader,
                                 .map { testCaseEvent: TestCaseEvent ->
                                     testCaseRules.fold(testCaseEvent) { acc, rule -> rule.transform(acc) }
                                 }
+
+                        pool.devices.forEach { device ->
+                            testCaseRunnerManager
+                                    .createRulesFrom {
+                                        configuration ->
+                                        TestCaseRunnerContext(
+                                                configuration,
+                                                pool,
+                                                device
+                                        )
+                                    }
+                                    .forEach { runner ->
+                                        testCases.forEach {
+                                            if ((!it.isEnabledOn(device)).not() && runner.supports(device, it.testCase)) {
+                                                it.addDeviceRunner(device, runner)
+                                            }
+                                        }
+                                    }
+                        }
+                        testCases.forEach { testCase ->
+                            val hasCompatibleDevice = pool.devices.any {
+                                device -> testCase.isEnabledOn(device) && testCase.runnersFor(device).isNotEmpty()
+                            }
+                            if (!hasCompatibleDevice) {
+                                throw IllegalStateException("No runner found for $testCase")
+                            }
+                        }
+
                         pool to testCases
                     }
                     .toMap()

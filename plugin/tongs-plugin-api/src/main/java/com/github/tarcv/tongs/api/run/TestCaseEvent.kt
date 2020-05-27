@@ -17,13 +17,17 @@ import com.github.tarcv.tongs.api.testcases.TestCase
 import com.google.common.base.Objects
 import java.util.*
 import java.util.Collections.emptyList
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
-class TestCaseEvent private constructor(
+class TestCaseEvent private constructor( // TODO: avoid creating objects of this class in plugins
         val testCase: TestCase,
+        val includedDevices: Collection<Device>,
         excludedDevices: Collection<Device>,
         val totalFailureCount: Int = 0
 ) {
 
+    private val deviceRunners: MutableMap<Device, MutableList<TestCaseRunner>> = HashMap()
     val testMethod: String
         get() = testCase.testMethod
     val testClass: String
@@ -38,8 +42,10 @@ class TestCaseEvent private constructor(
         this._excludedDevices = HashSet(excludedDevices)
     }
 
-    fun isExcluded(device: Device): Boolean {
-        return _excludedDevices.contains(device)
+    fun isEnabledOn(device: Device): Boolean {
+        val included = includedDevices.isEmpty() || includedDevices.contains(device)
+        val excluded = _excludedDevices.contains(device)
+        return included && !excluded
     }
 
     override fun hashCode(): Int {
@@ -62,8 +68,15 @@ class TestCaseEvent private constructor(
     }
 
     fun withFailureCount(totalFailureCount: Int): TestCaseEvent {
-        return TestCaseEvent(testCase, excludedDevices, totalFailureCount)
+        return TestCaseEvent(testCase, includedDevices, excludedDevices, totalFailureCount)
     }
+
+    fun addDeviceRunner(device: Device, runner: TestCaseRunner) {
+        deviceRunners.computeIfAbsent(device) { ArrayList() }
+                .add(runner)
+    }
+
+    fun runnersFor(device: Device): List<TestCaseRunner> = deviceRunners[device] ?: emptyList()
 
     companion object {
         @JvmField
@@ -80,16 +93,17 @@ class TestCaseEvent private constructor(
                 properties: Map<String, String>,
                 annotations: List<AnnotationInfo>,
                 extra: Any,
+                includedDevices: Collection<Device>,
                 excludedDevices: Collection<Device>,
                 totalFailureCount: Int = 0
         ): TestCaseEvent {
             val testCase = TestCase(typeTag, testMethod, testClass, properties, annotations, extra)
-            return TestCaseEvent(testCase, excludedDevices, totalFailureCount)
+            return TestCaseEvent(testCase, includedDevices, excludedDevices, totalFailureCount)
         }
 
         @JvmStatic
         fun newTestCase(testIdentifier: TestCase): TestCaseEvent {
-            return TestCaseEvent(testIdentifier, emptyList())
+            return TestCaseEvent(testIdentifier, emptyList(), emptyList())
         }
     }
 }

@@ -15,9 +15,10 @@ package com.github.tarcv.tongs.runner.listeners
 import com.github.tarcv.tongs.runner.TestAndroidTestRunnerFactory
 import com.github.tarcv.tongs.api.result.TestCaseRunResult
 import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
+import com.github.tarcv.tongs.runner.AndroidRunContext
 import java.time.Instant
 
-class TestResultProducer(private val context: TestCaseRunRuleContext): IResultProducer {
+class TestResultProducer(private val context: AndroidRunContext): IResultProducer {
     private val timeStart = Instant.now()
 
     override fun requestListeners(): List<BaseListener> {

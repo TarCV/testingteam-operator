@@ -14,13 +14,14 @@ package com.github.tarcv.tongs.api.testcases
 
 import java.util.Collections.emptyMap
 
-class TestCase @JvmOverloads constructor(
+class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestIdentifier and TestCase classes
         val typeTag: Class<*>,
         val testMethod: String,
-        val testClass: String,
-        val properties: Map<String, String> = emptyMap(),
-        val annotations: List<AnnotationInfo> = emptyList(),
+        val testClass: String, // TODO: consider adding 'variation' property
+        val properties: Map<String, String> = emptyMap(), // TODO: consider moving to TestCaseEvent, consider changing key type to Enum or Class
+        val annotations: List<AnnotationInfo> = emptyList(), // TODO: remove from comparison, consider replacing with properties
         val extra: Any = Any()
+        // TODO: add detectedOnDevices property excluded from comparison
 ) {
 
 

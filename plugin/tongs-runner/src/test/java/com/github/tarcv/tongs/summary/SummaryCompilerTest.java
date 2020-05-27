@@ -92,7 +92,7 @@ public class SummaryCompilerTest {
                 newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.CompletedClassTest")),
                 newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.CompletedClassTest2")),
                 newTestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.FailedClassTest",
-                        emptyMap(), emptyList(), new Object(),emptyList(), 10),
+                        emptyMap(), emptyList(), new Object(),emptyList(), emptyList(), 10),
                 newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.IgnoredClassTest")),
                 newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.SkippedClassTest"))
             )).build();

@@ -25,6 +25,8 @@ public class GsonInjector {
     static {
         GSON_BUILDER.registerTypeAdapter(ComputedPooling.Characteristic.class, characteristicDeserializer());
         GSON_BUILDER.registerTypeAdapter(ComputedPooling.Characteristic.class, characteristicSerializer());
+        GSON_BUILDER.registerTypeAdapter(Class.class, classSerializer());
+        GSON_BUILDER.registerTypeAdapter(Class.class, classDeserializer());
         GSON = GSON_BUILDER.create();
     }
 
@@ -36,6 +38,20 @@ public class GsonInjector {
 
     private static JsonDeserializer<ComputedPooling.Characteristic> characteristicDeserializer() {
         return (json, typeOfT, context) -> valueOf(json.getAsJsonPrimitive().getAsString());
+    }
+
+    private static JsonSerializer<Class<?>> classSerializer() {
+        return (src, typeOfSrc, context) -> new JsonPrimitive(src.getName());
+    }
+
+    private static JsonDeserializer<Class<?>> classDeserializer() {
+        return (json, typeOfT, context) -> {
+            try {
+                return Class.forName(json.getAsJsonPrimitive().getAsString());
+            } catch (ClassNotFoundException e) {
+                throw new JsonParseException("Couldn't deserialize a class", e);
+            }
+        };
     }
 
     public static Gson gson() {

@@ -50,10 +50,10 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
 }
 
 class ResultProducer(
-        private val context: TestCaseRunRuleContext,
+        private val context: AndroidRunContext,
         private val latch: PreregisteringLatch
 ) : IResultProducer {
-    private val androidDevice = context.device as AndroidDevice
+    private val androidDevice = context.device
     private val resultListener = ResultListener(context.testCaseEvent, latch)
     private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, androidDevice, latch)
     private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, context.pool, androidDevice, latch)

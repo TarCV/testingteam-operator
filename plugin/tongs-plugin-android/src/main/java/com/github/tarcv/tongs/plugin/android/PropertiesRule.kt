@@ -46,6 +46,7 @@ class PropertiesTestCaseRule: TestCaseRule {
                 properties,
                 testCaseEvent.testCase.annotations,
                 testCaseEvent.testCase.extra,
+                testCaseEvent.includedDevices,
                 testCaseEvent.excludedDevices
         )
     }
