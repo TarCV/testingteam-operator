@@ -18,10 +18,18 @@ import com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool
 import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.result.Table.Companion.tableFromFile
 import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.Instant
+
+sealed class RunTesult
+
+/**
+ * Request next compatibe runner to execute a test case
+ */
+class Delegate: RunTesult()
 
 // TODO: merge with com.github.tarcv.tongs.summary.TestResult
 data class TestCaseRunResult(
@@ -40,7 +48,7 @@ data class TestCaseRunResult(
         val additionalProperties: Map<String, String>,
         val coverageReport: TestCaseFile? = null,
         val data: List<TestReportData>
-) {
+): RunTesult() {
     val totalFailureCount: Int
         get() {
             val increment = when(status) {
@@ -100,7 +108,7 @@ data class TestCaseRunResult(
                 traces: List<StackTrace>,
                 baseTotalFailureCount: Int = 0
         ): TestCaseRunResult {
-            return TestCaseRunResult(pool, device, TestCase(testMethod, testClass), status, traces,
+            return TestCaseRunResult(pool, device, TestCase(TEST_TYPE_TAG, testMethod, testClass), status, traces,
                     Instant.now(), Instant.now().plusMillis(15), Instant.now(), Instant.now().plusMillis(15),
                     baseTotalFailureCount, emptyMap(), null, emptyList())
         }

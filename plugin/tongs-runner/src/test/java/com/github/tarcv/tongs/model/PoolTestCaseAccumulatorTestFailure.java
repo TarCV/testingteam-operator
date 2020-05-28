@@ -17,6 +17,7 @@ import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
 import static java.util.Collections.emptyList;
@@ -43,8 +44,10 @@ public class PoolTestCaseAccumulatorTestFailure {
             .addDevice(ANOTHER_DEVICE)
             .build();
     
-    private final TestCaseEvent A_TEST_CASE = newTestCase("a_method", "a_class", emptyMap(), emptyList(), emptyList());
-    private final TestCaseEvent ANOTHER_TEST_CASE = newTestCase("another_method", "a_class", emptyMap(), emptyList(), emptyList());
+    private final TestCaseEvent A_TEST_CASE =
+            newTestCase(TEST_TYPE_TAG, "a_method", "a_class", emptyMap(), emptyList(), new Object(), emptyList(), emptyList());
+    private final TestCaseEvent ANOTHER_TEST_CASE =
+            newTestCase(TEST_TYPE_TAG, "another_method", "a_class", emptyMap(), emptyList(), new Object(), emptyList(), emptyList());
 
     PoolTestCaseFailureAccumulator subject;
 

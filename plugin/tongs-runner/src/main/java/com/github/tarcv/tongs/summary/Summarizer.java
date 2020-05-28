@@ -15,6 +15,7 @@ import com.github.tarcv.tongs.Configuration;
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
+import com.github.tarcv.tongs.injector.GsonInjector;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -67,6 +68,7 @@ public class Summarizer {
 
     static GsonBuilder testRecorderGsonBuilder() {
         return new GsonBuilder()
+                .registerTypeAdapter(Class.class, GsonInjector.classSerializer())
                 .enableComplexMapKeySerialization();
     }
 

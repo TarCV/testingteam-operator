@@ -14,6 +14,8 @@ import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.runner.listeners.ResultListener
 import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
+import com.github.tarcv.tongs.api.run.newTestCase
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -22,7 +24,7 @@ class TongsInstrumentationResultParserTest {
     private val testMethodName = "failureFromEspresso[failAfter = true]"
 
     private val latch = PreregisteringLatch()
-    private val testCase = TestCaseEvent.newTestCase(TestCase(testClassName, testMethodName))
+    private val testCase = TestCaseEvent.newTestCase(TestCase(TEST_TYPE_TAG, testMethodName, testClassName))
     private val listener = ResultListener(testCase, latch)
     private val parser = TongsInstrumentationResultParser("unitTest", listOf(listener))
 

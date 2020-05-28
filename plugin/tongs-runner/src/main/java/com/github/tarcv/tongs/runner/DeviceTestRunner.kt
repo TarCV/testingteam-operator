@@ -15,24 +15,21 @@ package com.github.tarcv.tongs.runner
 
 import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.devices.Pool
+import com.github.tarcv.tongs.api.result.*
 import com.github.tarcv.tongs.injector.*
 import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector
-import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.api.result.StackTrace
 import com.github.tarcv.tongs.api.run.*
 import com.github.tarcv.tongs.api.run.ResultStatus
-import com.github.tarcv.tongs.api.result.TestCaseFileManager
-import com.github.tarcv.tongs.api.result.TestCaseRunResult
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
 import org.slf4j.LoggerFactory
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.lang.IllegalStateException
 import java.time.Instant
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class DeviceTestRunner(private val pool: Pool,
                        private val device: Device,
@@ -119,7 +116,14 @@ class DeviceTestRunner(private val pool: Pool,
                             ActualConfiguration(configuration), testCaseFileManager,
                             pool, device, testCaseEvent, startTimestampUtc)
 
-                    executeTestCase(executeContext)
+                    runUntilResult(executeContext)
+                            .let {
+                                it.copy(
+                                        startTimestampUtc = executeContext.startTimestampUtc,
+                                        baseTotalFailureCount = executeContext.testCaseEvent.totalFailureCount,
+                                        additionalProperties = combineProperties(executeContext.testCaseEvent, it.additionalProperties)
+                                )
+                            }
                             .validateRunResult(testCaseEvent, startTimestampUtc, "Test case runner")
                 }
         )
@@ -194,29 +198,31 @@ class DeviceTestRunner(private val pool: Pool,
         return this
     }
 
+    private fun runUntilResult(context: TestCaseRunRuleContext): TestCaseRunResult {
+        return try {
+            context.testCaseEvent.runnersFor(context.device)
+                    .asReversed()
+                    .forEach {
+                        val result = it.run(TestCaseRunnerArguments(
+                                context.fileManager,
+                                context.testCaseEvent,
+                                context.startTimestampUtc
+                        ))
+                        when (result) {
+                            is Delegate -> { /* continue */
+                            }
+                            is TestCaseRunResult -> return result
+                            else -> throw IllegalArgumentException("Unexpected test run result: $result")
+                        }
+                    }
+            throw IllegalStateException("All runners delegated running the test case (no runner to actually execute it")
+        } catch (e: Exception) {
+            fatalErrorResult(context.testCaseEvent, e, context.startTimestampUtc)
+        }
+    }
+
     companion object {
         private val logger = LoggerFactory.getLogger(DeviceTestRunner::class.java)
-
-        private fun executeTestCase(context: TestCaseRunRuleContext): TestCaseRunResult {
-            val androidTestRunFactory = TestRunFactoryInjector.testRunFactory(context.configuration)
-            val workCountdownLatch = PreregisteringLatch()
-
-            return try {
-                val testRun = androidTestRunFactory.createTestRun(context, context.testCaseEvent,
-                        context.device as AndroidDevice,
-                        context.pool,
-                        workCountdownLatch)
-                workCountdownLatch.finalizeRegistering()
-                val result = testRun.execute()
-                result.copy(
-                        startTimestampUtc = context.startTimestampUtc,
-                        baseTotalFailureCount = context.testCaseEvent.totalFailureCount,
-                        additionalProperties = combineProperties(context.testCaseEvent, result.additionalProperties)
-                )
-            } finally {
-                workCountdownLatch.await(15, TimeUnit.SECONDS)
-            }
-        }
 
         private fun combineProperties(
                 testCaseEvent: TestCaseEvent,

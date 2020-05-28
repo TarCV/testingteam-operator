@@ -142,7 +142,7 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
     companion object {
         private const val testPackageRoot = """com.github.tarcv.test"""
 
-        fun resultForTestCase(testCaseContext: TestCaseRunRuleContext, timeStart: Instant): TestCaseRunResult {
+        fun resultForTestCase(testCaseContext: AndroidRunContext, timeStart: Instant): TestCaseRunResult {
             fun MutableList<StackTrace>.addTrace() {
                 this += StackTrace(
                         "Exception",

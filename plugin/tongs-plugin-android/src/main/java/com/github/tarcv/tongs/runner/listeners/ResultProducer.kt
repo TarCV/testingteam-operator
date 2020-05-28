@@ -24,6 +24,7 @@ import com.github.tarcv.tongs.api.result.TestCaseRunResult.Companion.NO_TRACE
 import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
+import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
 import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.util.parseJavaTrace
 import java.time.Instant
@@ -38,7 +39,7 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
 
     override fun getResult(): TestCaseRunResult {
         return TestCaseRunResult(
-                pool, device, TestCase("dummy", "dummy"),
+                pool, device, TestCase(TEST_TYPE_TAG, "dummy", "dummy"),
                 ResultStatus.PASS, NO_TRACE,
                 Instant.now(), Instant.now(), Instant.now(), Instant.now(),
                 0,
@@ -49,10 +50,10 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
 }
 
 class ResultProducer(
-        private val context: TestCaseRunRuleContext,
+        private val context: AndroidRunContext,
         private val latch: PreregisteringLatch
 ) : IResultProducer {
-    private val androidDevice = context.device as AndroidDevice
+    private val androidDevice = context.device
     private val resultListener = ResultListener(context.testCaseEvent, latch)
     private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, androidDevice, latch)
     private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, context.pool, androidDevice, latch)

@@ -20,6 +20,7 @@ import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.api.result.*
 import com.github.tarcv.tongs.system.io.*
 import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.suite.ApkTestCase
 import com.google.gson.*
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.startsWith
@@ -51,6 +52,7 @@ class SummarizerIntegrationTest {
     private val gson = Summarizer.testRecorderGsonBuilder()
             .registerTypeAdapter(Device::class.java, ForceClassDeserializer(AndroidDevice::class.java))
             .registerTypeAdapter(TestCaseFileManager::class.java, TestCaseFileManagerDeserializer())
+            .registerTypeAdapter(TestCase::class.java, TestCaseDeserializer())
             .registerTypeAdapter(TestReportData::class.java, TestReportDataDeserializer())
             .registerTypeAdapter(FileManager::class.java, ForceClassDeserializer(TongsFileManager::class.java))
             .registerTypeAdapter(FileType::class.java, ComplexEnumDeserializer(StandardFileTypes.values()))
@@ -180,6 +182,31 @@ class SummarizerIntegrationTest {
                     context.deserialize(jsonObject.get("pool"), Pool::class.java),
                     context.deserialize(jsonObject.get("device"), Device::class.java),
                     context.deserialize(jsonObject.get("testCaseEvent"), TestCase::class.java)
+            )
+        }
+
+    }
+
+    class TestCaseDeserializer : JsonDeserializer<TestCase> {
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): TestCase {
+            val jsonObject = json.asJsonObject
+
+            // For backward compatibility with old JSON
+            val typeTag = jsonObject.get("typeTag").let {
+                if (it == null) {
+                    ApkTestCase::class.java
+                } else {
+                    context.deserialize(it, Class::class.java)
+                }
+            }
+
+            return TestCase(
+                    typeTag,
+                    jsonObject.get("testMethod").asString,
+                    jsonObject.get("testClass").asString,
+                    context.deserialize(jsonObject.get("properties"), Map::class.java),
+                    context.deserialize(jsonObject.get("annotations"), List::class.java),
+                    Any()
             )
         }
 

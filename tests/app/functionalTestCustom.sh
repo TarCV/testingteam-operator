@@ -9,7 +9,7 @@ function cleanReportsAndLogs() {
 
 cd "$(dirname "$0")"
 
-export GRADLE_OPTS="-Dorg.gradle.console=plain"
+export GRADLE_OPTS="-Dorg.gradle.console=plain -Dorg.gradle.jvmargs=-ea"
 
 # Make sure new build of the plugin is loaded
 ./gradlew --stop

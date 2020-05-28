@@ -50,6 +50,7 @@ dependencies {
         exclude(module: "slf4j-simple")
     }
 
+    testImplementation project(':tongs-common-test')
     testImplementation deps.hamcrest
     testImplementation(deps.junit) {
         exclude module:'hamcrest-core'

@@ -49,7 +49,7 @@ public class TestRunListenersFactoryTongs {
                                                        ProgressReporter progressReporter,
                                                        TestCaseEventQueue testCaseEventQueue,
                                                        TongsConfiguration.TongsIntegrationTestRunType tongsIntegrationTestRunType) {
-        TestCase testIdentifier = new TestCase(testCase.getTestMethod(), testCase.getTestClass());
+        TestCase testIdentifier = testCase.getTestCase();
         final List<TongsTestListener> normalListeners = asList(
                 new ProgressTestRunListener(pool, progressReporter),
                 new ConsoleLoggingTestRunListener(configuration.getTestPackage(), testIdentifier, device.getSerial(),

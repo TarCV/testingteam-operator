@@ -12,6 +12,7 @@
 package com.github.tarcv.tongs.runner;
 
 import com.github.tarcv.tongs.api.TongsConfiguration;
+import com.github.tarcv.tongs.api.run.TestCaseRunnerContext;
 import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector;
 import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.api.devices.Pool;
@@ -20,7 +21,6 @@ import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
 import com.github.tarcv.tongs.runner.listeners.ResultProducer;
 import com.github.tarcv.tongs.runner.listeners.TestCollectorResultProducer;
-import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext;
 import com.github.tarcv.tongs.suite.TestCollectingListener;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ public class AndroidTestRunFactory {
         this.configuration = configuration;
     }
 
-    public AndroidInstrumentedTestRun createTestRun(TestCaseRunRuleContext testRunContext, TestCaseEvent testCase,
+    public AndroidInstrumentedTestRun createTestRun(AndroidRunContext testRunContext, TestCaseEvent testCase,
                                                     AndroidDevice device,
                                                     Pool pool,
                                                     PreregisteringLatch workCountdownLatch) {
@@ -56,7 +56,7 @@ public class AndroidTestRunFactory {
     }
 
     @NotNull
-    protected IResultProducer createResultProducer(TestCaseRunRuleContext testRunContext, PreregisteringLatch workCountdownLatch) {
+    protected IResultProducer createResultProducer(AndroidRunContext testRunContext, PreregisteringLatch workCountdownLatch) {
         return new ResultProducer(testRunContext, workCountdownLatch);
     }
 

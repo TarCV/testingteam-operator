@@ -131,7 +131,7 @@ public class JUnitTestSuiteLoader(
             val events: Map<TestIdentifier, Collection<Device>>
             synchronized(poolTests) {
                 allTestsSet = allTestsFromPoolTests(poolTests)
-                events = calculateDeviceExcludes(allTestsSet, poolTests)
+                events = calculateDeviceIncludes(poolTests)
             }
             val infos = calculateAnnotatedInfo(allTestsSet, testInfoMessages)
             return joinTestInfo(allTestsSet, events, infos)
@@ -212,33 +212,33 @@ public class JUnitTestSuiteLoader(
     companion object {
         const val logcatWaiterSleep: Long = 2500
 
-        fun calculateDeviceExcludes(
-                allTestsSet: Set<TestIdentifier>,
+        fun calculateDeviceIncludes(
                 poolTests: List<Pair<Device, Set<TestIdentifier>>>
         ): Map<TestIdentifier, Collection<Device>> {
-
             return poolTests
                     .flatMap { (device, tests) ->
-                        val excludedTests = (allTestsSet - tests)
-                        excludedTests.map { it to device }
+                        tests.map { it to device }
                     }
-                    .groupBy({ (test, _) -> test }, { (_, device) -> device })
+                    .groupBy( { (test, _) -> test }, { (_, device) -> device})
         }
 
         private fun joinTestInfo(
                 allTestsSet: Set<TestIdentifier>,
-                excludes: Map<TestIdentifier, Collection<Device>>,
+                includes: Map<TestIdentifier, Collection<Device>>,
                 infos: Map<TestIdentifier, ExtraInfo>
         ): Collection<TestCaseEvent> {
             return allTestsSet.map {
-                val excludedDevices = excludes[it] ?: emptyList()
+                val includedDevices = includes[it] ?: emptyList()
                 val info = infos[it] ?: ExtraInfo(emptyMap(), emptyList())
                 TestCaseEvent.newTestCase(
+                        ApkTestCase::class.java,
                         it.testName,
                         it.className,
                         info.properties,
                         info.info,
-                        excludedDevices
+                        Any(),
+                        includedDevices,
+                        emptyList()
                 )
             }
         }
