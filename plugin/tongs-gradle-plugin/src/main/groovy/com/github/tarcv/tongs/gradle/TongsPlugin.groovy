@@ -20,6 +20,7 @@ import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.api.InstallableVariant
 import com.android.build.gradle.api.TestVariant
 import com.github.tarcv.tongs.TongsConfigurationGradleExtension
+import com.github.tarcv.tongs.api.TongsConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
@@ -86,7 +87,8 @@ class TongsPlugin implements Plugin<Project> {
                 poolingStrategy = config.poolingStrategy
                 ignoreFailures = config.ignoreFailures
                 excludedAnnotation = config.excludedAnnotation
-                tongsIntegrationTestRunType = config.tongsIntegrationTestRunType
+                tongsIntegrationTestRunType =
+                        TongsConfiguration.TongsIntegrationTestRunType.valueOf(config.tongsIntegrationTestRunType)
 
                 String baseOutputDir = config.baseOutputDir
                 File outputBase
