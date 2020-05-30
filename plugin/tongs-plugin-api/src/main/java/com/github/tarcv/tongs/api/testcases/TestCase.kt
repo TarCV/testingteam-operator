@@ -36,7 +36,7 @@ class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestI
         if (readablePath.isEmpty() ||
                 testMethod.isEmpty() ||
                 testClass.isEmpty()) {
-            throw IllegalArgumentException("Test identifier should be specified")
+            throw IllegalArgumentException("Test identifiers must be specified")
         }
     }
 

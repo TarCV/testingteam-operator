@@ -11,7 +11,6 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.github.tarcv.tongs.api.run.TestCaseEventExtKt;
 import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Pool;
@@ -27,7 +26,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
-import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.newTestCase;
+import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestCaseEvent;
+import static com.github.tarcv.tongs.api.testcases.TestCaseExtKt.aTestCase;
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.util.TestPipelineEmulator.Builder.testPipelineEmulator;
@@ -46,8 +46,8 @@ public class RetryListenerTest {
             .addDevice(device)
             .build();
 
-    private final TestCase fatalCrashedTest = new TestCase(TEST_TYPE_TAG, "com.example.FatalCrashedTest", "testMethod");
-    private final TestCaseEvent fatalCrashedTestCaseEvent = newTestCase(fatalCrashedTest);
+    private final TestCase fatalCrashedTest = aTestCase("FatalCrashedTest", "testMethod");
+    private final TestCaseEvent fatalCrashedTestCaseEvent = aTestCaseEvent(fatalCrashedTest);
 
     @Test
     public void reschedulesTestIfTestRunFailedAndDeleteTraceFiles() {
@@ -59,7 +59,7 @@ public class RetryListenerTest {
             oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTestCaseEvent);
             will(returnValue(true));
 
-            oneOf(deviceTestFilesCleaner).deleteTraceFiles(newTestCase(fatalCrashedTest));
+            oneOf(deviceTestFilesCleaner).deleteTraceFiles(aTestCaseEvent(fatalCrashedTest));
         }});
 
         TestPipelineEmulator emulator = testPipelineEmulator()
@@ -80,7 +80,7 @@ public class RetryListenerTest {
             oneOf(testRetryer).rescheduleTestExecution(fatalCrashedTestCaseEvent);
             will(returnValue(false));
 
-            never(deviceTestFilesCleaner).deleteTraceFiles(newTestCase(fatalCrashedTest));
+            never(deviceTestFilesCleaner).deleteTraceFiles(aTestCaseEvent(fatalCrashedTest));
         }});
 
         TestPipelineEmulator emulator = testPipelineEmulator()

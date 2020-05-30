@@ -17,11 +17,9 @@ import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
+import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestCaseEvent;
+import static com.github.tarcv.tongs.api.testcases.TestCaseExtKt.aTestCase;
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -45,9 +43,9 @@ public class PoolTestCaseAccumulatorTestFailure {
             .build();
     
     private final TestCaseEvent A_TEST_CASE =
-            newTestCase(TEST_TYPE_TAG, "a_method", "a_class", emptyMap(), emptyList(), new Object(), emptyList(), emptyList());
+            aTestCaseEvent(aTestCase("A_class", "a_method"));
     private final TestCaseEvent ANOTHER_TEST_CASE =
-            newTestCase(TEST_TYPE_TAG, "another_method", "a_class", emptyMap(), emptyList(), new Object(), emptyList(), emptyList());
+            aTestCaseEvent(aTestCase("A_class", "another_method"));
 
     PoolTestCaseFailureAccumulator subject;
 

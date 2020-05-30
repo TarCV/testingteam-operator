@@ -12,6 +12,7 @@
 package com.github.tarcv.tongs.plugin.android
 
 import com.github.tarcv.tongs.api.run.TestCaseEvent
+import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.testcases.TestCaseRule
 import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
 import com.github.tarcv.tongs.api.testcases.TestCaseRuleFactory
@@ -39,13 +40,17 @@ class PropertiesTestCaseRule: TestCaseRule {
             }
         }
 
-        return TestCaseEvent.newTestCase(
-                testCaseEvent.testCase.typeTag,
-                testCaseEvent.testCase.testMethod,
-                testCaseEvent.testCase.testClass,
-                properties,
-                testCaseEvent.testCase.annotations,
-                testCaseEvent.testCase.extra,
+        return TestCaseEvent(
+                TestCase(
+                        testCaseEvent.testCase.typeTag,
+                        testCaseEvent.testCase.testPackage,
+                        testCaseEvent.testCase.testClass,
+                        testCaseEvent.testCase.testMethod,
+                        testCaseEvent.testCase.readablePath,
+                        properties,
+                        testCaseEvent.testCase.annotations,
+                        testCaseEvent.testCase.extra
+                ),
                 testCaseEvent.includedDevices,
                 testCaseEvent.excludedDevices
         )

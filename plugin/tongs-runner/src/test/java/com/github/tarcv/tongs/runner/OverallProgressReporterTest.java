@@ -21,9 +21,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
+import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestCaseEvent;
+import static com.github.tarcv.tongs.api.testcases.TestCaseExtKt.aTestCase;
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
 import static com.github.tarcv.tongs.runner.FakePoolTestCaseAccumulator.aFakePoolTestCaseAccumulator;
 import static com.github.tarcv.tongs.runner.FakeProgressReporterTrackers.aFakeProgressReporterTrackers;
 import static java.util.Collections.emptyList;
@@ -39,8 +40,7 @@ public class OverallProgressReporterTest {
     private final Pool A_POOL = aDevicePool()
             .addDevice(A_DEVICE)
             .build();
-    private final TestCaseEvent A_TEST_CASE =
-            newTestCase(TEST_TYPE_TAG, "aTestMethod", "aTestClass", emptyMap(), emptyList(), new Object(), emptyList(), emptyList());
+    private final TestCaseEvent A_TEST_CASE = aTestCaseEvent(aTestCase("ATestClass", "aTestMethod"));
 
     private OverallProgressReporter overallProgressReporter;
 

@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 TarCV
+ * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -9,20 +10,18 @@
  */
 package com.github.tarcv.tongs.api.run
 
+import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.testcases.TestCase
 
-fun TestCaseEvent.Companion.newTestCase(testIdentifier: TestCase): TestCaseEvent {
-    return TestCaseEvent.newTestCase(
-            testIdentifier.typeTag,
-            testIdentifier.testMethod,
-            testIdentifier.testClass,
-            testIdentifier.properties,
-            testIdentifier.annotations,
-            testIdentifier.extra,
-            emptyList(),
-            emptyList()
-    )
+fun TestCaseEvent.Companion.aTestCaseEvent(testIdentifier: TestCase): TestCaseEvent {
+    return TestCaseEvent(testIdentifier, emptyList(), emptyList())
 }
 
-// Java helper
-fun newTestCase(testIdentifier: TestCase): TestCaseEvent = TestCaseEvent.Companion.newTestCase(testIdentifier)
+fun aTestCaseEvent(testIdentifier: TestCase): TestCaseEvent = TestCaseEvent.Companion.aTestCaseEvent(testIdentifier)
+
+fun aTestEvent(testIdentifier: TestCase, excludes: List<Device>, failureCount: Int): TestCaseEvent {
+    return TestCaseEvent(testIdentifier, emptyList(), excludes, failureCount)
+}
+fun TestCaseEvent.Companion.aTestEvent(testIdentifier: TestCase, excludes: List<Device>, failureCount: Int): TestCaseEvent {
+    return TestCaseEvent(testIdentifier, emptyList(), excludes, failureCount)
+}

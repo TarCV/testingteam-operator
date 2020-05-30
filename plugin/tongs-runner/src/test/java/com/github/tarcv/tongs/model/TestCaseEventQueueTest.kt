@@ -12,12 +12,13 @@ package com.github.tarcv.tongs.model
 import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.devices.Diagnostics
 import com.github.tarcv.tongs.api.devices.DisplayGeometry
+import com.github.tarcv.tongs.api.result.StackTrace
 import com.github.tarcv.tongs.pooling.StubDevice
 import com.github.tarcv.tongs.api.result.TestCaseRunResult
-import com.github.tarcv.tongs.api.result.TestCaseRunResult.Companion.NO_TRACE
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
-import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
+import com.github.tarcv.tongs.api.run.aTestResult
+import com.github.tarcv.tongs.api.testcases.aTestCase
 import org.junit.Assert
 import org.junit.Test
 import java.lang.Thread.sleep
@@ -40,12 +41,12 @@ class TestCaseEventQueueTest {
             queue.pollForDevice(device1)!!.doWork {
                 Assert.assertEquals(test1, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
+                TestCaseRunResult.aTestResult(test1.testCase, ResultStatus.PASS, emptyList())
             }
             queue.pollForDevice(device2)!!.doWork {
                 Assert.assertEquals(test2, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
+                TestCaseRunResult.aTestResult(test2.testCase, ResultStatus.PASS, emptyList<StackTrace>())
             }
         }
     }
@@ -66,12 +67,12 @@ class TestCaseEventQueueTest {
             queue.pollForDevice(device1)!!.doWork {
                 Assert.assertEquals(test2, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
+                TestCaseRunResult.aTestResult(test1.testCase, ResultStatus.PASS, emptyList<StackTrace>(), failureCount = 0)
             }
             queue.pollForDevice(device2)!!.doWork {
                 Assert.assertEquals(test1, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
+                TestCaseRunResult.aTestResult(test2.testCase, ResultStatus.PASS, emptyList<StackTrace>(), failureCount = 0)
             }
         }
     }
@@ -97,7 +98,7 @@ class TestCaseEventQueueTest {
             queue.pollForDevice(device1)!!.doWork {
                 Assert.assertEquals(test2, it)
 
-                TestCaseRunResult.aTestResult("", "", ResultStatus.PASS, NO_TRACE)
+                TestCaseRunResult.aTestResult(test2.testCase, ResultStatus.PASS, emptyList<StackTrace>())
             }
         }
     }
@@ -120,8 +121,10 @@ private fun withTimeout(block: () -> Unit) {
     }
 }
 
-private fun createTestCaseEvent(name: String, includes: List<Device>, excludes: List<Device>) =
-        TestCaseEvent.newTestCase(TEST_TYPE_TAG, name, "class", emptyMap(), emptyList(), Any(), includes, excludes)
+private fun createTestCaseEvent(name: String, includes: List<Device>, excludes: List<Device>): TestCaseEvent {
+    val test = aTestCase("Class", name)
+    return TestCaseEvent(test, includes, excludes)
+}
 
 private fun createStubDevice(serial: String): Device {
     val api = 20
