@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -11,6 +11,7 @@
 package com.github.tarcv.tongs.suite;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.runner.TestInfo;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.google.gson.JsonObject;
 
@@ -23,7 +24,7 @@ import java.util.*;
  */
 public class TestCollectingListener extends BaseListener {
     private final Set<TestIdentifier> tests = Collections.synchronizedSet(new HashSet<>());
-    private final List<Map.Entry<TestIdentifier, JsonObject>> infos = Collections.synchronizedList(new ArrayList<>());
+    private final Map<TestIdentifier, TestInfo> infos = Collections.synchronizedMap(new HashMap<TestIdentifier, TestInfo>());
 
     public TestCollectingListener() {
         super(null);
@@ -35,12 +36,12 @@ public class TestCollectingListener extends BaseListener {
         }
     }
 
-    public List<Map.Entry<TestIdentifier, JsonObject>> getInfos() {
+    public Map<TestIdentifier, TestInfo> getInfos() {
         return infos;
     }
 
-    public void publishTestInfo(List<Map.Entry<TestIdentifier, JsonObject>> info) {
-        infos.addAll(info);
+    public void publishTestInfo(Map<TestIdentifier, TestInfo> info) {
+        infos.putAll(info);
     }
 
     @Override

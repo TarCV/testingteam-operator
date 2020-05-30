@@ -89,29 +89,6 @@ data class TestCaseRunResult(
         get() = timeNetTakenMillis?.div(1000f)
 
     companion object {
-        private val pool = aDevicePool().addDevice(Device.TEST_DEVICE).build()
-        @JvmField val NO_TRACE = listOf(StackTrace("", "", ""))
-
-        @JvmStatic
-        fun aTestResult(testClass: String, testMethod: String, status: ResultStatus, traces: List<StackTrace>): TestCaseRunResult {
-            return aTestResult(pool, Device.TEST_DEVICE, testClass, testMethod, status, traces)
-        }
-
-        @JvmStatic
-        @JvmOverloads
-        fun aTestResult(
-                pool: Pool,
-                device: Device,
-                testClass: String,
-                testMethod: String,
-                status: ResultStatus,
-                traces: List<StackTrace>,
-                baseTotalFailureCount: Int = 0
-        ): TestCaseRunResult {
-            return TestCaseRunResult(pool, device, TestCase(TEST_TYPE_TAG, testMethod, testClass), status, traces,
-                    Instant.now(), Instant.now().plusMillis(15), Instant.now(), Instant.now().plusMillis(15),
-                    baseTotalFailureCount, emptyMap(), null, emptyList())
-        }
     }
 }
 

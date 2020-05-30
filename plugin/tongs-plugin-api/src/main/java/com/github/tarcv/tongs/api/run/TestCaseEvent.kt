@@ -88,8 +88,10 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
         @JvmOverloads
         fun newTestCase(
                 typeTag: Class<*>,
+                testPackage: String,
                 testMethod: String,
                 testClass: String,
+                readablePath: List<String>,
                 properties: Map<String, String>,
                 annotations: List<AnnotationInfo>,
                 extra: Any,
@@ -97,7 +99,7 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
                 excludedDevices: Collection<Device>,
                 totalFailureCount: Int = 0
         ): TestCaseEvent {
-            val testCase = TestCase(typeTag, testMethod, testClass, properties, annotations, extra)
+            val testCase = TestCase(typeTag, testPackage, testMethod, testClass, readablePath, properties, annotations, extra)
             return TestCaseEvent(testCase, includedDevices, excludedDevices, totalFailureCount)
         }
     }

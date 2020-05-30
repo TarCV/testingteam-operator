@@ -13,7 +13,6 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.device.clearLogcat
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
@@ -32,6 +31,7 @@ internal class AndroidCollectingTestCaseRunRule(
         private val latch: CountDownLatch
 ): TestCaseRunRule {
     var logCatCollector: LogcatReceiver = LogcatReceiver(device)
+    val jsonInfoDecoder = JsonInfoDecorder()
 
     override fun before() {
         clearLogcat(device.deviceInterface)
@@ -44,15 +44,15 @@ internal class AndroidCollectingTestCaseRunRule(
         } finally {
             logCatCollector.stop()
 
-            val infoMessages = extractTestInfoMessages(logCatCollector.messages)
-                    .reversed() // make sure the first entry for duplicate keys is used
-                    .associateBy {
-                        val testClass = it.get("testClass").asString
-                        val testMethod = it.get("testMethod").asString
-                        TestIdentifier(testClass, testMethod)
-                    }
-                    .map { it }
-            testCollectingListener.publishTestInfo(infoMessages)
+            val rawMessages = extractTestInfoMessages(logCatCollector.messages)
+
+            val items = jsonInfoDecoder.decodeStructure(rawMessages)
+
+            val testToInfoMap = items
+                    .asReversed() // make sure the first entry for duplicate keys is used
+                    .associateBy { it.identifier }
+
+            testCollectingListener.publishTestInfo(testToInfoMap)
             latch.countDown()
         }
     }
