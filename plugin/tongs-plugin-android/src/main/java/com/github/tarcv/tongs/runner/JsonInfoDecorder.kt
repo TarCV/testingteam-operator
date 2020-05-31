@@ -17,13 +17,14 @@ import com.github.tarcv.tongs.api.testcases.AnnotationInfo
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import org.slf4j.LoggerFactory
 
-class JsonInfoDecorder {
+internal class JsonInfoDecorder {
     internal fun decodeStructure(rawMessages: List<JsonObject>): List<TestInfo> {
         class RawItem(
-                val uniqueId: Int,
-                val semiUniqueId: Int,
-                val readableName: String,
+                val uniqueId: Int?,
+                val semiUniqueId: Int?,
+                val readableName: String?,
                 var json: JsonObject? = null,
                 val parent: RawItem? = null
         ) {
@@ -34,7 +35,7 @@ class JsonInfoDecorder {
             var parent: RawItem? = item
             val names = ArrayList<String>()
             while (parent != null) {
-                names += parent.readableName
+                names += parent.readableName ?: return emptyList()
                 parent = parent.parent
             }
             return names.reversed()
@@ -44,15 +45,15 @@ class JsonInfoDecorder {
         return rawMessages
                 .mapNotNull {
                     val partialItem = RawItem(
-                            it.get("sId1").asInt,
-                            it.get("sId2").asInt,
-                            it.get("sName").asString
+                            it.get("sId1")?.asIntOrNull,
+                            it.get("sId2")?.asIntOrNull,
+                            it.get("sName")?.asStringOrNull
                     )
 
                     val unboundIndex = unboundItems.indexOfLast {unbound ->
-                        partialItem.uniqueId == unbound.uniqueId ||
-                                partialItem.semiUniqueId == unbound.semiUniqueId ||
-                                partialItem.readableName == unbound.readableName
+                        (partialItem.uniqueId?.equals(unbound.uniqueId) == true) ||
+                        (partialItem.semiUniqueId?.equals(unbound.semiUniqueId) == true) ||
+                        (partialItem.readableName?.equals(unbound.readableName) == true)
                     }
                     val actualItem = if (unboundIndex >= 0) {
                         val item = unboundItems.removeAt(unboundIndex)
@@ -132,6 +133,30 @@ class JsonInfoDecorder {
                 throw IllegalStateException("Got unknown type of JSON Element: ${value}")
             }
         }
+    }
+
+    companion object {
+        val logger = LoggerFactory.getLogger(JsonInfoDecorder::class.java)
+
+        private val JsonElement.asIntOrNull: Int?
+            get() {
+                return try {
+                    this.asInt
+                } catch (e: Exception) {
+                    logger.warn("Serialized value is not an int", e)
+                    null
+                }
+            }
+
+        private val JsonElement.asStringOrNull: String?
+            get() {
+                return try {
+                    this.asString
+                } catch (e: Exception) {
+                    logger.warn("Serialized value is not a string", e)
+                    null
+                }
+            }
     }
 }
 

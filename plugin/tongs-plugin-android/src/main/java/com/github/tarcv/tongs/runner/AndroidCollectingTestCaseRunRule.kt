@@ -22,6 +22,8 @@ import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader.Companion.logcatWaiterSleep
 import com.github.tarcv.tongs.suite.TestCollectingListener
 import com.google.gson.JsonObject
+import org.slf4j.LoggerFactory
+import java.lang.Exception
 import java.lang.Thread.sleep
 import java.util.concurrent.CountDownLatch
 
@@ -42,8 +44,18 @@ internal class AndroidCollectingTestCaseRunRule(
         try {
             sleep(logcatWaiterSleep) // make sure all logcat messages are read
         } finally {
-            logCatCollector.stop()
+            try {
+                logCatCollector.stop()
 
+                tryCollectingAndDecodingInfos()
+            } finally {
+                latch.countDown()
+            }
+        }
+    }
+
+    private fun tryCollectingAndDecodingInfos() {
+        try {
             val rawMessages = extractTestInfoMessages(logCatCollector.messages)
 
             val items = jsonInfoDecoder.decodeStructure(rawMessages)
@@ -51,10 +63,14 @@ internal class AndroidCollectingTestCaseRunRule(
             val testToInfoMap = items
                     .asReversed() // make sure the first entry for duplicate keys is used
                     .associateBy { it.identifier }
-
             testCollectingListener.publishTestInfo(testToInfoMap)
-            latch.countDown()
+        } catch (e: Exception) {
+            logger.warn("Failed to collect annotation and structure information about tests", e)
         }
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(AndroidCollectingTestCaseRunRule::class.java)
     }
 }
 
