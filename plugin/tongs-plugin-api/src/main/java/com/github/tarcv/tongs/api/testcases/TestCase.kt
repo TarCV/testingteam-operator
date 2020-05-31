@@ -16,7 +16,7 @@ import java.lang.IllegalArgumentException
 import java.util.Collections.emptyMap
 
 class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestIdentifier and TestCase classes
-        val typeTag: Class<*>,
+        val typeTag: Class<*>, // TODO: consider changing to :Enum<*>
 
         /**
          * The package of the class containing the test case.
@@ -57,11 +57,9 @@ class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestI
 
         other as TestCase
 
-        if (testMethod != other.testMethod) return false
+        if (typeTag.name != other.typeTag.name) return false
         if (testClass != other.testClass) return false
-        if (properties != other.properties) return false
-        if (annotations != other.annotations) return false
-        if (typeTag != other.typeTag) return false
+        if (testMethod != other.testMethod) return false
 
         return true
     }
@@ -69,9 +67,7 @@ class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestI
     override fun hashCode(): Int {
         var result = testMethod.hashCode()
         result = 31 * result + testClass.hashCode()
-        result = 31 * result + properties.hashCode()
-        result = 31 * result + annotations.hashCode()
-        result = 31 * result + typeTag.hashCode()
+        result = 31 * result + typeTag.name.hashCode()
         return result
     }
 }
