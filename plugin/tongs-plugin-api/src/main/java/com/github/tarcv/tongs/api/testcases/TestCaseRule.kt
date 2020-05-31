@@ -26,5 +26,6 @@ interface TestCaseRuleFactory<out T: TestCaseRule> {
 }
 
 interface TestCaseRule {
-    fun transform(testCaseEvent: TestCaseEvent): TestCaseEvent
+    fun transform(testCaseEvent: TestCaseEvent): TestCaseEvent = testCaseEvent
+    fun filter(testCaseEvent: TestCaseEvent): Boolean = true
 }

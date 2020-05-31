@@ -64,6 +64,9 @@ class TongsRunner(private val poolLoader: PoolLoader,
                                 .map { testCaseEvent: TestCaseEvent ->
                                     testCaseRules.fold(testCaseEvent) { acc, rule -> rule.transform(acc) }
                                 }
+                                .filter { testCaseEvent: TestCaseEvent ->
+                                    testCaseRules.all { rule -> rule.filter(testCaseEvent) }
+                                }
 
                         pool.devices.forEach { device ->
                             testCaseRunnerManager
