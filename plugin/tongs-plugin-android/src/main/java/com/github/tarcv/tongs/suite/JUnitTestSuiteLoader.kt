@@ -55,9 +55,6 @@ public class JUnitTestSuiteLoader(
     override fun loadTestSuite(): Collection<TestCaseEvent> {
         val result = ArrayList(askDevicesForTests())
         logger.debug("Found tests: $result")
-        if (result.isEmpty()) {
-            throw NoTestCasesFoundException("No tests cases were found")
-        }
 
         return result
     }

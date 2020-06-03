@@ -44,13 +44,17 @@ class DeviceTestRunner(private val pool: Pool,
                     listOf(AndroidSetupDeviceRuleFactory()),
                     { factory, context: DeviceRunRuleContext -> factory.deviceRules(context) }
             ).createRulesFrom { configuration -> DeviceRunRuleContext(configuration, pool, device) }
-
+            var executedBeforeRules = false
             try {
-                rules.forEach { it.before() }
-
                 while (true) {
                     val testCaseTask = queueOfTestsInPool.pollForDevice(device, 10)
                     if (testCaseTask != null) {
+                        if (!executedBeforeRules) {
+                            // No need to run rules when there is no tests to execute
+                            executedBeforeRules = true
+                            rules.forEach { it.before() }
+                        }
+
                         testCaseTask.doWork { testCaseEvent: TestCaseEvent ->
                             val startTimestampUtc = Instant.now()
                             try {
@@ -66,9 +70,12 @@ class DeviceTestRunner(private val pool: Pool,
                     }
                 }
             } finally {
-                rules
-                        .asReversed()
-                        .forEach { it.after() }
+                if (executedBeforeRules) {
+                    // TODO: execute only successful rules
+                    rules
+                            .asReversed()
+                            .forEach { it.after() }
+                }
             }
         } finally {
             logger.info("Device {} from pool {} finished", device.serial, pool.name)
