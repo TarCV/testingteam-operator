@@ -32,23 +32,25 @@ apply from: '../dependencies.gradle'
 
 dependencies {
     compile project(':tongs-common')
-    implementation deps.androidToolsCommon
-    implementation deps.ddmlib
+    compile project(':tongs-plugin-api')
+    implementation project(':tongs-plugin-android')
+
+    implementation deps.koin
     implementation deps.guava
     implementation deps.commonsIo
     implementation deps.commonsLang
     implementation deps.jsr305
-    implementation deps.mustacheCompiler
+    implementation deps.handleBars
+    implementation deps.handleBarsHuminize
     implementation deps.jcommander
     implementation deps.slf4j
     implementation deps.gson
-    implementation 'org.simpleframework:simple-xml:2.7.1'
-    implementation 'com.madgag:animated-gif-lib:1.2'
-
-    implementation('org.lesscss:lesscss:1.7.0.1.1') {
-        exclude module: 'slf4j-simple'
+    implementation "org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
+    implementation("org.lesscss:lesscss:1.7.0.1.1") {
+        exclude(module: "slf4j-simple")
     }
 
+    testImplementation project(':tongs-common-test')
     testImplementation deps.hamcrest
     testImplementation(deps.junit) {
         exclude module:'hamcrest-core'

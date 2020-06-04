@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,20 +13,22 @@
  */
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.runner.ProgressReporter;
 
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-class ConsoleLoggingTestRunListener extends BaseListener {
+class ConsoleLoggingTestRunListener extends TongsTestListener {
     private static final Logger logger = LoggerFactory.getLogger(ConsoleLoggingTestRunListener.class);
     private static final SimpleDateFormat TEST_TIME = new SimpleDateFormat("mm.ss");
     private static final String PERCENT = "%02d%%";
@@ -34,13 +36,13 @@ class ConsoleLoggingTestRunListener extends BaseListener {
     private final String modelName;
     private final ProgressReporter progressReporter;
     private final String testPackage;
-    private TestIdentifier startedTest;
+    private final TestCase test;
 
     ConsoleLoggingTestRunListener(String testPackage,
-                                  String serial,
+                                  TestCase startedTest, String serial,
                                   String modelName,
                                   ProgressReporter progressReporter) {
-        super(null);
+        this.test = startedTest;
         this.serial = serial;
         this.modelName = modelName;
         this.progressReporter = progressReporter;
@@ -48,56 +50,39 @@ class ConsoleLoggingTestRunListener extends BaseListener {
     }
 
     @Override
-    public void testRunStarted(String runName, int testCount) {
-
-    }
-
-    @Override
-    public void testStarted(TestIdentifier test) {
-        startedTest = test;
+    public void onTestStarted() {
         System.out.println(format("%s %s %s %s [%s] %s", runningTime(), progress(), failures(), modelName,
                 serial, testCase(test)));
     }
 
     @Override
-    public void testFailed(TestIdentifier test, String trace) {
+    public void onTestFailed(TestCaseRunResult failureResult) {
         System.out.println(format("%s %s %s %s [%s] Failed %s\n %s", runningTime(), progress(), failures(), modelName,
-                serial, testCase(test), trace));
+                serial, testCase(test), joinStackTraces(failureResult)));
     }
 
     @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
+    public void onTestAssumptionFailure(TestCaseRunResult skipped) {
         logger.debug("test={}", testCase(test));
-        logger.debug("assumption failure {}", trace);
+        logger.debug("assumption failure {}", joinStackTraces(skipped));
     }
 
     @Override
-    public void testIgnored(TestIdentifier test) {
-        logger.debug("ignored test {}", testCase(test));
+    public void onTestSkipped(TestCaseRunResult skipped) {
+        logger.debug("ignored test {} {}", testCase(test), joinStackTraces(skipped));
     }
 
-    @Override
-    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-
-    }
 
     @Override
-    public void testRunFailed(String errorMessage) {
-        System.out.println(format("%s %s %s %s [%s] Test run failed: %s %s", runningTime(), progress(), failures(),
-                modelName, serial, testCase(startedTest), errorMessage));
-    }
+    public void onTestSuccessful() {
 
-    @Override
-    public void testRunStopped(long elapsedTime) {
-        System.out.println(format("%s %s %s %s [%s] Test run stopped after %s ms", runningTime(), progress(),
-                failures(), modelName, serial, elapsedTime));
     }
 
     private String runningTime() {
         return TEST_TIME.format(new Date(progressReporter.millisSinceTestsStarted()));
     }
 
-    private String testCase(TestIdentifier test) {
+    private String testCase(TestCase test) {
         return String.valueOf(test).replaceAll(testPackage, "");
     }
 
@@ -108,5 +93,12 @@ class ConsoleLoggingTestRunListener extends BaseListener {
 
     private int failures() {
         return progressReporter.getFailures();
+    }
+
+    @NotNull
+    private static String joinStackTraces(TestCaseRunResult failureResult) {
+        return failureResult.getStackTraces().stream()
+                .map(stackTrace -> stackTrace.getFullTrace())
+                .collect(Collectors.joining(System.lineSeparator() + System.lineSeparator()));
     }
 }

@@ -13,13 +13,13 @@
  */
 package com.github.tarcv.tongs.pooling;
 
+import com.github.tarcv.tongs.model.AndroidDevice;
 import com.google.common.collect.ImmutableMap;
 import com.github.tarcv.tongs.ComputedPooling;
-import com.github.tarcv.tongs.model.Device;
 
 import org.junit.Test;
 
-import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
+import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -62,7 +62,7 @@ public class ComputedPoolsCategorizerTest {
         assertThat(poolForDevice, equalTo(poolName));
     }
 
-	private Device deviceWithApi(String apiLevel) {
+	private AndroidDevice deviceWithApi(String apiLevel) {
 		return aDevice()
 				.withApiLevel(apiLevel)
 				.build();

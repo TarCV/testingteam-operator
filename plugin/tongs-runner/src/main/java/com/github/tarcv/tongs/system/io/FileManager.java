@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
@@ -13,27 +13,29 @@
  */
 package com.github.tarcv.tongs.system.io;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.result.FileType;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 
 import java.io.File;
 
 public interface FileManager {
     File[] getTestFilesForDevice(Pool pool, Device serial);
 
-    File createFile(FileType fileType, Pool pool, Device device, TestCaseEvent testCaseEvent);
+    File createFile(FileType fileType, Pool pool, Device device, TestCase testCaseEvent);
 
-    File createFile(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier, int sequenceNumber);
+    File createFile(FileType fileType, Pool pool, Device device,  TestCase testCaseEvent, int sequenceNumber);
 
-    File createFile(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier);
+    File createFile(FileType fileType, Pool pool, Device device,  TestCase testCaseEvent, String suffix);
 
     File createSummaryFile();
 
-    File[] getFiles(FileType fileType, Pool pool, Device device, TestIdentifier testIdentifier);
+    File[] getFiles(FileType fileType, Pool pool, Device device, TestCase testIdentifier);
 
-    File getFile(FileType fileType, String pool, String safeSerial, TestIdentifier testIdentifier);
+    File getFile(FileType fileType, String pool, String device, TestCase testIdentifier);
 
-    String createFilenameForTest(TestIdentifier testIdentifier, FileType fileType);
+    File getFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier);
+
+    File getRelativeFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier);
 }

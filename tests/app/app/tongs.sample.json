@@ -11,6 +11,7 @@
   "totalAllowedRetryQuota": 4,
   "retryPerTestCaseQuota": 2,
   "tongsIntegrationTestRunType": "TEST_RUN_TYPE",
+  "plugins": ["com.github.tarcv.tongs.plugin.android.StubDeviceProviderFactory"],
   "poolingStrategy": {
     "manual": {
       "groupings": {

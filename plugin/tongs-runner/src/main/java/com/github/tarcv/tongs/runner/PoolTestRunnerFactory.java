@@ -11,24 +11,29 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.injector.RuleManagerFactory;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class PoolTestRunnerFactory {
     private final DeviceTestRunnerFactory deviceTestRunnerFactory;
+    private final RuleManagerFactory ruleManagerFactory;
 
-    public PoolTestRunnerFactory(DeviceTestRunnerFactory deviceTestRunnerFactory) {
+    public PoolTestRunnerFactory(DeviceTestRunnerFactory deviceTestRunnerFactory,
+                                 RuleManagerFactory ruleManagerFactory) {
         this.deviceTestRunnerFactory = deviceTestRunnerFactory;
+        this.ruleManagerFactory = ruleManagerFactory;
     }
 
     public Runnable createPoolTestRunner(Pool pool,
                                          Collection<TestCaseEvent> testCases,
-                                         CountDownLatch poolCountDownLatch,
+                                         List<TestCaseRunResult> testCaseResults, CountDownLatch poolCountDownLatch,
                                          ProgressReporter progressReporter) {
 
         int totalTests = testCases.size();
@@ -37,8 +42,9 @@ public class PoolTestRunnerFactory {
         return new PoolTestRunner(
                 deviceTestRunnerFactory,
                 pool,
-                new TestCaseEventQueue(testCases),
+                new TestCaseEventQueue(testCases, testCaseResults),
                 poolCountDownLatch,
-                progressReporter);
+                progressReporter,
+                ruleManagerFactory);
     }
 }

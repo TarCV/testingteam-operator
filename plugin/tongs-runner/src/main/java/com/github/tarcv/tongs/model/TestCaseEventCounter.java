@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.model;
 
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.google.common.base.Objects;
 
 import java.util.concurrent.atomic.AtomicInteger;

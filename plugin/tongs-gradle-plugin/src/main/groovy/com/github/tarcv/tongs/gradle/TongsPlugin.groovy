@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -20,12 +20,13 @@ import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.api.InstallableVariant
 import com.android.build.gradle.api.TestVariant
 import com.github.tarcv.tongs.TongsConfigurationGradleExtension
+import com.github.tarcv.tongs.api.TongsConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskProvider
 
-import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN
+import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.STUB_PARALLEL_TESTRUN
 
 /**
  * Gradle plugin for Tongs.
@@ -76,6 +77,8 @@ class TongsPlugin implements Plugin<Project> {
                 testOutputTimeout = config.testOutputTimeout
                 testRunnerClass = variant.mergedFlavor.testInstrumentationRunner
                 testRunnerArguments = variant.mergedFlavor.testInstrumentationRunnerArguments
+                plugins = config.plugins
+                pluginsConfiguration = config.configuration
                 excludedSerials = config.excludedSerials
                 fallbackToScreenshots = config.fallbackToScreenshots
                 totalAllowedRetryQuota = config.totalAllowedRetryQuota
@@ -84,7 +87,8 @@ class TongsPlugin implements Plugin<Project> {
                 poolingStrategy = config.poolingStrategy
                 ignoreFailures = config.ignoreFailures
                 excludedAnnotation = config.excludedAnnotation
-                tongsIntegrationTestRunType = config.tongsIntegrationTestRunType
+                tongsIntegrationTestRunType =
+                        TongsConfiguration.TongsIntegrationTestRunType.valueOf(config.tongsIntegrationTestRunType)
 
                 String baseOutputDir = config.baseOutputDir
                 File outputBase

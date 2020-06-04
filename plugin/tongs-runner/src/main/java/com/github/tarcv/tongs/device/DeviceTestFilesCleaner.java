@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,8 +11,8 @@
 
 package com.github.tarcv.tongs.device;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 
 public interface DeviceTestFilesCleaner {
-    boolean deleteTraceFiles(TestIdentifier testIdentifier);
+    boolean deleteTraceFiles(TestCaseEvent testIdentifier);
 }

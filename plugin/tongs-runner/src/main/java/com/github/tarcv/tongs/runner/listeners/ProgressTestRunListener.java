@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,59 +11,42 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.runner.PoolProgressTracker;
-import com.github.tarcv.tongs.runner.ProgressReporter;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
+import com.github.tarcv.tongs.runner.*;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
-class ProgressTestRunListener extends BaseListener {
+class ProgressTestRunListener extends TongsTestListener {
 
     private final PoolProgressTracker poolProgressTracker;
 
     ProgressTestRunListener(Pool pool, ProgressReporter progressReporter) {
-        super(null);
         poolProgressTracker = progressReporter.getProgressTrackerFor(pool);
     }
 
     @Override
-    public void testRunStarted(String runName, int testCount) {
-
-    }
-
-    @Override
-    public void testStarted(TestIdentifier test) {
-
-    }
-
-    @Override
-    public void testFailed(TestIdentifier test, String trace) {
+    public void onTestFailed(TestCaseRunResult failureResult) {
         poolProgressTracker.failedTest();
-    }
-
-    @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
-
-    }
-
-    @Override
-    public void testIgnored(TestIdentifier test) {
-
-    }
-
-    @Override
-    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
         poolProgressTracker.completedTest();
     }
 
     @Override
-    public void testRunFailed(String errorMessage) {
+    public void onTestStarted() {
 
     }
 
     @Override
-    public void testRunStopped(long elapsedTime) {
+    public void onTestSuccessful() {
+        poolProgressTracker.completedTest();
+    }
 
+    @Override
+    public void onTestSkipped(@NotNull TestCaseRunResult skipResult) {
+        poolProgressTracker.completedTest();
+    }
+
+    @Override
+    public void onTestAssumptionFailure(@NotNull TestCaseRunResult skipResult) {
+        poolProgressTracker.completedTest();
     }
 }

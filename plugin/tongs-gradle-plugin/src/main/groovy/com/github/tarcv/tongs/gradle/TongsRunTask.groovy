@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -15,11 +15,10 @@ package com.github.tarcv.tongs.gradle
 
 import com.github.tarcv.tongs.Configuration
 import com.github.tarcv.tongs.Tongs
-import com.github.tarcv.tongs.TongsConfiguration
+import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.PoolingStrategy
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.VerificationTask
@@ -58,12 +57,13 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
     String testRunnerClass
 
     Map<String, String> testRunnerArguments
+    List<String> plugins
+
+    Map<String, Object> pluginsConfiguration
 
     boolean isCoverageEnabled
 
     int testOutputTimeout
-
-    String testSize
 
     Collection<String> excludedSerials
 
@@ -96,8 +96,9 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
                 .withTestPackage(testPackage)
                 .withTestRunnerClass(testRunnerClass)
                 .withTestRunnerArguments(testRunnerArguments)
+                .withPlugins(plugins)
+                .withPluginConfiguration(pluginsConfiguration)
                 .withTestOutputTimeout(testOutputTimeout)
-                .withTestSize(testSize)
                 .withExcludedSerials(excludedSerials)
                 .withFallbackToScreenshots(fallbackToScreenshots)
                 .withTotalAllowedRetryQuota(totalAllowedRetryQuota)

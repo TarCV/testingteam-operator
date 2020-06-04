@@ -1,0 +1,288 @@
+/*
+ * Copyright 2020 TarCV
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ */
+package com.github.tarcv.tongs.summary
+
+import com.github.tarcv.tongs.Configuration.aConfigurationBuilder
+import com.github.tarcv.tongs.api.devices.Device
+import com.github.tarcv.tongs.api.devices.Pool
+import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
+import com.github.tarcv.tongs.injector.summary.OutcomeAggregatorInjector.outcomeAggregator
+import com.github.tarcv.tongs.injector.summary.SummaryCompilerInjector.summaryCompiler
+import com.github.tarcv.tongs.injector.summary.SummaryPrinterInjector.summaryPrinter
+import com.github.tarcv.tongs.model.*
+import com.github.tarcv.tongs.api.result.*
+import com.github.tarcv.tongs.system.io.*
+import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.suite.ApkTestCase
+import com.google.gson.*
+import org.apache.commons.io.IOUtils
+import org.hamcrest.CoreMatchers.startsWith
+import org.junit.Assert
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
+import java.io.File
+import java.lang.reflect.Type
+import java.nio.file.Paths
+
+class SummarizerIntegrationTest {
+    @get:Rule
+    val temporaryFolder = TemporaryFolder()
+
+
+    private val resourcedRoot = "/summarizerIntegration"
+    private val linkedFilesSubDir = "linked"
+
+    private val linkedFolderRoot by lazy {
+        temporaryFolder.newFolder(linkedFilesSubDir)
+    }
+    private val fileManager by lazy {
+        TongsFileManager(linkedFolderRoot)
+    }
+
+    private val gson = Summarizer.testRecorderGsonBuilder()
+            .registerTypeAdapter(Device::class.java, ForceClassDeserializer(AndroidDevice::class.java))
+            .registerTypeAdapter(TestCaseFileManager::class.java, TestCaseFileManagerDeserializer())
+            .registerTypeAdapter(TestCase::class.java, TestCaseDeserializer())
+            .registerTypeAdapter(TestReportData::class.java, TestReportDataDeserializer())
+            .registerTypeAdapter(FileManager::class.java, ForceClassDeserializer(TongsFileManager::class.java))
+            .registerTypeAdapter(FileType::class.java, ComplexEnumDeserializer(StandardFileTypes.values()))
+            .create()
+
+    @Test
+    fun summarize() {
+        initConfiguration()
+        initLinkedFolder()
+
+
+        /*
+              Preparation steps before adding new summarizeInputs.json to the repo:
+              - all instances of path to tests\app directory is replaced with __ROOT_DIR__ for tests
+              - all paths to logcat jsons are replaced with the one from
+               com.github.tarcv.test.happy.DangerousNamesTest#test[param = |&;<>()$`?[]#~=%|&;<>()$`?[]#~=%|&;<>()$`?[]#~=%|&;<>()$`?[]#~=%|&;<>()$`?[]#~=%|&;<>()$`?[]#~=%|&;<>()$`?[]#~=%]
+               (its name guarantees interesting HTML content)
+             */
+
+        val summarizer = Summarizer(configuration(), summaryCompiler(), summaryPrinter(), outcomeAggregator())
+        SummarizerIntegrationTest::class.java.getResourceAsStream("/summarizerIntegration/summarizeInputs.json").bufferedReader().use {
+            summarizer.summarizeFromRecordedJson(it, gson)
+        }
+
+        checkGeneratedFileTree()
+    }
+
+    private fun checkGeneratedFileTree() {
+        val actualFilePaths = subDirectoriesPaths(temporaryFolder.root).sorted()
+
+        val expectedResourcesRoot = "$resourcedRoot/expected"
+        val commonResourcePathPrefix = "$expectedResourcesRoot/"
+        val expectedFilePaths = subResourcesPaths(expectedResourcesRoot, "html")
+                .map {
+                    Assert.assertThat(it, startsWith(commonResourcePathPrefix))
+                    it.removePrefix(commonResourcePathPrefix)
+                }
+                .sorted()
+        Assert.assertEquals("All expected HTML report files are created", expectedFilePaths, actualFilePaths)
+        checkFileContents(actualFilePaths, expectedResourcesRoot, temporaryFolder.root)
+    }
+
+    private fun initLinkedFolder() {
+        subResourcesPaths(resourcedRoot, linkedFilesSubDir)
+                .filterNot(Companion::isResourceAFolder)
+                .forEach { resourcePath ->
+                    val outFile = resourcePath
+                            .removePrefix("$resourcedRoot/$linkedFilesSubDir")
+                            .split("/")
+                            .fold(linkedFolderRoot) { file, part ->
+                                file.resolve(part)
+                            }
+                    outFile
+                            .also {
+                                it.parentFile.mkdirs()
+                            }
+                            .outputStream()
+                            .use { fileOut ->
+                                Companion::class.java.getResourceAsStream(resourcePath).use { resourceIn ->
+                                    IOUtils.copyLarge(resourceIn, fileOut)
+                                }
+                            }
+                }
+    }
+
+    private fun initConfiguration() {
+        val configuration = aConfigurationBuilder()
+                .withApplicationPackage("com.github.tarcv.tongstestapp.f2")
+                .withInstrumentationPackage("com.github.tarcv.tongstestapp.test")
+                .withTestRunnerClass("android.support.test.runner.AndroidJUnitRunner")
+                .withTestRunnerArguments(mapOf(
+                        "test_argument" to "default",
+                        "test_argument" to "args\"ForF2",
+                        "filter" to "com.github.tarcv.test.F2Filter"
+                ))
+                .withOutput(temporaryFolder.root)
+                .build()
+        val runnerModule = module {
+            single { configuration }
+        }
+        startKoin {
+            modules(runnerModule)
+        }
+    }
+
+    internal class ComplexEnumDeserializer<T : Enum<*>>(val constants: Array<T>) : JsonDeserializer<T> {
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): T {
+            val enumName = json.asString
+            return constants.single { it.name == enumName }
+        }
+    }
+
+    private inner class TestReportDataDeserializer : JsonDeserializer<TestReportData> {
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): TestReportData {
+            val obj = json.asJsonObject
+            val title = obj.get("title").asString
+            return when {
+                obj.has("html") -> SimpleHtmlReportData(title, obj.get("html").asString)
+                obj.has("table") -> SimpleTableReportData(title, context.deserialize(obj.get("table"), Table::class.java))
+                obj.has("tablePath") -> FileTableReportData(
+                        title, context.deserialize(obj.get("tablePath"), TestCaseFile::class.java),
+                        { tableFile ->
+                            tableFile.bufferedReader().use {
+                                gson.fromJson(it, Table.TableJson::class.java)
+                            }
+                        }
+                )
+                obj.has("image") -> ImageReportData(title, context.deserialize(obj.get("image"), TestCaseFile::class.java))
+                obj.has("video") -> VideoReportData(title, context.deserialize(obj.get("video"), TestCaseFile::class.java))
+                obj.has("file") -> LinkedFileReportData(title, context.deserialize(obj.get("file"), TestCaseFile::class.java))
+                obj.has("monoText") -> SimpleMonoTextReportData(
+                        title,
+                        context.deserialize(obj.get("type"), SimpleMonoTextReportData.Type::class.java),
+                        obj.get("monoText").asString
+                )
+                else -> throw IllegalStateException("Unknown TestReportData class")
+            }
+        }
+
+    }
+
+    private inner class TestCaseFileManagerDeserializer : JsonDeserializer<TestCaseFileManager> {
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): TestCaseFileManager {
+            val jsonObject = json.asJsonObject
+            return TestCaseFileManagerImpl(
+                    fileManager,
+                    context.deserialize(jsonObject.get("pool"), Pool::class.java),
+                    context.deserialize(jsonObject.get("device"), Device::class.java),
+                    context.deserialize(jsonObject.get("testCaseEvent"), TestCase::class.java)
+            )
+        }
+
+    }
+
+    class TestCaseDeserializer : JsonDeserializer<TestCase> {
+        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): TestCase {
+            val jsonObject = json.asJsonObject
+
+            // For backward compatibility with old JSON
+            val typeTag = jsonObject.get("typeTag").let {
+                if (it == null) {
+                    ApkTestCase::class.java
+                } else {
+                    context.deserialize(it, Class::class.java)
+                }
+            }
+
+            return TestCase(
+                    typeTag,
+                    jsonObject.get("testPackage").asString,
+                    jsonObject.get("testClass").asString,
+                    jsonObject.get("testMethod").asString,
+                    context.deserialize(jsonObject.get("readablePath"), List::class.java),
+                    context.deserialize(jsonObject.get("properties"), Map::class.java),
+                    context.deserialize(jsonObject.get("annotations"), List::class.java),
+                    Any()
+            )
+        }
+
+    }
+
+    private class ForceClassDeserializer<T>(val forcedClass: Class<T>) : JsonDeserializer<T> {
+        @Throws(JsonParseException::class)
+        override fun deserialize(element: JsonElement, typeOfT: Type, context: JsonDeserializationContext): T {
+            return context.deserialize(element, forcedClass)
+        }
+    }
+
+    companion object {
+        private fun checkFileContents(relativeFilePaths: List<String>, expectedResourcesRoot: String, actualFilesRoot: File) {
+            relativeFilePaths
+                    .filter { it.endsWith("/").not() }
+                    .map {
+                        val aFile = Paths.get(actualFilesRoot.absolutePath, *it.split("/").toTypedArray())
+                                .toFile()
+                        val aResource = "$expectedResourcesRoot/$it"
+                        aFile to aResource
+                    }
+                    .forEach { (aFile, aResource) ->
+                        val actualBody = aFile.bufferedReader().readLines()
+                        val expectedBody = Companion::class.java.getResourceAsStream(aResource).bufferedReader().readLines()
+                        Assert.assertEquals("${aFile.path} has expected contents", expectedBody, actualBody)
+                    }
+        }
+
+        private fun subDirectoriesPaths(base: File): List<String> {
+            return base
+                    .walkTopDown().toSortedSet()
+                    .filter { it.relativeTo(base).invariantSeparatorsPath.startsWith("html") }
+                    .map {
+                        val relativePath = it.relativeTo(base).invariantSeparatorsPath
+                        if (it.isDirectory) {
+                            "$relativePath/"
+                        } else {
+                            relativePath
+                        }
+                    }
+        }
+
+        private fun subResourcesPaths(parentPath: String, itemName: String): List<String> {
+            val basePath = "$parentPath/$itemName"
+            val firstFileStream = isResourceAFolder(basePath)
+            if (firstFileStream) {
+                val output = ArrayList<String>().apply {
+                    add("$basePath/")
+                }
+                Companion::class.java.getResourceAsStream("$basePath/")
+                        .bufferedReader()
+                        .lineSequence()
+                        .flatMap {
+                            subResourcesPaths(basePath, it).asSequence()
+                        }
+                        .toCollection(output)
+                return output
+            } else {
+                return listOf(basePath)
+            }
+        }
+
+        private fun isResourceAFolder(path: String): Boolean {
+            val firstFile = Companion::class.java.getResourceAsStream("$path/")
+                    .bufferedReader()
+                    .readLine()
+            val firstFileStream = Companion::class.java.getResourceAsStream("$path/$firstFile")
+            return if (firstFileStream != null) {
+                firstFileStream.close()
+                true
+            } else {
+                false
+            }
+        }
+    }
+}

@@ -11,35 +11,35 @@
 
 package com.github.tarcv.tongs.runner;
 
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.system.adb.Installer;
 
-import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 
 public class DeviceTestRunnerFactory {
 
     private final Installer installer;
-    private final TestRunFactory testRunFactory;
 
-    public DeviceTestRunnerFactory(Installer installer, TestRunFactory testRunFactory) {
+    public DeviceTestRunnerFactory(Installer installer) {
         this.installer = installer;
-        this.testRunFactory = testRunFactory;
     }
 
     public Runnable createDeviceTestRunner(Pool pool,
                                            TestCaseEventQueue testClassQueue,
                                            CountDownLatch deviceInPoolCountDownLatch,
                                            Device device,
-                                           ProgressReporter progressReporter
+                                           ProgressReporter progressReporter,
+                                           RuleManagerFactory ruleManagerFactory
                                            ) {
         return new DeviceTestRunner(
-                installer,
                 pool,
                 device,
                 testClassQueue,
                 deviceInPoolCountDownLatch,
                 progressReporter,
-                testRunFactory);
+                ruleManagerFactory);
     }
 }

@@ -14,14 +14,14 @@
 package com.github.tarcv.tongs.pooling;
 
 import com.github.tarcv.tongs.ComputedPooling;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static java.util.stream.Collectors.toCollection;
 
 /**

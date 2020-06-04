@@ -2,46 +2,70 @@
 
 set -ex
 
+function cleanReportsAndLogs() {
+  rm ./*.log || true
+  rm -r app/build/reports || true
+}
+
 cd "$(dirname "$0")"
 
 export GRADLE_OPTS="-Dorg.gradle.console=plain"
-
+# Make sure new build of the plugin is loaded and new options are loaded
 ./gradlew --stop
+# -ea is not supported by AGP for assembleAndroidTest
+./gradlew assemble assembleAndroidTest
+
+export GRADLE_OPTS="-Dorg.gradle.console=plain -Dorg.gradle.jvmargs=-ea"
+# Make sure new options are enabled
+./gradlew --stop
+
+# Wait for the output directory to be unlocked after the previous run
 sleep 3
 
-rm ./*.log || true
-rm -r app/build/reports || true
+
+
+cleanReportsAndLogs
 
 if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest --stacktrace
     ./gradlew :app:uninstallF2Debug :app:uninstallF2DebugAndroidTest
 fi
-./gradlew :app:tongsF1DebugAndroidTest --stacktrace
+
+set +e
+./gradlew :app:tongsF1DebugAndroidTest --stacktrace --info && exit 1
+set -e
+
 ./gradlew :app:testF1DebugUnitTest
 
-rm ./*.log || true
-rm -r app/build/reports || true
+
+
+cleanReportsAndLogs
 
 if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest
     ./gradlew :app:uninstallF2Debug :app:uninstallF2DebugAndroidTest --stacktrace
 fi
-./gradlew :app:tongsF2DebugAndroidTest --stacktrace
+
+set +e
+./gradlew :app:tongsF2DebugAndroidTest --stacktrace && exit 1
+set -e
+
 ./gradlew :app:testF2DebugUnitTest
 
-rm ./*.log || true
-rm -r app/build/reports || true
-rm app/tongs.json || true
+
+
+cleanReportsAndLogs
 
 if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest
     ./gradlew :app:uninstallF2Debug :app:uninstallF2DebugAndroidTest --stacktrace
 fi
 
-rm ./*.log || true
-rm -r app/build/reports || true
-rm app/tongs.json || true
 
+
+cleanReportsAndLogs
+
+rm app/tongs.json || true
 cp app/tongs.sample.json app/tongs.json
 TEST_ROOT="$(pwd)"
 TEST_ROOT=$(echo "$TEST_ROOT" | perl -lape 's/^\/([a-z])\//$1:\//g')
@@ -56,6 +80,8 @@ else
 fi
 
 pushd ../../plugin
-    ./gradlew :tongs-runner:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json"
+    set +e
+    ./gradlew :tongs-runner:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json" && exit 1
+    set -e
 popd
 ./gradlew :app:testF2DebugUnitTest

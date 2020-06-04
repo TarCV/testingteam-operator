@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -12,24 +12,48 @@ package com.github.tarcv.tongs.test
 
 import com.github.tarcv.test.BuildConfig.FLAVOR
 import com.github.tarcv.test.Config.PACKAGE
+import com.github.tarcv.tongs.test.util.ResultsSupplier
+import com.github.tarcv.tongs.test.util.TestResult
 import org.apache.commons.exec.CommandLine
 import org.apache.commons.exec.DefaultExecutor
 import org.apache.commons.exec.PumpStreamHandler
-import org.json.JSONArray
-import org.json.JSONObject
 import org.junit.Assume
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.asserter
 
-class FunctionalSummaryTest {
+@RunWith(Parameterized::class)
+class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier) {
     private val packageForRegex = PACKAGE.replace(".", """\.""")
 
+    private val expectedNumberOfHappyTests: Int = run {
+            val filteredNum = if (FLAVOR == "f2") {
+                1 * 4
+            } else {
+                2 * 4
+            }
+
+            // Numbers are test case counts per classes in alphabetical order
+            12 + filteredNum + 2 + 2 + 2 + 2 + 1 + 8 + 8 + 2 + 4
+        }
+    private val expectedNumberOfResultTests = 3 * 2
+
     @Test
-    fun testAllTestcasesExecutedExactlyOnce() {
+    fun testAllTestcaseExecutedAtLeastOnce() {
+        val count = getTestResults()
+                .map { "${it.testClass}#${it.testMethod}" }
+                .distinct()
+                .count()
+        assert(count == expectedNumberOfHappyTests + expectedNumberOfResultTests)
+    }
+
+    @Test
+    fun testAllHappyTestcasesExecutedExactlyOnce() {
         val simplifiedResults = getSimplifiedResults()
 
         simplifiedResults.fold(HashSet<String>()) { acc, result ->
@@ -37,13 +61,7 @@ class FunctionalSummaryTest {
             acc
         }
 
-        val filteredNum = if (FLAVOR == "f2") {
-            1 * 4
-        } else {
-            2 * 4
-        }
-        // Numbers are test case counts per classes in alphabetical order
-        asserter.assertEquals("All tests should be executed", 11+filteredNum+2+2+2+2+1+8+8+2+4, simplifiedResults.size)
+        asserter.assertEquals("All tests should be executed", expectedNumberOfHappyTests, simplifiedResults.size)
     }
 
     @Test
@@ -61,25 +79,26 @@ class FunctionalSummaryTest {
     @Test
     fun testDangerousNamesTestExecutedCorrectly() {
         doAssertionsForParameterizedTests(
-                """$packageForRegex\.DangerousNamesTest#test\[\s*param = .+]""".toRegex(), 11)
+                """$packageForRegex\.DangerousNamesTest#test\[\s*param = .+]""".toRegex(), 12)
+    }
+
+    @Test
+    fun testNormalParameterizedTestDistribution() {
+        doTestParameterizedTestsDistribution("""$packageForRegex\..+\[\d+]""".toRegex())
+    }
+
+    @Test
+    fun testNamedParameterizedTestDistribution() {
+        doTestParameterizedTestsDistribution("""$packageForRegex\..+\[\s*param = .+]""".toRegex())
     }
 
     @Test
     fun testApi22IsOnlyExecutedOnTheSecondDevice() {
         val simplifiedResults = getSimplifiedResults()
-        val testsPerDevice = simplifiedResults
-                .filter { """$packageForRegex\.FilteredTest#api22Only\[\s*.+]""".toRegex().matches(it.first) }
-                .fold(HashMap<String, AtomicInteger>()) { acc, test ->
-                    acc
-                            .computeIfAbsent(test.second) { AtomicInteger(0) }
-                            .incrementAndGet()
-                    acc
-                }
-                .entries
-                .toList()
+        val testsPerDevice = getPerDeviceTestCounts(simplifiedResults, """$packageForRegex\.FilteredTest#api22Only\[\s*.+]""".toRegex())
         assert(testsPerDevice.isNotEmpty()) { "API 20 only tests should be executed" }
         assert(testsPerDevice.size == 1) { "API 20 only should be executed on exactly 1 device (got ${testsPerDevice.size})" }
-        assert(testsPerDevice[0].value.get() == 4) { "Exactly 4 API 20 only test cases should be executed on ${testsPerDevice[0].key} device" }
+        assert(testsPerDevice[0].value == 4) { "Exactly 4 API 20 only test cases should be executed on ${testsPerDevice[0].key} device" }
     }
 
     @Test
@@ -164,22 +183,20 @@ class FunctionalSummaryTest {
 
     @Test
     fun testExpectedPropertiesFromAnnotationsAreInJsons() {
-        val poolSummaries = getSummaryData().getJSONArray("poolSummaries")
-        assert(poolSummaries.length() == 1)
-        val testResults = getTestResults() as Iterable<JSONObject>
+        val testResults = getTestResults()
 
-        val normalPropertiesTest = testResults.single { it.getString("testMethod") == "normalPropertiesTest" }
-        with(normalPropertiesTest.getJSONObject("testMetrics")) {
-            assert(getString("x") == "1")
-            assert(getString("y") == "2")
-            assert(keySet() == setOf("x", "y"))
+        val normalPropertiesTest = testResults.single { it.testMethod == "normalPropertiesTest" }
+        with(normalPropertiesTest.additionalProperties) {
+            assert(getValue("x") == "1")
+            assert(getValue("y") == "2")
+            assert(keys == setOf("x", "y"))
         }
 
-        val normalPropertyPairsTest = testResults.single { it.getString("testMethod") == "normalPropertyPairsTest" }
-        with(normalPropertyPairsTest.getJSONObject("testMetrics")) {
-            assert(getString("v") == "1")
-            assert(getString("w") == "2")
-            assert(keySet() == setOf("v", "w"))
+        val normalPropertyPairsTest = testResults.single { it.testMethod == "normalPropertyPairsTest" }
+        with(normalPropertyPairsTest.additionalProperties) {
+            assert(getValue("v") == "1")
+            assert(getValue("w") == "2")
+            assert(keys == setOf("v", "w"))
         }
     }
 
@@ -226,6 +243,80 @@ class FunctionalSummaryTest {
                 }
     }
 
+    private fun doAssertionsForParameterizedTests(pattern: Regex, expectedCount: Int) {
+        val simplifiedResults = getSimplifiedResults()
+
+        val testsPerDevice = getPerDeviceTestCounts(simplifiedResults, pattern)
+        if (expectedCount > 0) {
+            assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
+
+            assert(testsPerDevice.sumBy { it.value } == expectedCount) {
+                "Exactly $expectedCount parameterized tests should be executed" +
+                        " (device1=${testsPerDevice[0].value}, device2=${testsPerDevice[1].value})"
+            }
+        } else {
+            assert(testsPerDevice.isEmpty()) { "The parameterized tests should not be executed" }
+        }
+    }
+
+    private fun doTestParameterizedTestsDistribution(pattern: Regex) {
+        val simplifiedResults = getSimplifiedResults()
+
+        val testsPerDevice = getPerDeviceTestCounts(simplifiedResults, pattern)
+
+        assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
+        // TODO: Actually check that there is some parameterized that got executed on both devices
+        assert(testsPerDevice.size == 2) { "Variants should be executed on exactly 2 devices (got ${testsPerDevice.size})" }
+        assert(testsPerDevice[0].value > 0) { "At least one parameterized test should be executed on ${testsPerDevice[0].key} device" }
+        assert(testsPerDevice[1].value > 0) { "At least one parameterized test should be executed on ${testsPerDevice[1].key} device" }
+    }
+
+    private fun getPerDeviceTestCounts(simplifiedResults: List<Pair<String, String>>, pattern: Regex): List<Map.Entry<String, Int>> {
+        return simplifiedResults
+                .filter { pattern.matches(it.first) }
+                .fold(HashMap<String, AtomicInteger>()) { acc, test ->
+                    acc
+                            .computeIfAbsent(test.second) { _ -> AtomicInteger(0) }
+                            .incrementAndGet()
+                    acc
+                }
+                .mapValues { it.value.get() }
+                .entries
+                .toList()
+    }
+
+    private fun getSimplifiedResults(
+            includePackages: List<String> = listOf(PACKAGE)
+    ): List<Pair<String, String>> {
+        val packageRegexes = includePackages.map { Regex("^${Regex.escape(it)}\\.[A-Z].*$") }
+        return getTestResults()
+                .filter {
+                    val testClass = it.testClass
+                    packageRegexes.any { testClass.matches(it) }
+                }
+                .map {
+                    "${it.testClass}#${it.testMethod}" to it.deviceSerial
+                }
+    }
+
+    private fun getTestResults(): List<TestResult> {
+        val poolSummaries = supplier.summarySupplier()
+
+        return poolSummaries.single()
+                .deviceResults
+                .flatMap { it.testResults }
+    }
+
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters(name = "{0}")
+        fun provideResultsSuppliers(): List<Array<Any>> {
+            return ResultsSupplier.allSuppliers
+                    .map {
+                        arrayOf(it.supplierName, it)
+                    }
+        }
+    }
 }
 
 private const val shellBinary = "/bin/sh"
@@ -239,65 +330,4 @@ private fun executeCommandWithOutput(cmd: CommandLine): String {
         execute(cmd)
     }
     return outputStream.toString()
-}
-
-private fun doAssertionsForParameterizedTests(pattern: Regex, expectedCount: Int) {
-    val simplifiedResults = getSimplifiedResults()
-
-    val testsPerDevice = simplifiedResults
-            .filter { pattern.matches(it.first) }
-            .fold(HashMap<String, AtomicInteger>()) { acc, test ->
-                acc
-                        .computeIfAbsent(test.second) { _ -> AtomicInteger(0) }
-                        .incrementAndGet()
-                acc
-            }
-            .entries
-            .toList()
-    if (expectedCount > 0) {
-        assert(testsPerDevice.isNotEmpty()) { "Parameterized tests should be executed" }
-        if (expectedCount >= 8) {
-            assert(testsPerDevice.size == 2) { "Variants should be executed on exactly 2 devices (got ${testsPerDevice.size})" }
-            assert(testsPerDevice[0].value.get() > 0) { "At least one parameterized test should be executed on ${testsPerDevice[0].key} device" }
-            assert(testsPerDevice[1].value.get() > 0) { "At least one parameterized test should be executed on ${testsPerDevice[1].key} device" }
-        }
-        assert(testsPerDevice[0].value.get() + testsPerDevice[1].value.get() == expectedCount) {
-            "Exactly $expectedCount parameterized tests should be executed" +
-                    " (device1=${testsPerDevice[0].value.get()}, device2=${testsPerDevice[1].value.get()})"
-        }
-    } else {
-        assert(testsPerDevice.isEmpty()) { "The parameterized tests should not be executed" }
-    }
-}
-
-private fun getSimplifiedResults(): List<Pair<String, String>> {
-    val simplifiedResults = getTestResults().map {
-        val result = it as JSONObject
-        val serial = result.getJSONObject("device").getString("serial")
-        val testClass = result.getString("testClass")
-        val testMethod = result.getString("testMethod")
-        "$testClass#$testMethod" to serial
-    }
-    return simplifiedResults
-}
-
-private fun getTestResults(): JSONArray {
-    val poolSummaries = getSummaryData().getJSONArray("poolSummaries")
-    assert(poolSummaries.length() == 1)
-    val testResults = (poolSummaries[0] as JSONObject).getJSONArray("testResults")
-    return testResults
-}
-
-private fun getSummaryData(): JSONObject {
-    val summaryJsonFile = getSummaryJsonFile()
-    return JSONObject(String(Files.readAllBytes(summaryJsonFile.toPath())))
-}
-
-private fun getSummaryJsonFile(): File {
-    val summaryDir = File("build/reports/tongs/${FLAVOR}DebugAndroidTest/summary")
-    val jsons = summaryDir.listFiles { file, s ->
-        summaryDir == file && s.toLowerCase().endsWith(".json")
-    }
-    assert(jsons != null && jsons.size == 1) { "Exactly one summary json should be created" }
-    return jsons[0]
 }

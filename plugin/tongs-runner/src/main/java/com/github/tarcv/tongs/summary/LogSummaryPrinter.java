@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,6 +13,8 @@
  */
 package com.github.tarcv.tongs.summary;
 
+import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.google.common.base.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +23,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+import static com.github.tarcv.tongs.api.run.ResultStatus.*;
 import static com.google.common.collect.Collections2.filter;
-import static com.github.tarcv.tongs.summary.ResultStatus.ERROR;
-import static com.github.tarcv.tongs.summary.ResultStatus.FAIL;
-import static com.github.tarcv.tongs.summary.ResultStatus.PASS;
 import static java.lang.String.format;
 
 public class LogSummaryPrinter implements SummaryPrinter {
@@ -44,13 +44,13 @@ public class LogSummaryPrinter implements SummaryPrinter {
         for (PoolSummary poolSummary : summary.getPoolSummaries()) {
             printMiniSummary(poolSummary);
         }
-        List<String> suppressedTests = summary.getIgnoredTests();
+        List<TestCaseRunResult> suppressedTests = summary.getIgnoredTests();
         if (suppressedTests.isEmpty()) {
             logger.info("No suppressed tests.");
         } else {
             logger.info("Suppressed tests:");
-            for (String s : suppressedTests) {
-                logger.info(s);
+            for (TestCaseRunResult s : suppressedTests) {
+                logger.info(s.getTestCase().toString());
             }
         }
     }
@@ -76,13 +76,13 @@ public class LogSummaryPrinter implements SummaryPrinter {
 
     private StringBuilder printTestsWithStatus(PoolSummary poolSummary, ResultStatus status) {
         StringBuilder summary = new StringBuilder();
-        final Collection<TestResult> resultsWithStatus = getResultsWithStatus(poolSummary.getTestResults(), status);
+        final Collection<TestCaseRunResult> resultsWithStatus = getResultsWithStatus(poolSummary.getTestResults(), status);
         if (!resultsWithStatus.isEmpty()) {
-            for (TestResult testResult : resultsWithStatus) {
+            for (TestCaseRunResult testResult : resultsWithStatus) {
                 summary.append(format("%s %s#%s on %s %s\n",
-                        testResult.getResultStatus(),
-                        testResult.getTestClass(),
-                        testResult.getTestMethod(),
+                        testResult.getStatus(),
+                        testResult.getTestCase().getTestClass(),
+                        testResult.getTestCase().getTestMethod(),
                         testResult.getDevice().getManufacturer(),
                         testResult.getDevice().getModelName()));
             }
@@ -90,11 +90,11 @@ public class LogSummaryPrinter implements SummaryPrinter {
         return summary;
     }
 
-    private Collection<TestResult> getResultsWithStatus(Collection<TestResult> testResults, final ResultStatus resultStatus) {
-        return filter(testResults, new Predicate<TestResult>() {
+    private Collection<TestCaseRunResult> getResultsWithStatus(Collection<TestCaseRunResult> testResults, final ResultStatus resultStatus) {
+        return filter(testResults, new Predicate<TestCaseRunResult>() {
             @Override
-            public boolean apply(@Nullable TestResult testResult) {
-                return testResult.getResultStatus().equals(resultStatus);
+            public boolean apply(@Nullable TestCaseRunResult testResult) {
+                return testResult.getStatus().equals(resultStatus);
             }
         });
     }

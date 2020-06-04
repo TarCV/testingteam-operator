@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,14 +11,15 @@
 
 package com.github.tarcv.tongs.model;
 
-import com.google.gson.JsonObject;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.github.tarcv.tongs.model.Device.Builder.aDevice;
-import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
+import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestCaseEvent;
+import static com.github.tarcv.tongs.api.testcases.TestCaseExtKt.aTestCase;
+import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -41,8 +42,10 @@ public class PoolTestCaseAccumulatorTestFailure {
             .addDevice(ANOTHER_DEVICE)
             .build();
     
-    private final TestCaseEvent A_TEST_CASE = newTestCase("a_method", "a_class", false, emptyList(), emptyMap(), new JsonObject(), emptyList());
-    private final TestCaseEvent ANOTHER_TEST_CASE = newTestCase("another_method", "a_class", false, emptyList(), emptyMap(), new JsonObject(), emptyList());
+    private final TestCaseEvent A_TEST_CASE =
+            aTestCaseEvent(aTestCase("A_class", "a_method"));
+    private final TestCaseEvent ANOTHER_TEST_CASE =
+            aTestCaseEvent(aTestCase("A_class", "another_method"));
 
     PoolTestCaseFailureAccumulator subject;
 

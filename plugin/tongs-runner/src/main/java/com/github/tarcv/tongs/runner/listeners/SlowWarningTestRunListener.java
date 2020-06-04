@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,65 +11,55 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
-
+import com.github.tarcv.tongs.Utils;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
-import static com.github.tarcv.tongs.utils.Utils.millisSinceNanoTime;
 import static java.lang.System.nanoTime;
 
-class SlowWarningTestRunListener extends BaseListener {
+class SlowWarningTestRunListener extends TongsTestListener {
     private static final Logger logger = LoggerFactory.getLogger(SlowWarningTestRunListener.class);
     private static final long TEST_LENGTH_THRESHOLD_MILLIS = 30 * 1000;
     private long startTime;
+    private final TestCase test;
 
-    public SlowWarningTestRunListener() {
-        super(null);
+    public SlowWarningTestRunListener(TestCase test) {
+        this.test = test;
     }
 
     @Override
-    public void testRunStarted(String runName, int testCount) {
-    }
-
-    @Override
-    public void testStarted(TestIdentifier test) {
+    public void onTestStarted() {
         startTime = nanoTime();
     }
 
-    @Override
-    public void testFailed(TestIdentifier test, String trace) {
-
-    }
-
-    @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
-
-    }
-
-    @Override
-    public void testIgnored(TestIdentifier test) {
-
-    }
-
-    @Override
-    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-        long testDuration = millisSinceNanoTime(startTime);
+    public void onTestEnded() {
+        long testDuration = Utils.millisSinceNanoTime(startTime);
         if (testDuration > TEST_LENGTH_THRESHOLD_MILLIS) {
-            logger.warn("Slow test ({}ms): {} {}" , testDuration, test.getClassName(), test.getTestName());
+            logger.warn("Slow test ({}ms): {} {}" , testDuration, test.getTestClass(), test.getTestMethod());
 
         }
     }
 
     @Override
-    public void testRunFailed(String errorMessage) {
-
+    public void onTestSuccessful() {
+        onTestEnded();
     }
 
     @Override
-    public void testRunStopped(long elapsedTime) {
+    public void onTestFailed(TestCaseRunResult failureResult) {
+        onTestEnded();
+    }
 
+    @Override
+    public void onTestSkipped(@NotNull TestCaseRunResult skipResult) {
+        onTestEnded();
+    }
+
+    @Override
+    public void onTestAssumptionFailure(@NotNull TestCaseRunResult skipResult) {
+        onTestEnded();
     }
 }

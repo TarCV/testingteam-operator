@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,15 +11,16 @@
 
 package com.github.tarcv.tongs.device;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.system.io.FileManager;
-import com.github.tarcv.tongs.system.io.FileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+
+import static com.github.tarcv.tongs.api.result.StandardFileTypes.TEST;
 
 public class DeviceTestFilesCleanerImpl implements DeviceTestFilesCleaner {
     private static final Logger logger = LoggerFactory.getLogger(DeviceTestFilesCleanerImpl.class);
@@ -34,8 +35,8 @@ public class DeviceTestFilesCleanerImpl implements DeviceTestFilesCleaner {
     }
 
     @Override
-    public boolean deleteTraceFiles(TestIdentifier testIdentifier) {
-        File file = fileManager.getFile(FileType.TEST, pool.getName(), device.getSafeSerial(), testIdentifier);
+    public boolean deleteTraceFiles(TestCaseEvent testIdentifier) {
+        File file = fileManager.getFile(TEST, pool, device, testIdentifier.getTestCase());
         boolean isDeleted = file.delete();
         if (!isDeleted) {
             logger.warn("Failed to delete a file %s", file.getAbsolutePath());

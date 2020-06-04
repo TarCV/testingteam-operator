@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -10,9 +10,15 @@
  */
 package com.github.tarcv.tongs;
 
-import java.util.Collection;
+import com.github.tarcv.tongs.api.TongsConfiguration;
 
-import static com.github.tarcv.tongs.TongsConfiguration.TongsIntegrationTestRunType.NONE;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.NONE;
 
 /**
  * Tongs extension.
@@ -55,11 +61,6 @@ public abstract class TongsConfigurationExtension {
     public int testOutputTimeout;
 
     /**
-     * The size of the tests that will be executed with this run.
-     */
-    public String testSize;
-
-    /**
      * The collection of serials that should be excluded from this test run
      */
     public Collection<String> excludedSerials;
@@ -83,6 +84,16 @@ public abstract class TongsConfigurationExtension {
      * Filter test run to tests without given annotation
      */
     public String excludedAnnotation;
+
+    /**
+     * Plugins to load
+     */
+    public List<String> plugins = new ArrayList<>();
+
+    /**
+     * Misc. configuration options
+     */
+    public Map<String, Object> configuration = new HashMap<>();
 
     /**
      * Specifies that Tongs should run using one of "under integration test" modes

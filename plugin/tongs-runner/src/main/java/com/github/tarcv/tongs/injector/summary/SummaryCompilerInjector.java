@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@ package com.github.tarcv.tongs.injector.summary;
 import com.github.tarcv.tongs.summary.SummaryCompiler;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuration;
-import static com.github.tarcv.tongs.injector.summary.DeviceTestFilesRetrieverInjector.deviceTestFilesRetriever;
 
-class SummaryCompilerInjector {
+public class SummaryCompilerInjector {
     private SummaryCompilerInjector() {
     }
 
-    static SummaryCompiler summaryCompiler() {
-        return new SummaryCompiler(configuration(), deviceTestFilesRetriever());
+    public static SummaryCompiler summaryCompiler() {
+        return new SummaryCompiler(configuration());
     }
 }

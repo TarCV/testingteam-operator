@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,6 +13,7 @@
  */
 package com.github.tarcv.tongs.summary;
 
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.google.common.base.Function;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
@@ -22,9 +23,9 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+import static com.github.tarcv.tongs.api.run.ResultStatus.IGNORED;
+import static com.github.tarcv.tongs.api.run.ResultStatus.PASS;
 import static com.google.common.collect.Collections2.transform;
-import static com.github.tarcv.tongs.summary.ResultStatus.IGNORED;
-import static com.github.tarcv.tongs.summary.ResultStatus.PASS;
 
 public class OutcomeAggregator {
     private static final Logger logger = LoggerFactory.getLogger(OutcomeAggregator.class);
@@ -47,19 +48,19 @@ public class OutcomeAggregator {
             @Override
             @Nullable
             public Boolean apply(@Nullable PoolSummary input) {
-                final Collection<TestResult> testResults = input.getTestResults();
+                final Collection<TestCaseRunResult> testResults = input.getTestResults();
                 final Collection<Boolean> testOutcomes = transform(testResults, toTestOutcome());
                 return !testOutcomes.isEmpty() && and(testOutcomes);
             }
         };
     }
 
-    private static Function<TestResult, Boolean> toTestOutcome() {
-        return new Function<TestResult, Boolean>() {
+    private static Function<TestCaseRunResult, Boolean> toTestOutcome() {
+        return new Function<TestCaseRunResult, Boolean>() {
             @Override
             @Nullable
-            public Boolean apply(@Nullable TestResult input) {
-                return PASS.equals(input.getResultStatus()) || IGNORED.equals(input.getResultStatus());
+            public Boolean apply(@Nullable TestCaseRunResult input) {
+                return PASS.equals(input.getStatus()) || IGNORED.equals(input.getStatus());
             }
         };
     }

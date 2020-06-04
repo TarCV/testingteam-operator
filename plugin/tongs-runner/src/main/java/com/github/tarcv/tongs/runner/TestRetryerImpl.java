@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,14 +11,9 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;
-
-import java.util.Queue;
-
-import static com.github.tarcv.tongs.model.TestCaseEvent.newTestCase;
 
 public class TestRetryerImpl implements TestRetryer {
     private final ProgressReporter progressReporter;
@@ -32,9 +27,9 @@ public class TestRetryerImpl implements TestRetryer {
     }
 
     @Override
-    public boolean rescheduleTestExecution(TestIdentifier testIdentifier, TestCaseEvent testCaseEvent) {
-        progressReporter.recordFailedTestCase(pool, newTestCase(testIdentifier));
-        if (progressReporter.requestRetry(pool, newTestCase(testIdentifier))) {
+    public boolean rescheduleTestExecution(TestCaseEvent testCaseEvent) {
+        progressReporter.recordFailedTestCase(pool, testCaseEvent);
+        if (progressReporter.requestRetry(pool, testCaseEvent)) {
             queueOfTestsInPool.offer(testCaseEvent);
             return true;
         }

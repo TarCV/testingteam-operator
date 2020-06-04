@@ -15,7 +15,7 @@ package com.github.tarcv.tongs.pooling;
 
 import com.github.tarcv.tongs.ComputedPooling;
 import com.github.tarcv.tongs.DeviceCharacteristicReader;
-import com.github.tarcv.tongs.model.Device;
+import com.github.tarcv.tongs.api.devices.Device;
 
 import java.util.*;
 

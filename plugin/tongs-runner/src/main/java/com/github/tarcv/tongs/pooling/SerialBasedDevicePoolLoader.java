@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,14 +14,14 @@
 package com.github.tarcv.tongs.pooling;
 
 import com.github.tarcv.tongs.ManualPooling;
-import com.github.tarcv.tongs.model.Device;
-import com.github.tarcv.tongs.model.Pool;
+import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.Pool;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.github.tarcv.tongs.model.Pool.Builder.aDevicePool;
+import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static java.util.Map.Entry;
 
 /**
@@ -43,7 +43,9 @@ public class SerialBasedDevicePoolLoader implements DevicePoolLoader {
                 Device device = devices.stream()
                         .filter(d -> d.getSerial().equals(serial))
                         .findFirst()
-                        .orElseThrow(RuntimeException::new);
+                        .orElseThrow(() -> {
+                            return new RuntimeException("Device with the serial '" + serial + "' was not found");
+                        });
                 if (device != null) {
                     poolBuilder.addDevice(device);
                 }

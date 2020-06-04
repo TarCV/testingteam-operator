@@ -15,15 +15,15 @@
 <body>
 <div class="container">
     <div class="hero-unit {{poolStatus}}">
-        <h1>{{prettyPoolName}}</h1>
+        <h1>{{titleize poolName}}</h1>
     </div>
     <div class="birds-eye">
         <table class="table">
             {{#testResults}}
-            <tr class="test {{status}}">
-                <td>{{deviceSerial}}</td>
-                <td>{{deviceModelDespaced}}</td>
-                <td><a href="{{plainPoolName}}/{{fileNameForTest}}html">{{prettyClassName}} : {{prettyMethodName}}</a></td>
+            <tr class="test {{lower status}}">
+                <td>{{device.serial}}</td>
+                <td>{{replace device.modelName ' ' '_'}}</td>
+                <td><a href="{{poolName}}/{{filenameForTest .}}html">{{simpleClassName testCase.testClass}} : {{readableMethodName testCase.testMethod}}</a></td>
             </tr>
             {{/testResults}}
         </table>

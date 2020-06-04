@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -10,8 +10,6 @@
  */
 
 package com.github.tarcv.tongs.io;
-
-import org.jf.dexlib.DexFile;
 
 import java.io.*;
 import java.util.function.Function;
@@ -36,20 +34,5 @@ public class Files {
         } finally {
             closeQuietly(resourceAsStream);
         }
-    }
-
-    @Nonnull
-    public static Function<File, DexFile> convertFileToDexFile() {
-        return new Function<File, DexFile>() {
-            @Nullable
-            @Override
-            public DexFile apply(File f) {
-                try {
-                    return new DexFile(f);
-                } catch (IOException e) {
-                    return null;
-                }
-            }
-        };
     }
 }

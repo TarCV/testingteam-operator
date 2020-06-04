@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2019 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,13 +13,15 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.model.Pool;
-import com.github.tarcv.tongs.model.TestCaseEvent;
-
+import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -33,7 +35,8 @@ public class SummaryGeneratorHook extends Thread {
     private final Summarizer summarizer;
 
     private Collection<Pool> pools;
-    private Collection<TestCaseEvent> testCases;
+    private Map<Pool, Collection<TestCaseEvent>> testCases;
+    private List<TestCaseRunResult> results;
 
     public SummaryGeneratorHook(Summarizer summarizer) {
         this.summarizer = summarizer;
@@ -42,13 +45,14 @@ public class SummaryGeneratorHook extends Thread {
     /**
      * Sets the pools and test classes for which a summary will be created either at normal execution or as a
      * shutdown hook.
-     *
      * @param pools the pools to consider for the summary
      * @param testCases the test cases for the summary
+     * @param results the test cases results for the summary
      */
-    public void registerHook(Collection<Pool> pools, Collection<TestCaseEvent> testCases) {
+    public void registerHook(Collection<Pool> pools, Map<Pool, Collection<TestCaseEvent>> testCases, List<TestCaseRunResult> results) {
         this.pools = pools;
         this.testCases = testCases;
+        this.results = results;
         Runtime.getRuntime().addShutdownHook(this);
     }
 
@@ -58,13 +62,13 @@ public class SummaryGeneratorHook extends Thread {
 
     /**
      * This only gets executed once, but needs to check the flag in case it finished normally and then shutdown.
-     * It can only be called after {@link SummaryGeneratorHook#registerHook(Collection, Collection)}.
+     * It can only be called after {@link SummaryGeneratorHook#registerHook(Collection, Map, List)}.
      *
      * @return <code>true</code> - if tests have passed
      */
     public boolean defineOutcome() {
         if (hasNotRunYet.compareAndSet(true, false)) {
-            return summarizer.summarize(pools, testCases);
+            return summarizer.summarize(pools, testCases, results);
         }
         return false;
     }
