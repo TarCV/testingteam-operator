@@ -61,8 +61,22 @@ class TongsRunner(private val poolLoader: PoolLoader,
                                     TestCaseRuleContext(configuration, pool)
                                 }
                         val testCases = createTestSuiteLoaderForPool(pool)
+                                .also {
+                                    if (it.isEmpty()) {
+                                        throw NoTestCasesFoundException("No tests cases were found")
+                                    }
+                                }
                                 .map { testCaseEvent: TestCaseEvent ->
                                     testCaseRules.fold(testCaseEvent) { acc, rule -> rule.transform(acc) }
+                                }
+                                .filter { testCaseEvent: TestCaseEvent ->
+                                    testCaseRules.all { rule -> rule.filter(testCaseEvent) }
+                                }
+                                .also {
+                                    if (it.isEmpty()) {
+                                        throw NoTestCasesFoundException(
+                                                "All tests cases were filtered out by test case rules")
+                                    }
                                 }
 
                         pool.devices.forEach { device ->
@@ -125,7 +139,7 @@ class TongsRunner(private val poolLoader: PoolLoader,
             logger.error("Error when trying to find test classes", e)
             false
         } catch (e: Exception) {
-            logger.error("Error while Tongs was executing", e)
+            logger.error("Error while executing a test run", e)
             false
         } finally {
             poolExecutor?.shutdown()

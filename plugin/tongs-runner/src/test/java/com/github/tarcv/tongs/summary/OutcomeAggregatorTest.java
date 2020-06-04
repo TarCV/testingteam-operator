@@ -19,14 +19,13 @@ import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import org.junit.Test;
 
 import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
-import static com.github.tarcv.tongs.api.result.TestCaseRunResult.NO_TRACE;
-import static com.github.tarcv.tongs.api.result.TestCaseRunResult.aTestResult;
+import static com.github.tarcv.tongs.api.run.TestCaseRunResultExtKt.aTestResult;
+import static com.github.tarcv.tongs.api.run.TestCaseRunResultExtKt.anErrorTrace;
 import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
 import static com.github.tarcv.tongs.api.run.ResultStatus.*;
 import static com.github.tarcv.tongs.summary.Summary.Builder.aSummary;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -36,11 +35,11 @@ public class OutcomeAggregatorTest {
     @Test
     public void returnsFalseIfThereAreFatalCrashedTests() {
         Summary summary = aSummary()
-                .addFatalCrashedTest(aTestResult("com.example.FatalCrashedTest", "testMethod", ERROR, NO_TRACE))
+                .addFatalCrashedTest(aTestResult("FatalCrashedTest", "testMethod", ERROR, anErrorTrace()))
                 .addPoolSummary(aPoolSummary()
                         .withPoolName("pool")
-                        .addTestResults(singleton(TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", ResultStatus.ERROR,
-                                singletonList(new StackTrace("error", "", "error")))))
+                        .addTestResults(singleton(aTestResult("SuccessfulTest", "testMethod", ResultStatus.ERROR,
+                                anErrorTrace())))
                         .build())
                 .build();
 
@@ -52,12 +51,12 @@ public class OutcomeAggregatorTest {
     @Test
     public void returnsTrueIfThereAreOnlyPassedAndIgnoredTests() {
         Summary summary = aSummary()
-                .addIgnoredTest(aTestResult("com.example.IgnoredTest", "testMethod", IGNORED, NO_TRACE))
+                .addIgnoredTest(aTestResult("IgnoredTest", "testMethod", IGNORED, emptyList()))
                 .addPoolSummary(aPoolSummary()
                         .withPoolName("pool")
                         .addTestResults(asList(
-                                TestCaseRunResult.Companion.aTestResult("com.example.SuccessfulTest", "testMethod", PASS, NO_TRACE),
-                                TestCaseRunResult.Companion.aTestResult("com.example.IgnoredTest", "testMethod", IGNORED, NO_TRACE)
+                                aTestResult("SuccessfulTest", "testMethod", PASS, emptyList()),
+                                aTestResult("IgnoredTest", "testMethod", IGNORED, emptyList())
                         ))
                         .build())
                 .build();

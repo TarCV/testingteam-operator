@@ -20,6 +20,7 @@ import com.github.tarcv.tongs.api.run.*
 import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.result.StandardFileTypes.*
 import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
+import com.github.tarcv.tongs.api.testcases.aTestCase
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -116,7 +117,7 @@ class TemplateTest {
     private fun aTestCaseRunResult(datas: List<TestReportData>): TestCaseRunResult {
         return TestCaseRunResult(
                 pool, TEST_DEVICE,
-                TestCase(TEST_TYPE_TAG, "method", "Class"),
+                aTestCase( "Class", "method"),
                 ResultStatus.FAIL, listOf(StackTrace("", "stackTrace", "stackTrace\n\ttrace")),
                 Instant.now(), Instant.now().plusMillis(10),
                 Instant.now(), Instant.now().plusMillis(10),

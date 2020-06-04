@@ -12,6 +12,8 @@
 package com.github.tarcv.tongs
 
 class TongsConfigurationGradleExtension extends TongsConfigurationExtension {
+    public String tongsIntegrationTestRunType;
+
     /**
      * The strategy that will be used to calculate the grouping of devices to pools.
      */

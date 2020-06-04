@@ -202,8 +202,10 @@ class SummarizerIntegrationTest {
 
             return TestCase(
                     typeTag,
-                    jsonObject.get("testMethod").asString,
+                    jsonObject.get("testPackage").asString,
                     jsonObject.get("testClass").asString,
+                    jsonObject.get("testMethod").asString,
+                    context.deserialize(jsonObject.get("readablePath"), List::class.java),
                     context.deserialize(jsonObject.get("properties"), Map::class.java),
                     context.deserialize(jsonObject.get("annotations"), List::class.java),
                     Any()

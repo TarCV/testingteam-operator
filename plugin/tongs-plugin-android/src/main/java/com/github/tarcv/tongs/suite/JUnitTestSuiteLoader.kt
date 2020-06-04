@@ -18,20 +18,21 @@ import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.Utils.namedExecutor
 import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
 import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.api.testcases.AnnotationInfo
 import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.result.TestCaseRunResult
 import com.github.tarcv.tongs.runner.*
 import com.github.tarcv.tongs.runner.AndroidCollectingTestCaseRunRule
-import com.github.tarcv.tongs.api.result.TestCaseRunResult.Companion.NO_TRACE
 import com.github.tarcv.tongs.api.run.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.testcases.NoTestCasesFoundException
+import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.testcases.TestSuiteLoader
 import com.github.tarcv.tongs.api.testcases.TestSuiteLoaderContext
+import com.github.tarcv.tongs.util.guessPackage
 import com.google.gson.*
 import org.slf4j.LoggerFactory
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -42,6 +43,7 @@ import java.util.function.Function
 import java.util.function.Supplier
 import java.util.stream.Collector
 import java.util.stream.Collectors
+import kotlin.collections.HashMap
 
 public class JUnitTestSuiteLoader(
         private val context: TestSuiteLoaderContext,
@@ -53,16 +55,13 @@ public class JUnitTestSuiteLoader(
     override fun loadTestSuite(): Collection<TestCaseEvent> {
         val result = ArrayList(askDevicesForTests())
         logger.debug("Found tests: $result")
-        if (result.isEmpty()) {
-            throw NoTestCasesFoundException("No tests cases were found")
-        }
 
         return result
     }
 
     private fun askDevicesForTests(): Collection<TestCaseEvent> {
         try {
-            val testInfoMessages = Collections.synchronizedList(ArrayList<Map.Entry<TestIdentifier, JsonObject>>())
+            val testInfos = Collections.synchronizedMap(HashMap<TestIdentifier, TestInfo>())
             val numberOfPools = 1
             val poolCountDownLatch = CountDownLatch(numberOfPools)
             val poolTests = Collections.synchronizedList(ArrayList<Pair<Device, Set<TestIdentifier>>>())
@@ -95,14 +94,27 @@ public class JUnitTestSuiteLoader(
                                     collectingRule.before()
                                     collectingTestRun.execute()
                                 } finally {
-                                    val stubResult = TestCaseRunResult.Companion.aTestResult(
-                                            "", "", ResultStatus.PASS,
-                                            NO_TRACE)
+                                    val stubCase = TestCase(
+                                            ApkTestCase::class.java,
+                                            "dummy", "dummy.Dummy", "dummy",
+                                            listOf("dummy"))
+                                    val stubResult = TestCaseRunResult(
+                                            context.pool, device,
+                                            stubCase,
+                                            ResultStatus.PASS,
+                                            emptyList(),
+                                            startTimestampUtc = Instant.now(),
+                                            netStartTimestampUtc = Instant.now(),
+                                            netEndTimestampUtc = null,
+                                            baseTotalFailureCount = 0,
+                                            additionalProperties = emptyMap(),
+                                            data = emptyList()
+                                    )
                                     collectingRule.after(TestCaseRunRuleAfterArguments(stubResult))
                                 }
 
                                 collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)
-                                testInfoMessages.addAll(testCollector.infos)
+                                testInfos.putAll(testCollector.infos)
                             } finally {
                                 logger.info("Device {} from pool {} finished", device.serial, context.pool.name)
                                 deviceCountDownLatch.countDown()
@@ -133,18 +145,12 @@ public class JUnitTestSuiteLoader(
                 allTestsSet = allTestsFromPoolTests(poolTests)
                 events = calculateDeviceIncludes(poolTests)
             }
-            val infos = calculateAnnotatedInfo(allTestsSet, testInfoMessages)
-            return joinTestInfo(allTestsSet, events, infos)
+            return joinTestInfo(allTestsSet, events, testInfos)
         } catch (e: InterruptedException) {
             // TODO: replace with concrete exception
             throw RuntimeException("Reading suites were interrupted")
         }
     }
-
-    private class ExtraInfo(
-            val properties: Map<String, String>,
-            val info: List<AnnotationInfo>
-    )
 
     internal class TestInfoCatCollector : Collector<LogCatMessage, ArrayList<TestInfoCatCollector.MessageTriple>, List<JsonObject>> {
         override fun supplier(): Supplier<ArrayList<MessageTriple>> {
@@ -225,18 +231,22 @@ public class JUnitTestSuiteLoader(
         private fun joinTestInfo(
                 allTestsSet: Set<TestIdentifier>,
                 includes: Map<TestIdentifier, Collection<Device>>,
-                infos: Map<TestIdentifier, ExtraInfo>
+                infos: Map<TestIdentifier, TestInfo>
         ): Collection<TestCaseEvent> {
             return allTestsSet.map {
                 val includedDevices = includes[it] ?: emptyList()
-                val info = infos[it] ?: ExtraInfo(emptyMap(), emptyList())
-                TestCaseEvent.newTestCase(
-                        ApkTestCase::class.java,
-                        it.testName,
-                        it.className,
-                        info.properties,
-                        info.info,
-                        Any(),
+                val info = infos[it] ?: TestInfo(it, guessPackage(it.className), emptyList(), emptyList())
+                TestCaseEvent(
+                        TestCase(
+                            ApkTestCase::class.java,
+                            info.`package`,
+                            it.className,
+                            it.testName,
+                            info.readablePath,
+                            emptyMap(),
+                            info.annotations,
+                            Any()
+                        ),
                         includedDevices,
                         emptyList()
                 )
@@ -247,70 +257,6 @@ public class JUnitTestSuiteLoader(
             val output = ArrayList<String>(array.size())
             array.forEach { jsonElement -> output.add(jsonElement.asString) }
             return output
-        }
-
-        private fun calculateAnnotatedInfo(tests: Set<TestIdentifier>, testInfos: MutableList<Map.Entry<TestIdentifier, JsonObject>>): Map<TestIdentifier, ExtraInfo> {
-            val testInfoMap = testInfos.associateBy { it.key }
-            return tests
-                    .map { testIdentifier ->
-                        val info = testInfoMap[testIdentifier]
-                        if (info != null) {
-                            val properties = HashMap<String, String>()
-
-                            val annotations = info.value.get("annotations")
-                            val annotationInfos = if (annotations != null) {
-                                val classNameKey = "annotationType"
-
-                                annotations.asJsonArray.map { annotationElement ->
-                                    val annotation = annotationElement.asJsonObject
-                                    val annotationType = annotation.get(classNameKey).asString
-                                    val properties = (convertToJava(annotation) as Map<String, Any?>)
-                                            .filter { it.key != classNameKey }
-                                    AnnotationInfo(
-                                            annotationType,
-                                            properties
-                                    )
-                                }
-                            } else {
-                                emptyList<AnnotationInfo>()
-                            }
-                            testIdentifier to ExtraInfo(properties, annotationInfos)
-                        } else {
-                            testIdentifier to ExtraInfo(emptyMap(), emptyList())
-                        }
-                    }
-                    .toMap()
-        }
-
-        private fun convertToJava(value: JsonElement?): Any? {
-            return when {
-                value == null || value.isJsonNull -> {
-                    null
-                }
-                value.isJsonArray -> {
-                    value.asJsonArray
-                            .map { convertToJava(it) }
-                            .toList()
-                }
-                value.isJsonObject -> {
-                    value.asJsonObject
-                            .entrySet()
-                            .associateBy({ it.key }, { convertToJava(it.value) })
-                }
-                value.isJsonPrimitive -> {
-                    val primitive = value.asJsonPrimitive
-                    return if (primitive.isNumber) {
-                        primitive.asNumber
-                    } else if (primitive.isString) {
-                        primitive.asString
-                    } else {
-                        throw IllegalStateException("Got unknown type of JSON Element: ${value}")
-                    }
-                }
-                else -> {
-                    throw IllegalStateException("Got unknown type of JSON Element: ${value}")
-                }
-            }
         }
 
         fun allTestsFromPoolTests(poolTests: List<Pair<Device, Set<TestIdentifier>>>): HashSet<TestIdentifier> {

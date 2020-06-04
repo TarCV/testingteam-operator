@@ -20,8 +20,6 @@ import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.api.result.*
 import com.github.tarcv.tongs.runner.*
 import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData.Type
-import com.github.tarcv.tongs.api.result.TestCaseRunResult.Companion.NO_TRACE
-import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
@@ -39,8 +37,8 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
 
     override fun getResult(): TestCaseRunResult {
         return TestCaseRunResult(
-                pool, device, TestCase(TEST_TYPE_TAG, "dummy", "dummy"),
-                ResultStatus.PASS, NO_TRACE,
+                pool, device, TestCase(TEST_TYPE_TAG, "dummy", "dummy.Dummy", "dummy", listOf("dummy")),
+                ResultStatus.PASS, emptyList(),
                 Instant.now(), Instant.now(), Instant.now(), Instant.now(),
                 0,
                 emptyMap(), null, emptyList()

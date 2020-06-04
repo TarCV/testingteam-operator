@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@ package com.github.tarcv.tongs.runner;
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.model.TestCaseEventQueue;
-
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.newTestCase;
 
 public class TestRetryerImpl implements TestRetryer {
     private final ProgressReporter progressReporter;

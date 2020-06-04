@@ -10,26 +10,25 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.utils.toSystemLineSeparator
-import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.runner.listeners.ResultListener
 import com.github.tarcv.tongs.api.run.ResultStatus
-import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
-import com.github.tarcv.tongs.api.run.newTestCase
+import com.github.tarcv.tongs.api.run.aTestCaseEvent
+import com.github.tarcv.tongs.api.testcases.aTestCase
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class TongsInstrumentationResultParserTest {
-    private val testClassName = "com.github.tarcv.test.ResultTest"
+    private val testShortClassName = "ResultTest"
     private val testMethodName = "failureFromEspresso[failAfter = true]"
+    private val testCase = TestCaseEvent.aTestCaseEvent(aTestCase(testShortClassName, testMethodName))
 
     private val latch = PreregisteringLatch()
-    private val testCase = TestCaseEvent.newTestCase(TestCase(TEST_TYPE_TAG, testMethodName, testClassName))
     private val listener = ResultListener(testCase, latch)
     private val parser = TongsInstrumentationResultParser("unitTest", listOf(listener))
 
     private val afterMethodException = """java.lang.RuntimeException: Exception from afterMethod
-    at $testClassName.afterMethod(ResultTest.java:30)
+    at ${testCase.testClass}.afterMethod($testShortClassName.java:30)
     at java.lang.reflect.Method.invoke(Native Method)"""
 
     private val testException = """android.support.test.espresso.NoMatchingViewException: No views in hierarchy found matching: with res-name that is "non_existing_id"
@@ -39,27 +38,27 @@ class TongsInstrumentationResultParserTest {
     at android.support.test.espresso.base.DefaultFailureHandler.handle(DefaultFailureHandler.java:51)
     at android.support.test.espresso.ViewInteraction.waitForAndHandleInteractionResults(ViewInteraction.java:312)
     at android.support.test.espresso.ViewInteraction.check(ViewInteraction.java:297)
-    at $testClassName.failureFromEspresso(ResultTest.java:42)
+    at ${testCase.testClass}.failureFromEspresso($testShortClassName.java:42)
     at java.lang.reflect.Method.invoke(Native Method)"""
 
     @Test
     fun resultListenerReceivesCorrectShellResult() {
         val stdLines = """INSTRUMENTATION_STATUS: numtests=1
 INSTRUMENTATION_STATUS: stream=
-$testClassName:
+${testCase.testClass}:
 INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
 INSTRUMENTATION_STATUS: test=$testMethodName
-INSTRUMENTATION_STATUS: class=$testClassName
+INSTRUMENTATION_STATUS: class=${testCase.testClass}
 INSTRUMENTATION_STATUS: current=1
 INSTRUMENTATION_STATUS_CODE: 1
 INSTRUMENTATION_STATUS: numtests=1
 INSTRUMENTATION_STATUS: stream=
-Error in $testMethodName($testClassName):
+Error in $testMethodName(${testCase.testClass}):
 $afterMethodException
 
 INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
 INSTRUMENTATION_STATUS: test=$testMethodName
-INSTRUMENTATION_STATUS: class=$testClassName
+INSTRUMENTATION_STATUS: class=${testCase.testClass}
 INSTRUMENTATION_STATUS: stack=$afterMethodException
 
 INSTRUMENTATION_STATUS: current=1
@@ -68,9 +67,9 @@ INSTRUMENTATION_RESULT: stream=
 
 Time: 5.235
 There were 2 failures:
-1) $testMethodName($testClassName)
+1) $testMethodName(${testCase.testClass})
 $testException
-2) $testMethodName($testClassName)
+2) $testMethodName(${testCase.testClass})
 $afterMethodException
 
 FAILURES!!!
@@ -85,16 +84,16 @@ INSTRUMENTATION_CODE: -1
         parser.done()
 
         val expectedOutput = """
-$testClassName:
-Error in $testMethodName($testClassName):
+${testCase.testClass}:
+Error in $testMethodName(${testCase.testClass}):
 $afterMethodException
 
 
 Time: 5.235
 There were 2 failures:
-1) $testMethodName($testClassName)
+1) $testMethodName(${testCase.testClass})
 $testException
-2) $testMethodName($testClassName)
+2) $testMethodName(${testCase.testClass})
 $afterMethodException
 
 FAILURES!!!

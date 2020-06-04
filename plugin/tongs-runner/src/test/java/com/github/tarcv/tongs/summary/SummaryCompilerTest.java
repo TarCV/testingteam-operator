@@ -15,7 +15,6 @@ import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.run.ResultStatus;
-import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.api.result.StackTrace;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
@@ -28,15 +27,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
-import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.newTestCase;
-import static com.github.tarcv.tongs.api.result.TestCaseRunResult.NO_TRACE;
+import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestEvent;
+import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestCaseEvent;
+import static com.github.tarcv.tongs.api.run.TestCaseRunResultExtKt.aTestResult;
+import static com.github.tarcv.tongs.api.testcases.TestCaseExtKt.aTestCase;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -59,42 +60,38 @@ public class SummaryCompilerTest {
             devicePool
     );
 
-    private final TestCaseRunResult firstCompletedTest = TestCaseRunResult.Companion.aTestResult(
-            devicePool, Device.TEST_DEVICE,
-            "com.example.CompletedClassTest",
-            "doesJobProperly",
+    private final TestCaseRunResult firstCompletedTest = aTestResult(
+            aTestCase("CompletedClassTest", "doesJobProperly"),
             ResultStatus.PASS,
-            NO_TRACE
+            emptyList(),
+            devicePool
     );
-    private final TestCaseRunResult secondCompletedTest = TestCaseRunResult.Companion.aTestResult(
-            devicePool, Device.TEST_DEVICE,
-            "com.example.CompletedClassTest2",
-            "doesJobProperly",
+    private final TestCaseRunResult secondCompletedTest = aTestResult(
+            aTestCase("CompletedClassTest2","doesJobProperly"),
             ResultStatus.PASS,
-            NO_TRACE
+            emptyList(),
+            devicePool
     );
 
     private final List<TestCaseRunResult> testResults = newArrayList(
             firstCompletedTest,
             secondCompletedTest,
-            TestCaseRunResult.Companion.aTestResult(devicePool,
-                    Device.TEST_DEVICE,
-                    "com.example.FailedClassTest",
-                    "doesJobProperly",
+            aTestResult(aTestCase("FailedClassTest", "doesJobProperly"),
                     ResultStatus.FAIL,
                     singletonList(new StackTrace("", "a failure stacktrace", "a failure stacktrace")),
-                    9),
-            TestCaseRunResult.Companion.aTestResult(devicePool, Device.TEST_DEVICE, "com.example.IgnoredClassTest", "doesJobProperly", ResultStatus.IGNORED, NO_TRACE)
+                    devicePool, 9),
+            aTestResult(aTestCase("IgnoredClassTest", "doesJobProperly"), ResultStatus.IGNORED, emptyList(),
+                    devicePool)
     );
 
     private final Map<Pool, Collection<TestCaseEvent>> testCaseEvents = ImmutableMap.<Pool, Collection<TestCaseEvent>>builder()
             .put(devicePool, newArrayList(
-                newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.CompletedClassTest")),
-                newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.CompletedClassTest2")),
-                TestCaseEvent.newTestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.FailedClassTest",
-                        emptyMap(), emptyList(), new Object(),emptyList(), emptyList(), 10),
-                newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.IgnoredClassTest")),
-                newTestCase(new TestCase(TEST_TYPE_TAG, "doesJobProperly", "com.example.SkippedClassTest"))
+                aTestCaseEvent(aTestCase( "CompletedClassTest", "doesJobProperly")),
+                aTestCaseEvent(aTestCase( "CompletedClassTest2", "doesJobProperly")),
+                aTestEvent(aTestCase("FailedClassTest", "doesJobProperly"),
+                        emptyList(), 10),
+                aTestCaseEvent(aTestCase("IgnoredClassTest", "doesJobProperly")),
+                aTestCaseEvent(aTestCase("SkippedClassTest", "doesJobProperly"))
             )).build();
 
     @Before

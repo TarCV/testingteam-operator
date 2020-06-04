@@ -27,6 +27,12 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
         val totalFailureCount: Int = 0,
         private val deviceRunners: MutableMap<Device, MutableList<TestCaseRunner>> = HashMap()
 ) {
+    constructor(
+            testCase: TestCase,
+            includedDevices: Collection<Device>,
+            excludedDevices: Collection<Device>,
+            totalFailureCount: Int = 0
+    ) : this(testCase, includedDevices, excludedDevices, totalFailureCount, HashMap())
 
     val testMethod: String
         get() = testCase.testMethod
@@ -49,7 +55,7 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
     }
 
     override fun hashCode(): Int {
-        return Objects.hashCode(this.testMethod, this.testClass)
+        return Objects.hashCode(this.testCase)
     }
 
     override fun equals(obj: Any?): Boolean {
@@ -60,7 +66,7 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
             return false
         }
         val other = obj as TestCaseEvent?
-        return Objects.equal(this.testMethod, other!!.testMethod) && Objects.equal(this.testClass, other.testClass)
+        return Objects.equal(this.testCase, other!!.testCase)
     }
 
     override fun toString(): String {
@@ -81,25 +87,6 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
     companion object {
         @JvmField
         val TEST_TYPE_TAG = TestTypeTag::class.java
-
-        // TODO: Refactor to usual constructors
-
-        @JvmStatic
-        @JvmOverloads
-        fun newTestCase(
-                typeTag: Class<*>,
-                testMethod: String,
-                testClass: String,
-                properties: Map<String, String>,
-                annotations: List<AnnotationInfo>,
-                extra: Any,
-                includedDevices: Collection<Device>,
-                excludedDevices: Collection<Device>,
-                totalFailureCount: Int = 0
-        ): TestCaseEvent {
-            val testCase = TestCase(typeTag, testMethod, testClass, properties, annotations, extra)
-            return TestCaseEvent(testCase, includedDevices, excludedDevices, totalFailureCount)
-        }
     }
 }
 

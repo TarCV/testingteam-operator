@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -32,25 +32,36 @@ public class AnnontationReadingFilter extends Filter {
 
     @Override
     public boolean shouldRun(Description description) {
-        if (!description.isTest()) {
-            return true;
-        }
-
         JSONObject info = new JSONObject();
         JSONArray annotationsInfo = new JSONArray();
 
         try {
-            info.put("testClass", description.getClassName());
-            info.put("testMethod", description.getMethodName());
+            final ArrayList<Description> children = description.getChildren();
+            final ArrayList<String> childrenIds = new ArrayList<>(children.size());
+            for (Description child : children) {
+                childrenIds.add(String.format("%d-%d-%s",
+                        System.identityHashCode(child), child.hashCode(), child.getDisplayName()));
+            }
+            info.put("sId1", System.identityHashCode(description));
+            info.put("sId2", description.hashCode());
+            info.put("sName", description.getDisplayName());
+            info.put("sChildren", JSONObject.wrap(childrenIds));
 
-            // Method annotations override class ones, so they should be added last
-            Class<?> testClass = description.getTestClass();
-            appendSuperclassAnnotationsRoot(testClass, annotationsInfo);
-            appendAnnotationInfos(Arrays.asList(testClass.getDeclaredAnnotations()),
-                    annotationsInfo);
-            appendAnnotationInfos(description.getAnnotations(), annotationsInfo);
+            if (description.isTest()) {
+                Class<?> testClass = description.getTestClass();
 
-            info.put("annotations", annotationsInfo);
+                info.put("testPackage", testClass.getPackage().getName());
+                info.put("testClass", description.getClassName());
+                info.put("testMethod", description.getMethodName());
+
+                // Method annotations override class ones, so they should be added last
+                appendSuperclassAnnotationsRoot(testClass, annotationsInfo);
+                appendAnnotationInfos(Arrays.asList(testClass.getDeclaredAnnotations()),
+                        annotationsInfo);
+                appendAnnotationInfos(description.getAnnotations(), annotationsInfo);
+
+                info.put("annotations", annotationsInfo);
+            }
 
             String message = info.toString() + ",";
             int messageLength = message.length();

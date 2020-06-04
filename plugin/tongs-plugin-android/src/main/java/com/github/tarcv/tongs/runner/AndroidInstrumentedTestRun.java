@@ -21,6 +21,7 @@ import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
+import com.github.tarcv.tongs.suite.ApkTestCase;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
@@ -91,7 +93,7 @@ public class AndroidInstrumentedTestRun {
 		} else {
 			testClassName = "Test case collection";
 			testMethodName = "";
-			testCase = new TestCase(TEST_TYPE_TAG, testMethodName, testClassName);
+			testCase = new TestCase(ApkTestCase.class, "dummy", "dummy.Dummy", "dummy", Collections.singletonList("dummy"));
 
 			runner.addBooleanArg("log", true);
 			addFilterAndCustomArgs(runner, COLLECTING_RUN_FILTER);

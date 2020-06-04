@@ -13,7 +13,6 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.device.clearLogcat
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
@@ -23,6 +22,8 @@ import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
 import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader.Companion.logcatWaiterSleep
 import com.github.tarcv.tongs.suite.TestCollectingListener
 import com.google.gson.JsonObject
+import org.slf4j.LoggerFactory
+import java.lang.Exception
 import java.lang.Thread.sleep
 import java.util.concurrent.CountDownLatch
 
@@ -32,6 +33,7 @@ internal class AndroidCollectingTestCaseRunRule(
         private val latch: CountDownLatch
 ): TestCaseRunRule {
     var logCatCollector: LogcatReceiver = LogcatReceiver(device)
+    val jsonInfoDecoder = JsonInfoDecorder()
 
     override fun before() {
         clearLogcat(device.deviceInterface)
@@ -42,19 +44,33 @@ internal class AndroidCollectingTestCaseRunRule(
         try {
             sleep(logcatWaiterSleep) // make sure all logcat messages are read
         } finally {
-            logCatCollector.stop()
+            try {
+                logCatCollector.stop()
 
-            val infoMessages = extractTestInfoMessages(logCatCollector.messages)
-                    .reversed() // make sure the first entry for duplicate keys is used
-                    .associateBy {
-                        val testClass = it.get("testClass").asString
-                        val testMethod = it.get("testMethod").asString
-                        TestIdentifier(testClass, testMethod)
-                    }
-                    .map { it }
-            testCollectingListener.publishTestInfo(infoMessages)
-            latch.countDown()
+                tryCollectingAndDecodingInfos()
+            } finally {
+                latch.countDown()
+            }
         }
+    }
+
+    private fun tryCollectingAndDecodingInfos() {
+        try {
+            val rawMessages = extractTestInfoMessages(logCatCollector.messages)
+
+            val items = jsonInfoDecoder.decodeStructure(rawMessages)
+
+            val testToInfoMap = items
+                    .asReversed() // make sure the first entry for duplicate keys is used
+                    .associateBy { it.identifier }
+            testCollectingListener.publishTestInfo(testToInfoMap)
+        } catch (e: Exception) {
+            logger.warn("Failed to collect annotation and structure information about tests", e)
+        }
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(AndroidCollectingTestCaseRunRule::class.java)
     }
 }
 

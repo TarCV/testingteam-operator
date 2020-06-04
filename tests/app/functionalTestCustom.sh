@@ -9,9 +9,14 @@ function cleanReportsAndLogs() {
 
 cd "$(dirname "$0")"
 
-export GRADLE_OPTS="-Dorg.gradle.console=plain -Dorg.gradle.jvmargs=-ea"
+export GRADLE_OPTS="-Dorg.gradle.console=plain"
+# Make sure new build of the plugin is loaded and new options are loaded
+./gradlew --stop
+# -ea is not supported by AGP for assembleAndroidTest
+./gradlew assemble assembleAndroidTest
 
-# Make sure new build of the plugin is loaded
+export GRADLE_OPTS="-Dorg.gradle.console=plain -Dorg.gradle.jvmargs=-ea"
+# Make sure new options are enabled
 ./gradlew --stop
 
 # Wait for the output directory to be unlocked after the previous run
