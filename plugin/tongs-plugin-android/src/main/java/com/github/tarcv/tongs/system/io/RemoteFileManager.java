@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -31,9 +31,8 @@ import java.io.IOException;
 public class RemoteFileManager {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteFileManager.class);
-    private static final String TONGS_DIRECTORY = "/sdcard/tongs";
+    private static final String TONGS_DIRECTORY = "/sdcard/tongs"; // TODO: use $EXTERNAL_STORAGE instead of /sdcard
     private static final NullOutputReceiver NO_OP_RECEIVER = new NullOutputReceiver();
-    private static final String COVERAGE_DIRECTORY = TONGS_DIRECTORY + "/coverage";
 
     private RemoteFileManager() {}
 
@@ -41,13 +40,8 @@ public class RemoteFileManager {
         executeCommand(device, "rm " + remotePath, "Could not delete remote file(s): " + remotePath);
     }
 
-    public static void createCoverageDirectory(IDevice device) {
-        executeCommand(device, "mkdir " + COVERAGE_DIRECTORY,
-                       "Could not create remote directory: " + COVERAGE_DIRECTORY);
-    }
-
     public static String getCoverageFileName(TestCase testIdentifier) {
-        return COVERAGE_DIRECTORY + "/" +testIdentifier.toString() + ".ec";
+        return remoteFileForTest("/coverage.ec");
     }
 
     public static void createRemoteDirectory(IDevice device) {
@@ -67,18 +61,11 @@ public class RemoteFileManager {
     }
 
     public static String remoteVideoForTest(TestIdentifier test) {
-        return DdmsUtils.escapeArgumentForCommandLine(remoteFileForTest(videoFileName(test)));
+        return DdmsUtils.escapeArgumentForCommandLine(remoteFileForTest("scrnrec.mp4"));
     }
 
     private static String remoteFileForTest(String filename) {
         return TONGS_DIRECTORY + "/" + filename;
     }
 
-    private static String videoFileName(TestIdentifier test) {
-        final String className = test.getClassName();
-        if (className.contains("-")) {
-            throw new IllegalArgumentException("Test class names must not contain '-' character");
-        }
-        return String.format("%s-%s.mp4", className, test.getTestName());
-    }
 }

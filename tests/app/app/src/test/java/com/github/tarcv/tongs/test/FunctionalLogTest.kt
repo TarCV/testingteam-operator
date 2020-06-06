@@ -11,6 +11,7 @@
 package com.github.tarcv.tongs.test
 
 import com.github.tarcv.test.BuildConfig.FLAVOR
+import com.github.tarcv.tongs.test.util.isRunStubbed
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.nio.charset.StandardCharsets
@@ -126,7 +127,7 @@ class FunctionalLogTest {
     }
 
     private fun getTestLineGroups(whichDevice: Int): Map<String, List<String>> {
-        assumeTrue(System.getenv("CI_STUBBED") == "true")
+        assumeTrue(isRunStubbed)
 
         val lineRegex = Regex("""^\d+\s+(.+)$""")
         val testNameRegex = Regex(""".*-e tongs_filterClass (\S+)\s.*-e tongs_filterMethod (\S+).*""")
