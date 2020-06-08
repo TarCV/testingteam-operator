@@ -14,6 +14,7 @@ import com.github.tarcv.test.BuildConfig.FLAVOR
 import com.github.tarcv.test.Config.PACKAGE
 import com.github.tarcv.tongs.test.util.ResultsSupplier
 import com.github.tarcv.tongs.test.util.TestResult
+import com.github.tarcv.tongs.test.util.isRunStubbed
 import org.apache.commons.exec.CommandLine
 import org.apache.commons.exec.DefaultExecutor
 import org.apache.commons.exec.PumpStreamHandler
@@ -118,8 +119,7 @@ class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier)
     @Test
     fun testVideoRecorderIsCalledWithGoodFilename() {
         Assume.assumeTrue("Executing on a *NIX system", File(shellBinary).exists())
-        Assume.assumeTrue("Running tests with stubbed ADB",
-                System.getenv("CI_STUBBED")?.toBoolean() ?: false)
+        Assume.assumeTrue("Running tests with stubbed ADB", isRunStubbed)
 
         readAdbLogLines { lines ->
             lines.filter { it.contains("[START SCREEN RECORDER] ") }
@@ -140,8 +140,7 @@ class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier)
     @Test
     fun testSuiteIsExecutedForLogWithGoodArgument() {
         Assume.assumeTrue("Executing on a *NIX system", File(shellBinary).exists())
-        Assume.assumeTrue("Running tests with stubbed ADB",
-                System.getenv("CI_STUBBED")?.toBoolean() ?: false)
+        Assume.assumeTrue("Running tests with stubbed ADB", isRunStubbed)
 
         readAdbLogLines { lines ->
             lines.filter { it.contains("[START SCREEN RECORDER] ") }
@@ -162,8 +161,7 @@ class FunctionalSummaryTest(name: String, private val supplier: ResultsSupplier)
     @Test
     fun testCasesAreExecutedWithGoodArgument() {
         Assume.assumeTrue("Executing on a *NIX system", File(shellBinary).exists())
-        Assume.assumeTrue("Running tests with stubbed ADB",
-                System.getenv("CI_STUBBED")?.toBoolean() ?: false)
+        Assume.assumeTrue("Running tests with stubbed ADB", isRunStubbed)
 
         readAdbLogLines { lines ->
             lines.filter { it.contains("[START SCREEN RECORDER] ") }

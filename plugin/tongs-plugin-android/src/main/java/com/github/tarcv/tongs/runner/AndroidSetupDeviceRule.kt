@@ -45,7 +45,6 @@ class AndroidSetupDeviceRule(private val deviceInterface: IDevice, private val i
         // For when previous run crashed/disconnected and left files behind
         RemoteFileManager.removeRemoteDirectory(deviceInterface)
         RemoteFileManager.createRemoteDirectory(deviceInterface)
-        RemoteFileManager.createCoverageDirectory(deviceInterface)
         clearLogcat(deviceInterface)
     }
 

@@ -4,6 +4,7 @@ import com.github.tarcv.test.Config
 import com.github.tarcv.tongs.test.util.ResultsSupplier
 import com.github.tarcv.tongs.test.util.attributeNamed
 import com.github.tarcv.tongs.test.util.childrenAssertingNoText
+import com.github.tarcv.tongs.test.util.isRunStubbed
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.isEmptyString
@@ -148,10 +149,10 @@ class FunctionalXmlTest(private val xmlFile: File) {
         asserter.assertEquals("pool", "emulators", testCaseInfo.properties["pool"])
 
         val actualDeviceId = testCaseInfo.properties["deviceId"]
-        val expectedIdMatcher = if (! java.lang.Boolean.valueOf(System.getenv("CI_STUBBED"))) {
-            anyOf(`is`(System.getenv("DEVICE1")), `is`(System.getenv("DEVICE2")))
-        } else {
+        val expectedIdMatcher = if (isRunStubbed) {
             anyOf(`is`("tongs-5554"), `is`("tongs-5556"))
+        } else {
+            anyOf(`is`(System.getenv("DEVICE1")), `is`(System.getenv("DEVICE2")))
         }
         Assert.assertThat(actualDeviceId, expectedIdMatcher)
     }

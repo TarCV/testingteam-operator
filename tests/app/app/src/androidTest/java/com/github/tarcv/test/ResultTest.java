@@ -1,6 +1,8 @@
 package com.github.tarcv.test;
 
+import android.support.test.filters.SdkSuppress;
 import android.support.test.rule.ActivityTestRule;
+import com.github.tarcv.test.happy.TestHelpers;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Rule;
@@ -37,7 +39,9 @@ public class ResultTest {
     }
 
     @Test
+    @SdkSuppress(minSdkVersion = 23) // screenrecord on emulators only supported since 23
     public void failureFromEspresso() {
+        TestHelpers.basicTestSteps();
         onView(withResourceName("non_existing_id"))
                 .check(matches(isDisplayed()));
     }
