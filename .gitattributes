@@ -1,0 +1,2 @@
+# Mark as vendored as these files should still be included in diffs
+plugin/tongs-runner/src/test/resources/summarizerIntegration/expected/html/**/* linguist-vendored
