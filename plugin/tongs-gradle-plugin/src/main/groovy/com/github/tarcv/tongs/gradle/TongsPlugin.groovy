@@ -23,6 +23,7 @@ import com.github.tarcv.tongs.TongsConfigurationGradleExtension
 import com.github.tarcv.tongs.api.TongsConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskProvider
 
@@ -44,8 +45,16 @@ class TongsPlugin implements Plugin<Project> {
         }
 
         project.extensions.add "tongs", TongsConfigurationGradleExtension
-        project.dependencies {
-            androidTestImplementation "com.github.tarcv.tongs:tongs-ondevice:${BuildConfig.PLUGIN_VERSION}"
+
+        project.configurations.all {
+            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                if (details.requested.version.isEmpty() &&
+                        "com.github.tarcv.tongs:tongs-ondevice".equalsIgnoreCase("${details.requested.group}:${details.requested.name}")
+                ) {
+                    details.useVersion BuildConfig.PLUGIN_VERSION
+                    details.because "Default version provided by Tongs plugin"
+                }
+            }
         }
 
         def tongsTask = project.task(TASK_PREFIX) {
