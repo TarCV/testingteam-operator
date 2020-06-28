@@ -160,7 +160,7 @@ internal class JsonInfoDecorder {
     }
 }
 
-class TestInfo(
+data class TestInfo(
         val identifier: TestIdentifier,
         val `package`: String,
         val readablePath: List<String>,
