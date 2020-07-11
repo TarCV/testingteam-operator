@@ -1,8 +1,5 @@
-package com.github.tarcv.tongs.suite
-
 /*
  * Copyright 2020 TarCV
- * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -11,39 +8,27 @@ package com.github.tarcv.tongs.suite
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-import com.android.ddmlib.DdmPreferences
-import com.android.ddmlib.IDevice
+package com.github.tarcv.tongs.suite
+
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.github.tarcv.tongs.Utils.namedExecutor
-import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
-import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.run.TestCaseEvent
-import com.github.tarcv.tongs.api.result.TestCaseRunResult
-import com.github.tarcv.tongs.runner.*
-import com.github.tarcv.tongs.runner.AndroidCollectingTestCaseRunRule
-import com.github.tarcv.tongs.api.run.TestCaseRunRuleAfterArguments
-import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.testcases.NoTestCasesFoundException
 import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.testcases.TestSuiteLoader
 import com.github.tarcv.tongs.api.testcases.TestSuiteLoaderContext
-import com.github.tarcv.tongs.util.guessPackage
-import com.google.gson.*
+import com.github.tarcv.tongs.device.clearLogcat
+import com.github.tarcv.tongs.model.AndroidDevice
+import com.github.tarcv.tongs.runner.AndroidTestRunFactory
+import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
+import com.github.tarcv.tongs.runner.JsonInfoDecorder
+import com.github.tarcv.tongs.runner.TestInfo
+import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
-import java.time.Instant
 import java.util.*
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
-import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
-import java.util.function.Function
-import java.util.function.Supplier
-import java.util.stream.Collector
-import java.util.stream.Collectors
-import kotlin.collections.HashMap
 
 public class JUnitTestSuiteLoader(
         private val context: TestSuiteLoaderContext,
@@ -51,218 +36,178 @@ public class JUnitTestSuiteLoader(
         private val remoteAndroidTestRunnerFactory: IRemoteAndroidTestRunnerFactory) : TestSuiteLoader {
     private val logger = LoggerFactory.getLogger(JUnitTestSuiteLoader::class.java)
 
-    @Throws(NoTestCasesFoundException::class)
-    override fun loadTestSuite(): Collection<TestCaseEvent> {
-        val result = ArrayList(askDevicesForTests())
-        logger.debug("Found tests: $result")
-
-        return result
-    }
-
-    private fun askDevicesForTests(): Collection<TestCaseEvent> {
-        try {
-            val testInfos = Collections.synchronizedMap(HashMap<TestIdentifier, TestInfo>())
-            val numberOfPools = 1
-            val poolCountDownLatch = CountDownLatch(numberOfPools)
-            val poolTests = Collections.synchronizedList(ArrayList<Pair<Device, Set<TestIdentifier>>>())
-            var concurrentDeviceExecutor: ExecutorService? = null
-            val poolName = context.pool.name
-            val deviceTestCollectors = Collections.synchronizedList(ArrayList<Pair<Device, TestCollectingListener>>())
-            try {
-                val devicesInPool = context.pool.size()
-                concurrentDeviceExecutor = namedExecutor(devicesInPool, "DeviceExecutor-%d")
-                val deviceCountDownLatch = CountDownLatch(devicesInPool)
-                logger.info("Pool {} started", poolName)
-                val configuration = context.configuration
-                val installer = installer(configuration)
-                for (device in context.pool.devices) {
-                    if (device is AndroidDevice) {
-                        val testCollector = TestCollectingListener()
-                        deviceTestCollectors.add(Pair(device, testCollector))
-                        val deviceTestRunner = Runnable {
-                            val deviceInterface = device.deviceInterface
-                            try {
-                                DdmPreferences.setTimeOut(30000)
-                                installer.prepareInstallation(deviceInterface as IDevice)
-
-                                val collectionLatch = CountDownLatch(1)
-
-                                val collectingRule = AndroidCollectingTestCaseRunRule(device, testCollector, collectionLatch)
-                                val collectingTestRun = testRunFactory.createCollectingRun(
-                                        device, context.pool, testCollector, collectionLatch)
-                                try {
-                                    collectingRule.before()
-                                    collectingTestRun.execute()
-                                } finally {
-                                    val stubCase = TestCase(
-                                            ApkTestCase::class.java,
-                                            "dummy", "dummy.Dummy", "dummy",
-                                            listOf("dummy"))
-                                    val stubResult = TestCaseRunResult(
-                                            context.pool, device,
-                                            stubCase,
-                                            ResultStatus.PASS,
-                                            emptyList(),
-                                            startTimestampUtc = Instant.now(),
-                                            netStartTimestampUtc = Instant.now(),
-                                            netEndTimestampUtc = null,
-                                            baseTotalFailureCount = 0,
-                                            additionalProperties = emptyMap(),
-                                            data = emptyList()
-                                    )
-                                    collectingRule.after(TestCaseRunRuleAfterArguments(stubResult))
-                                }
-
-                                collectionLatch.await(configuration.testOutputTimeout + logcatWaiterSleep * 2, TimeUnit.MILLISECONDS)
-                                testInfos.putAll(testCollector.infos)
-                            } finally {
-                                logger.info("Device {} from pool {} finished", device.serial, context.pool.name)
-                                deviceCountDownLatch.countDown()
-                            }
-                        }
-                        concurrentDeviceExecutor!!.execute(deviceTestRunner)
-                    }
-                }
-                deviceCountDownLatch.await()
-            } catch (e: InterruptedException) {
-                logger.warn("Pool {} was interrupted while running", poolName)
-            } finally {
-                concurrentDeviceExecutor?.shutdown()
-                logger.info("Pool {} finished", poolName)
-                synchronized(deviceTestCollectors) {
-                    synchronized(poolTests) {
-                        deviceTestCollectors.forEach { (first, second) -> poolTests.add(Pair(first, second.tests)) }
-                    }
-                }
-                poolCountDownLatch.countDown()
-                logger.info("Pools remaining: {}", poolCountDownLatch.count)
-            }
-            logger.info("Successfully loaded test cases")
-
-            val allTestsSet: HashSet<TestIdentifier>
-            val events: Map<TestIdentifier, Collection<Device>>
-            synchronized(poolTests) {
-                allTestsSet = allTestsFromPoolTests(poolTests)
-                events = calculateDeviceIncludes(poolTests)
-            }
-            return joinTestInfo(allTestsSet, events, testInfos)
-        } catch (e: InterruptedException) {
-            // TODO: replace with concrete exception
-            throw RuntimeException("Reading suites were interrupted")
-        }
-    }
-
-    internal class TestInfoCatCollector : Collector<LogCatMessage, ArrayList<TestInfoCatCollector.MessageTriple>, List<JsonObject>> {
-        override fun supplier(): Supplier<ArrayList<MessageTriple>> {
-            return Supplier {
-                ArrayList<MessageTriple>()
-            }
-        }
-
-        override fun accumulator(): BiConsumer<ArrayList<MessageTriple>, LogCatMessage> {
-            return BiConsumer { triples, logCatMessage ->
-                val parts = logCatMessage.message.split(":".toRegex(), 2).toTypedArray()
-                val indexParts = parts[0].split("-".toRegex(), 2).toTypedArray()
-                val triple = MessageTriple(indexParts[0], indexParts[1], parts[1])
-                triples.add(triple)
-            }
-        }
-
-        override fun combiner(): BinaryOperator<ArrayList<MessageTriple>> {
-            return BinaryOperator { triples1, triples2 ->
-                val output = ArrayList<MessageTriple>(triples1.size + triples2.size)
-                output.addAll(triples1)
-                output.addAll(triples2)
-                output
-            }
-        }
-
-        override fun finisher(): Function<ArrayList<MessageTriple>, List<JsonObject>> {
-            return Function { triples ->
-                var joined = triples.stream()
-                        .sorted()
-                        .map { messageTriple -> messageTriple.line }
-                        .collect(Collectors.joining())
-                if (joined.endsWith(",")) {
-                    joined = joined.substring(0, joined.length - 1)
-                }
-                joined = "[$joined]"
-
-                try {
-                    jsonParser.parse(joined).asJsonArray
-                            .map { it.asJsonObject }
-                            .toList()
-                } catch (e: JsonParseException) {
-                    throw RuntimeException("Failed to parse: $joined", e)
-                }
-            }
-        }
-
-        override fun characteristics(): Set<Collector.Characteristics> {
-            return emptySet()
-        }
-
-        companion object {
-            private val jsonParser = JsonParser()
-        }
-
-        class MessageTriple(private val objectId: String, private val index: String, internal val line: String) : Comparable<MessageTriple> {
-
-            override fun compareTo(other: MessageTriple): Int {
-                val result: Int = objectId.compareTo(other.objectId)
-                return if (result != 0) result else index.compareTo(other.index)
-            }
-        }
-    }
-
     companion object {
         const val logcatWaiterSleep: Long = 2500
+        private val jsonInfoDecoder = JsonInfoDecorder()
 
-        fun calculateDeviceIncludes(
-                poolTests: List<Pair<Device, Set<TestIdentifier>>>
-        ): Map<TestIdentifier, Collection<Device>> {
-            return poolTests
+        fun calculateDeviceIncludes(input: Sequence<Pair<AndroidDevice, Set<TestIdentifier>>>)
+                : Map<TestIdentifier, List<AndroidDevice>> {
+            return input
                     .flatMap { (device, tests) ->
-                        tests.map { it to device }
+                        tests
+                                .asSequence()
+                                .map { Pair(it, device) }
                     }
-                    .groupBy( { (test, _) -> test }, { (_, device) -> device})
+                    .groupBy({ it.first }) {
+                        it.second
+                    }
         }
 
-        private fun joinTestInfo(
-                allTestsSet: Set<TestIdentifier>,
-                includes: Map<TestIdentifier, Collection<Device>>,
-                infos: Map<TestIdentifier, TestInfo>
-        ): Collection<TestCaseEvent> {
-            return allTestsSet.map {
-                val includedDevices = includes[it] ?: emptyList()
-                val info = infos[it] ?: TestInfo(it, guessPackage(it.className), emptyList(), emptyList())
-                TestCaseEvent(
-                        TestCase(
+        fun decodeMessages(testInfoMessages: Collection<LogCatMessage>): List<JsonObject> {
+            class MessageKey(val id: String, val lineIndex: String): Comparable<MessageKey> {
+                override fun compareTo(other: MessageKey): Int {
+                    return id.compareTo(other.id)
+                            .let {
+                                if (it == 0) {
+                                    lineIndex.compareTo(other.lineIndex)
+                                } else {
+                                    it
+                                }
+                            }
+                }
+            }
+
+            val jsonParser = JsonParser()
+            return testInfoMessages.asSequence()
+                    .map { it.message }
+                    .fold(ArrayList<Pair<MessageKey, String>>()) { acc, message ->
+                        val (prefix, line) = message.split(':', limit = 2)
+                        val (id, lineIndex) = prefix.split('-', limit = 2)
+
+                        acc.apply {
+                            acc.add(MessageKey(id, lineIndex) to line)
+                        }
+                    }
+                    .groupBy({ it.first.id })
+                    .values
+                    .flatMap {
+                        it
+                                .sortedBy { it.first.lineIndex.toInt(16) }
+                                .map { it.second }
+                                .let {
+                                    val json = it.joinToString("", "[", "]")
+                                    jsonParser
+                                            .parse(json)
+                                            .asJsonArray
+                                            .asSequence()
+                                            .filter { !it.isJsonNull }
+                                            .map { it.asJsonObject }
+                                            .toList()
+                                }
+                    }
+        }
+
+    }
+
+    @Throws(NoTestCasesFoundException::class)
+    override fun loadTestSuite(): Collection<TestCaseEvent> = runBlocking {
+        context.pool.devices
+                .filterIsInstance(AndroidDevice::class.java) // TODO: handle other types of devices
+                .map { device ->
+                    async {
+                        try {
+                            collectTestsFromLogOnlyRun(device)
+                        } catch (e: InterruptedException) {
+                            throw e
+                        } catch (e: Exception) {
+                            // TODO: specific exception
+                            throw RuntimeException("Failed to collect test cases from ${device.name}", e)
+                        }
+                    }
+                }
+                .awaitAll()
+                .let { collectedInfos ->
+                    finalizeTestInformation(collectedInfos)
+                }
+    }
+
+    private fun finalizeTestInformation(collectedInfos: List<CollectedInfo>): Collection<TestCaseEvent> {
+        val devicesInfo = collectedInfos
+                .asSequence()
+                .map { it.device to it.tests }
+                .let { calculateDeviceIncludes(it) }
+
+        val annotationInfos = collectedInfos
+                .asSequence()
+                .flatMap { it.infoMessages.entries.asSequence() }
+                .associateBy({ it.key }) {
+                    it.value
+                }
+        val allTests = devicesInfo.keys
+
+        val testsWithoutInfo = allTests - annotationInfos.keys
+        if (testsWithoutInfo.isNotEmpty()) {
+            throw RuntimeException(
+                    "In pool ${context.pool.name} received no additional information" +
+                            " for ${testsWithoutInfo.joinToString(", ")}")
+        }
+
+        return annotationInfos
+                .map { (identifier, info) ->
+                    val testCase = TestCase(
                             ApkTestCase::class.java,
                             info.`package`,
-                            it.className,
-                            it.testName,
+                            identifier.className,
+                            identifier.testName,
                             info.readablePath,
                             emptyMap(),
-                            info.annotations,
-                            Any()
-                        ),
-                        includedDevices,
-                        emptyList()
-                )
+                            info.annotations
+                    )
+                    TestCaseEvent(
+                            testCase,
+                            devicesInfo[identifier] ?: emptyList(),
+                            emptyList(),
+                            0
+                    )
+                }
+    }
+
+    private suspend fun collectTestsFromLogOnlyRun(device: AndroidDevice): CollectedInfo {
+        val testCollectingListener = TestCollectingListener()
+        val logCatCollector: LogcatReceiver = LogcatReceiver(device)
+        val testRun = testRunFactory.createCollectingRun(
+                device, context.pool, testCollectingListener)
+
+        val testInfoMessages: List<LogCatMessage> = withContext(Dispatchers.IO) {
+            try {
+                clearLogcat(device.deviceInterface)
+                logCatCollector.start(this@JUnitTestSuiteLoader.javaClass.simpleName)
+
+                testRun.execute()
+
+                delay(JUnitTestSuiteLoader.logcatWaiterSleep) // make sure all logcat messages are read
+                logCatCollector.stop()
+
+                logCatCollector.messages
+                        .filter { logCatMessage -> "Tongs.TestInfo" == logCatMessage.tag }
+            } finally {
+                logCatCollector.stop()
             }
         }
+        val deviceTests = testCollectingListener.tests
+        val testInfos = tryCollectingAndDecodingInfos(testInfoMessages)
+        return CollectedInfo(device, deviceTests, testInfos)
+    }
 
-        private fun toStringList(array: JsonArray): ArrayList<String> {
-            val output = ArrayList<String>(array.size())
-            array.forEach { jsonElement -> output.add(jsonElement.asString) }
-            return output
-        }
-
-        fun allTestsFromPoolTests(poolTests: List<Pair<Device, Set<TestIdentifier>>>): HashSet<TestIdentifier> {
-            return poolTests
-                    .flatMap { (_, tests) -> tests }
-                    .toHashSet()
+    internal fun tryCollectingAndDecodingInfos(
+            testInfoMessages: List<LogCatMessage>
+    ): Map<TestIdentifier, TestInfo> {
+        return try {
+            decodeMessages(testInfoMessages)
+                    .let {
+                        jsonInfoDecoder.decodeStructure(it.toList())
+                    }
+                    .asReversed() // make sure the first entry for duplicate keys is used
+                    .associateBy { it.identifier }
+        } catch (e: Exception) {
+            logger.warn("Failed to collect annotation and structure information about tests", e)
+            emptyMap()
         }
     }
+
+    private class CollectedInfo(
+            val device: AndroidDevice,
+            val tests: Set<TestIdentifier>,
+            val infoMessages: Map<TestIdentifier, TestInfo>
+    )
 }

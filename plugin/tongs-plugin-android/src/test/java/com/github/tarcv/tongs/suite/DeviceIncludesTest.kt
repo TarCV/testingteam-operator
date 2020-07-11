@@ -31,7 +31,7 @@ class DeviceIncludesTest {
                 device2 to setOf(test1, test2)
         )
         val includes = JUnitTestSuiteLoader.calculateDeviceIncludes(
-                input
+                input.asSequence()
         )
         Assert.assertEquals(
                 mapOf(
@@ -49,7 +49,7 @@ class DeviceIncludesTest {
                 device2 to emptySet()
         )
         val excludes = JUnitTestSuiteLoader.calculateDeviceIncludes(
-                input
+                input.asSequence()
         )
         Assert.assertEquals(
                 emptyMap<TestIdentifier, Collection<AndroidDevice>>(),
@@ -67,7 +67,7 @@ class DeviceIncludesTest {
         )
         val allTests = setOf(test1, test2)
         val excludes = JUnitTestSuiteLoader.calculateDeviceIncludes(
-                input
+                input.asSequence()
         )
         Assert.assertEquals(
                 mapOf(

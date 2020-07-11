@@ -12,11 +12,10 @@
 package com.github.tarcv.tongs.runner;
 
 import com.github.tarcv.tongs.api.TongsConfiguration;
-import com.github.tarcv.tongs.api.run.TestCaseRunnerContext;
-import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector;
-import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector;
+import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
 import com.github.tarcv.tongs.runner.listeners.ResultProducer;
@@ -26,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 public class AndroidTestRunFactory {
 
@@ -62,8 +60,7 @@ public class AndroidTestRunFactory {
 
     public AndroidInstrumentedTestRun createCollectingRun(AndroidDevice device,
                                                           Pool pool,
-                                                          TestCollectingListener testCollectingListener,
-                                                          CountDownLatch latch) {
+                                                          TestCollectingListener testCollectingListener) {
         TestRunParameters testRunParameters = createTestParameters(null, device, configuration);
 
         List<BaseListener> testRunListeners = new ArrayList<>();

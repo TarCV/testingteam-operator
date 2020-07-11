@@ -1,6 +1,8 @@
 plugins {
     `java-library`
-    kotlin("jvm") version "1.3.41"
+
+    // kotlinx-coroutines-core should be updated together with kotlin
+    kotlin("jvm") version "1.3.50"
 }
 
 apply(from = "../dependencies.gradle")
@@ -17,6 +19,7 @@ val org.gradle.api.plugins.ExtraPropertiesExtension.deps: Map<String, String>
     get() = this["deps"] as Map<String, String>
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0")
     implementation(project(":tongs-common"))
 
     implementation("com.shazam:axmlparser:1.0")

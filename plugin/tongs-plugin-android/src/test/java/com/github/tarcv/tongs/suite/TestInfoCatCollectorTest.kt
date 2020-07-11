@@ -12,32 +12,20 @@ package com.github.tarcv.tongs.suite
 
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatMessage
-import com.google.gson.JsonObject
-
 import org.junit.Assert
 import org.junit.Test
 
-import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
-import java.util.function.Function
-import java.util.function.Supplier
-import java.util.stream.Collector
-
 class TestInfoCatCollectorTest {
-    private val collector = JUnitTestSuiteLoader.TestInfoCatCollector()
-
     @Test
     fun testSingleThread() {
-        val bundle = CollectorBundle(collector)
-
-        val finalResult: List<JsonObject> = with(bundle) {
-            val result = supplier.get()
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "0000-1001:{"))
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "0000-1002:\"a"))
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "0000-1003:\": 0"))
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "0000-1004:}"))
-            finisher.apply(result)
-        }
+        val finalResult = JUnitTestSuiteLoader.decodeMessages(
+            listOf(
+                    LogCatMessage(Log.LogLevel.INFO, "0000-1001:{"),
+                    LogCatMessage(Log.LogLevel.INFO, "0000-1002:\"a"),
+                    LogCatMessage(Log.LogLevel.INFO, "0000-1003:\": 0"),
+                    LogCatMessage(Log.LogLevel.INFO, "0000-1004:}")
+            ).shuffled()
+        ).toList()
 
         Assert.assertEquals(1, finalResult.size.toLong())
         val resultObject = finalResult[0]
@@ -47,27 +35,15 @@ class TestInfoCatCollectorTest {
 
     @Test
     fun testTwoThreadsAndOutOfOrder() {
-        val bundle1 = CollectorBundle(collector)
-        val bundle2 = CollectorBundle(collector)
-
-        val result1 = with(bundle1) {
-            val result = supplier.get()
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "2000-3001:{"))
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "2000-3005:\": 1"))
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "2000-3003:\": 0,"))
-            result
-        }
-
-        val result2 = with(bundle2) {
-            val result = supplier.get()
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "2000-3002:\"a"))
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "2000-3004:\"b"))
-            accumulator.accept(result, LogCatMessage(Log.LogLevel.INFO, "2000-3006:}"))
-            result
-        }
-
-        val combined = bundle1.combiner.apply(result1, result2)
-        val finalResult = bundle1.finisher.apply(combined)
+        val finalResult = JUnitTestSuiteLoader.decodeMessages(
+                listOf(LogCatMessage(Log.LogLevel.INFO, "2000-3001:{"),
+                    LogCatMessage(Log.LogLevel.INFO, "2000-3005:\": 1"),
+                    LogCatMessage(Log.LogLevel.INFO, "2000-3003:\": 0,"),
+                    LogCatMessage(Log.LogLevel.INFO, "2000-3002:\"a"),
+                    LogCatMessage(Log.LogLevel.INFO, "2000-3004:\"b"),
+                    LogCatMessage(Log.LogLevel.INFO, "2000-3006:}")
+                ).shuffled()
+        ).toList()
 
         Assert.assertEquals(1, finalResult.size.toLong())
         val resultObject = finalResult[0]
@@ -75,13 +51,4 @@ class TestInfoCatCollectorTest {
         Assert.assertEquals(0, resultObject.get("a").asInt.toLong())
         Assert.assertEquals(1, resultObject.get("b").asInt.toLong())
     }
-}
-
-private class CollectorBundle<T, A, R>(
-        collector: Collector<T, A, R>
-) {
-    val supplier: Supplier<A> = collector.supplier()
-    val accumulator: BiConsumer<A, T> = collector.accumulator()
-    val combiner: BinaryOperator<A> = collector.combiner()
-    val finisher: Function<A, R> = collector.finisher()
 }
