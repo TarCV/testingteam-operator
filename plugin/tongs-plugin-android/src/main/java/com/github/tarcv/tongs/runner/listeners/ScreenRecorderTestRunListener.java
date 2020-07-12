@@ -12,11 +12,11 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.api.result.TestCaseFileManager;
+import com.github.tarcv.tongs.model.AndroidDevice;
+import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -97,6 +97,7 @@ class ScreenRecorderTestRunListener extends BaseListener {
 
     @Override
     public void testRunFailed(String errorMessage) {
+        hasFailed = true;
     }
 
     @Override

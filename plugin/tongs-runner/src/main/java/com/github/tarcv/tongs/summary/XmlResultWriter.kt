@@ -14,11 +14,11 @@ package com.github.tarcv.tongs.summary
 
 import com.github.tarcv.tongs.api.result.MonoTextReportData
 import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData
-import com.github.tarcv.tongs.api.run.*
 import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData.Type.STDOUT
 import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData.Type.STRERR
 import com.github.tarcv.tongs.api.result.StackTrace
 import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.run.ResultStatus
 import org.apache.commons.lang3.StringEscapeUtils
 import java.io.File
 import java.text.DecimalFormat
@@ -86,7 +86,7 @@ class XmlResultWriter() {
                 .withZone(ZoneId.of("UTC"))
         private val secondsFormatter = DecimalFormat().apply {
             minimumFractionDigits = 1
-            maximumFractionDigits = 6
+            maximumFractionDigits = 3
         }
 
         // TODO: write fuzzing tests for this method

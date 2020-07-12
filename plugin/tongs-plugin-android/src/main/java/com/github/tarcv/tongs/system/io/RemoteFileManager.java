@@ -13,19 +13,15 @@
  */
 package com.github.tarcv.tongs.system.io;
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.*;
 import com.android.ddmlib.testrunner.TestIdentifier;
-
 import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.system.DdmsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class RemoteFileManager {
@@ -40,6 +36,7 @@ public class RemoteFileManager {
         executeCommand(device, "rm " + remotePath, "Could not delete remote file(s): " + remotePath);
     }
 
+    // TODO: use file index for this too and call this method only once for each test attempt
     public static String getCoverageFileName(TestCase testIdentifier) {
         return remoteFileForTest("/coverage.ec");
     }
@@ -60,8 +57,12 @@ public class RemoteFileManager {
         }
     }
 
+    private static final AtomicInteger videoIndex = new AtomicInteger();
     public static String remoteVideoForTest(TestIdentifier test) {
-        return DdmsUtils.escapeArgumentForCommandLine(remoteFileForTest("scrnrec.mp4"));
+        // Incrementing is ok as this method is called only once for each test attempt
+        String filename = String.format("scrn%x.mp4", videoIndex.getAndIncrement());
+
+        return DdmsUtils.escapeArgumentForCommandLine(remoteFileForTest(filename));
     }
 
     private static String remoteFileForTest(String filename) {
