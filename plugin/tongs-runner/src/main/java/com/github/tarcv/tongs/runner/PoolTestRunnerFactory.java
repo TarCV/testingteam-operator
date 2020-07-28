@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,13 +11,11 @@
 
 package com.github.tarcv.tongs.runner;
 
-import com.github.tarcv.tongs.injector.RuleManagerFactory;
-import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.api.run.TestCaseEvent;
-import com.github.tarcv.tongs.model.TestCaseEventQueue;
+import com.github.tarcv.tongs.TongsRunner;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
+import com.github.tarcv.tongs.injector.RuleManagerFactory;
+import com.github.tarcv.tongs.model.TestCaseEventQueue;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -31,18 +29,17 @@ public class PoolTestRunnerFactory {
         this.ruleManagerFactory = ruleManagerFactory;
     }
 
-    public Runnable createPoolTestRunner(Pool pool,
-                                         Collection<TestCaseEvent> testCases,
+    public Runnable createPoolTestRunner(TongsRunner.PoolTask poolTask,
                                          List<TestCaseRunResult> testCaseResults, CountDownLatch poolCountDownLatch,
                                          ProgressReporter progressReporter) {
 
-        int totalTests = testCases.size();
-        progressReporter.addPoolProgress(pool, new PoolProgressTrackerImpl(totalTests));
+        int totalTests = poolTask.getTestCases().size();
+        progressReporter.addPoolProgress(poolTask.getPool(), new PoolProgressTrackerImpl(totalTests));
 
         return new PoolTestRunner(
                 deviceTestRunnerFactory,
-                pool,
-                new TestCaseEventQueue(testCases, testCaseResults),
+                poolTask,
+                new TestCaseEventQueue(poolTask.getTestCases(), testCaseResults),
                 poolCountDownLatch,
                 progressReporter,
                 ruleManagerFactory);

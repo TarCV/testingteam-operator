@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@ package com.github.tarcv.tongs.runner;
 import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.injector.RuleManagerFactory;
-import com.github.tarcv.tongs.model.*;
 import com.github.tarcv.tongs.system.adb.Installer;
-
-import java.util.concurrent.CountDownLatch;
 
 public class DeviceTestRunnerFactory {
 
@@ -27,19 +24,13 @@ public class DeviceTestRunnerFactory {
         this.installer = installer;
     }
 
-    public Runnable createDeviceTestRunner(Pool pool,
-                                           TestCaseEventQueue testClassQueue,
-                                           CountDownLatch deviceInPoolCountDownLatch,
-                                           Device device,
-                                           ProgressReporter progressReporter,
-                                           RuleManagerFactory ruleManagerFactory
-                                           ) {
+    public DeviceTestRunner createDeviceTestRunner(Pool pool,
+                                                   Device device,
+                                                   RuleManagerFactory ruleManagerFactory
+    ) {
         return new DeviceTestRunner(
                 pool,
                 device,
-                testClassQueue,
-                deviceInPoolCountDownLatch,
-                progressReporter,
                 ruleManagerFactory);
     }
 }
