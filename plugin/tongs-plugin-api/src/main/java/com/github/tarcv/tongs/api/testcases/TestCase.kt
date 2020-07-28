@@ -12,7 +12,6 @@
  */
 package com.github.tarcv.tongs.api.testcases
 
-import java.lang.IllegalArgumentException
 import java.util.Collections.emptyMap
 
 class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestIdentifier and TestCase classes
@@ -33,9 +32,7 @@ class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestI
         // TODO: add detectedOnDevices property excluded from comparison
 ) {
     init {
-        if (readablePath.isEmpty() ||
-                testMethod.isEmpty() ||
-                testClass.isEmpty()) {
+        if (testMethod.isEmpty() || testClass.isEmpty()) {
             throw IllegalArgumentException("Test identifiers must be specified")
         }
     }

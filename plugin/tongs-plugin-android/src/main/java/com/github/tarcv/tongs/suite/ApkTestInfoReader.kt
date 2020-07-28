@@ -27,7 +27,7 @@ import org.jf.dexlib2.iface.value.*
 import java.io.File
 
 class ApkTestInfoReader {
-    fun readTestInfo(apk: File, testsToCheck: List<String>): List<TestInfo> {
+    fun readTestInfo(apk: File, testsToCheck: Collection<TestIdentifier>): List<TestInfo> {
         val dex = DexFileFactory.loadDexFile(apk, null)
 
         class FoundMethod(
@@ -36,7 +36,7 @@ class ApkTestInfoReader {
         )
 
         class Test(
-                val testName: String,
+                val testIdentifier: TestIdentifier,
                 val parts: Set<String>
         ) {
             var foundMethod: FoundMethod? = null
@@ -46,7 +46,7 @@ class ApkTestInfoReader {
         val testMatches = ArrayList<Test>()
         testsToCheck
                 .forEach { test ->
-                    val parts = splitIdentifiers(test)
+                    val parts = listOf(test.className) + splitIdentifiers(test.testName)
 
                     val testInfo = Test(test, parts.toSet())
                     testMatches.add(testInfo)
@@ -112,10 +112,7 @@ class ApkTestInfoReader {
                     appendAnnotationInfos(testMethod.annotations, annotations)
 
                     TestInfo(
-                            TestIdentifier(
-                                    testClassName,
-                                    test.testName.removePrefix("$testClassName#")
-                            ),
+                            test.testIdentifier,
                             extractPackage(testClass),
                             emptyList(),
                             annotations

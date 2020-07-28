@@ -10,6 +10,7 @@
 
 package com.github.tarcv.tongs.suite
 
+import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.api.run.TestCaseEvent
@@ -28,12 +29,16 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
+import java.io.File
+import java.nio.file.Files
 import java.util.*
 
 public class JUnitTestSuiteLoader(
         private val context: TestSuiteLoaderContext,
         private val testRunFactory: AndroidTestRunFactory,
-        private val remoteAndroidTestRunnerFactory: IRemoteAndroidTestRunnerFactory) : TestSuiteLoader {
+        private val remoteAndroidTestRunnerFactory: IRemoteAndroidTestRunnerFactory,
+        private val apkTestInfoReader: ApkTestInfoReader
+) : TestSuiteLoader {
     private val logger = LoggerFactory.getLogger(JUnitTestSuiteLoader::class.java)
 
     companion object {
@@ -117,22 +122,71 @@ public class JUnitTestSuiteLoader(
                 }
                 .awaitAll()
                 .let { collectedInfos ->
-                    finalizeTestInformation(collectedInfos)
+                    val hasOnDeviceLibrary = collectedInfos.any { it.hasOnDeviceLibrary }
+                    val annotationInfos = if (!hasOnDeviceLibrary) {
+                        logger.warn("It seems '-ondevice' dependency is missing on all devices in ${context.pool.name}." +
+                                "Falling back to getting annotation data from bytecode in the instrumentation APK (such data will not be 100% accurate).")
+
+                        val allTests = collectedInfos.asSequence()
+                                .map { it.tests }
+                                .reduce { acc, set -> acc + set }
+                        var instrumentationApk = context.configuration.instrumentationApk.let {
+                            if (it == null) {
+                                logger.info("Path to the instrumentation APK is not specified. Trying to pull it from a device")
+                                try {
+                                    withContext(Dispatchers.IO) {
+                                        pullTestApkFromDevice(context.pool.devices.first() as AndroidDevice)
+                                    }
+                                } catch (e: Exception) {
+                                    // TODO:
+                                    throw RuntimeException("Failed to pull the instrumentation APK from a device", e)
+                                }
+                            } else {
+                                it
+                            }
+                        }
+                        val testInfo = apkTestInfoReader.readTestInfo(
+                                instrumentationApk,
+                                allTests
+                        )
+
+                        testInfo.asSequence()
+                                .associateBy { it.identifier }
+                    } else {
+                        collectedInfos
+                                .asSequence()
+                                .flatMap { it.infoMessages.entries.asSequence() }
+                                .associateBy({ it.key }) {
+                                    it.value
+                                }
+                    }
+                    finalizeTestInformation(collectedInfos, annotationInfos)
                 }
     }
 
-    private fun finalizeTestInformation(collectedInfos: List<CollectedInfo>): Collection<TestCaseEvent> {
+    private fun pullTestApkFromDevice(device: AndroidDevice): File {
+        val adb = (device).deviceInterface
+        val pathReceiver = CollectingOutputReceiver()
+        adb.executeShellCommand(
+                "pm path ${context.configuration.instrumentationPackage}",
+                pathReceiver
+        )
+        val devicePath = pathReceiver.output
+                .trim()
+                .removePrefix("package:")
+                // some devices output '=com.package.test' at the end of this line:
+                .replaceFirst(Regex("""=[\w.]+$"""), "")
+        val localPath = Files.createTempDirectory("tongs").resolve("test.apk")
+        adb.pullFile(devicePath, localPath.toString())
+        return localPath.toFile()
+    }
+
+    private fun finalizeTestInformation(collectedInfos: List<CollectedInfo>, annotationInfos: Map<TestIdentifier, TestInfo>): Collection<TestCaseEvent> {
         val devicesInfo = collectedInfos
                 .asSequence()
                 .map { it.device to it.tests }
                 .let { calculateDeviceIncludes(it) }
 
-        val annotationInfos = collectedInfos
-                .asSequence()
-                .flatMap { it.infoMessages.entries.asSequence() }
-                .associateBy({ it.key }) {
-                    it.value
-                }
         val allTests = devicesInfo.keys
 
         val testsWithoutInfo = allTests - annotationInfos.keys
@@ -185,8 +239,9 @@ public class JUnitTestSuiteLoader(
             }
         }
         val deviceTests = testCollectingListener.tests
+        val hasOnDeviceLibrary = testInfoMessages.isNotEmpty()
         val testInfos = tryCollectingAndDecodingInfos(testInfoMessages)
-        return CollectedInfo(device, deviceTests, testInfos)
+        return CollectedInfo(device, hasOnDeviceLibrary, deviceTests, testInfos)
     }
 
     internal fun tryCollectingAndDecodingInfos(
@@ -207,6 +262,7 @@ public class JUnitTestSuiteLoader(
 
     private class CollectedInfo(
             val device: AndroidDevice,
+            val hasOnDeviceLibrary: Boolean,
             val tests: Set<TestIdentifier>,
             val infoMessages: Map<TestIdentifier, TestInfo>
     )

@@ -26,10 +26,10 @@ class ApkReaderTest {
         val apk = File("../../tests/app/app/build/outputs/apk/androidTest/f1/debug/app-f1-debug-androidTest.apk")
 
         val testsToCheck = listOf(
-                "com.github.tarcv.test.happy.GrantPermissionsForInheritedClassTest#testPermissionGranted1",
-                "com.github.tarcv.test.happy.NoPermissionsForOverridesTest#testNoPermissionForAbstractOverrides",
-                "com.github.tarcv.test.happy.NoPermissionsForOverridesTest#testNoPermissionForNormalOverrides",
-                "com.github.tarcv.test.happy.ParameterizedNamedTest#test[param = 5]"
+                TestIdentifier("com.github.tarcv.test.happy.GrantPermissionsForInheritedClassTest", "testPermissionGranted1"),
+                TestIdentifier("com.github.tarcv.test.happy.NoPermissionsForOverridesTest", "testNoPermissionForAbstractOverrides"),
+                TestIdentifier("com.github.tarcv.test.happy.NoPermissionsForOverridesTest", "testNoPermissionForNormalOverrides"),
+                TestIdentifier("com.github.tarcv.test.happy.ParameterizedNamedTest", "test[param = 5]")
         )
 
         val expectedResult = listOf(
