@@ -27,7 +27,9 @@ dependencies {
     implementation(group = "org.apache.commons", name = "commons-text", version = "1.4")
     implementation(extra.deps.getValue("ddmlib"))
     implementation(extra.deps.getValue("sdklib"))
-    implementation("org.smali:dexlib2:2.4.0")
+    implementation("org.smali:dexlib2:2.4.0") {
+        exclude(group = "com.google.guava")
+    }
     implementation(extra.deps.getValue("gson"))
     implementation(extra.deps.getValue("guava"))
     implementation(extra.deps.getValue("jsr305"))
