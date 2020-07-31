@@ -59,7 +59,7 @@ public class JUnitTestSuiteLoader(
         }
 
         fun decodeMessages(testInfoMessages: Collection<LogCatMessage>): List<JsonObject> {
-            class MessageKey(val id: String, val lineIndex: String): Comparable<MessageKey> {
+            class MessageKey(val id: String, val lineIndex: String) : Comparable<MessageKey> {
                 override fun compareTo(other: MessageKey): Int {
                     return id.compareTo(other.id)
                             .let {
@@ -122,7 +122,15 @@ public class JUnitTestSuiteLoader(
                 }
                 .awaitAll()
                 .let { collectedInfos ->
+                    collectedInfos.forEach {
+                        if (!it.hasOnDeviceLibrary) {
+                            logger.warn("Instrumented tests on ${it.device} are linked without 'ondevice' library." +
+                                    " Some tests might be NOT executed.")
+                        }
+                        it.device.setHasOnDeviceLibrary(it.hasOnDeviceLibrary)
+                    }
                     val hasOnDeviceLibrary = collectedInfos.any { it.hasOnDeviceLibrary }
+
                     val annotationInfos = if (!hasOnDeviceLibrary) {
                         logger.warn("It seems '-ondevice' dependency is missing on all devices in ${context.pool.name}." +
                                 "Falling back to getting annotation data from bytecode in the instrumentation APK (such data will not be 100% accurate).")
@@ -217,31 +225,64 @@ public class JUnitTestSuiteLoader(
     }
 
     private suspend fun collectTestsFromLogOnlyRun(device: AndroidDevice): CollectedInfo {
+        var hasOnDeviceLibrary = true
+        var collectionResult = collectTestData(device, hasOnDeviceLibrary)
+
+        collectionResult.second.let {
+            if (it is TestCollectingListener.Result.Failed) {
+                logger.warn("Failed to collect list of tests using 'ondevice' library," +
+                        " retrying without the library." +
+                        " Error is ${it.lastFailure}")
+
+                hasOnDeviceLibrary = false
+                collectionResult = collectTestData(device, hasOnDeviceLibrary)
+            }
+        }
+
+        val deviceTests = collectionResult.second.let {
+            when (it) {
+                is TestCollectingListener.Result.Failed -> {
+                    // TODO: specific exception
+                    throw RuntimeException("Failed to collect list of tests. Error is ${it.lastFailure}")
+                }
+                is TestCollectingListener.Result.Successful -> {
+                    it.tests
+                }
+            }
+        }
+        val testInfoMessages = collectionResult.first
+
+        hasOnDeviceLibrary = hasOnDeviceLibrary && testInfoMessages.isNotEmpty()
+
+        val testInfos = tryCollectingAndDecodingInfos(testInfoMessages)
+
+        return CollectedInfo(device, hasOnDeviceLibrary, deviceTests, testInfos)
+    }
+
+    private suspend fun collectTestData(
+            device: AndroidDevice,
+            withOnDeviceLib: Boolean): Pair<List<LogCatMessage>, TestCollectingListener.Result> = withContext(Dispatchers.IO) {
         val testCollectingListener = TestCollectingListener()
         val logCatCollector: LogcatReceiver = LogcatReceiver(device)
         val testRun = testRunFactory.createCollectingRun(
-                device, context.pool, testCollectingListener)
+                device, context.pool, testCollectingListener, withOnDeviceLib)
+        try {
+            clearLogcat(device.deviceInterface)
+            logCatCollector.start(this@JUnitTestSuiteLoader.javaClass.simpleName)
 
-        val testInfoMessages: List<LogCatMessage> = withContext(Dispatchers.IO) {
-            try {
-                clearLogcat(device.deviceInterface)
-                logCatCollector.start(this@JUnitTestSuiteLoader.javaClass.simpleName)
+            testRun.execute()
 
-                testRun.execute()
+            delay(logcatWaiterSleep) // make sure all logcat messages are read
+            logCatCollector.stop()
 
-                delay(JUnitTestSuiteLoader.logcatWaiterSleep) // make sure all logcat messages are read
-                logCatCollector.stop()
-
-                logCatCollector.messages
-                        .filter { logCatMessage -> "Tongs.TestInfo" == logCatMessage.tag }
-            } finally {
-                logCatCollector.stop()
-            }
+            Pair(
+                    logCatCollector.messages
+                            .filter { logCatMessage -> "Tongs.TestInfo" == logCatMessage.tag },
+                    testCollectingListener.result
+            )
+        } finally {
+            logCatCollector.stop()
         }
-        val deviceTests = testCollectingListener.tests
-        val hasOnDeviceLibrary = testInfoMessages.isNotEmpty()
-        val testInfos = tryCollectingAndDecodingInfos(testInfoMessages)
-        return CollectedInfo(device, hasOnDeviceLibrary, deviceTests, testInfos)
     }
 
     internal fun tryCollectingAndDecodingInfos(

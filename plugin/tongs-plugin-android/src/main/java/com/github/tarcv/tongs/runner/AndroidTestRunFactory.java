@@ -38,7 +38,10 @@ public class AndroidTestRunFactory {
                                                     AndroidDevice device,
                                                     Pool pool,
                                                     PreregisteringLatch workCountdownLatch) {
-        TestRunParameters testRunParameters = createTestParameters(testCase, device, configuration);
+        TestRunParameters testRunParameters = createTestParameters(testCase,
+                device,
+                configuration,
+                device.hasOnDeviceLibrary());
 
         List<BaseListener> testRunListeners = new ArrayList<>();
         IResultProducer resultProducer = createResultProducer(testRunContext, workCountdownLatch);
@@ -60,8 +63,12 @@ public class AndroidTestRunFactory {
 
     public AndroidInstrumentedTestRun createCollectingRun(AndroidDevice device,
                                                           Pool pool,
-                                                          TestCollectingListener testCollectingListener) {
-        TestRunParameters testRunParameters = createTestParameters(null, device, configuration);
+                                                          TestCollectingListener testCollectingListener,
+                                                          boolean withOnDeviceLib) {
+        TestRunParameters testRunParameters = createTestParameters(null,
+                device,
+                configuration,
+                withOnDeviceLib);
 
         List<BaseListener> testRunListeners = new ArrayList<>();
         testRunListeners.add(testCollectingListener);
@@ -75,7 +82,7 @@ public class AndroidTestRunFactory {
         );
     }
 
-    private static TestRunParameters createTestParameters(TestCaseEvent testCase, AndroidDevice device, TongsConfiguration configuration) {
+    private static TestRunParameters createTestParameters(TestCaseEvent testCase, AndroidDevice device, TongsConfiguration configuration, boolean withOnDeviceLib) {
         return TestRunParameters.Builder.testRunParameters()
                 .withDeviceInterface(device.getDeviceInterface())
                 .withTest(testCase)
@@ -84,6 +91,7 @@ public class AndroidTestRunFactory {
                 .withTestRunner(configuration.getTestRunnerClass())
                 .withTestRunnerArguments(configuration.getTestRunnerArguments())
                 .withTestOutputTimeout((int) configuration.getTestOutputTimeout())
+                .withOnDeviceLibrary(withOnDeviceLib)
                 .withCoverageEnabled(configuration.isCoverageEnabled())
                 .withExcludedAnnotation(configuration.getExcludedAnnotation())
                 .build();

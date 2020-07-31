@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -28,6 +28,7 @@ public class TestRunParameters {
 	private final IDevice deviceInterface;
 	private final String excludedAnnotation;
 	private final String applicationPackage;
+	private final boolean withOnDeviceLibrary;
 
 	public TestCaseEvent getTest() {
 		return test;
@@ -53,6 +54,10 @@ public class TestRunParameters {
 		return deviceInterface;
 	}
 
+	public boolean isWithOnDeviceLibrary() {
+		return withOnDeviceLibrary;
+	}
+
 	public boolean isCoverageEnabled(){
 		return isCoverageEnabled;
 	}
@@ -75,6 +80,7 @@ public class TestRunParameters {
 		private int testOutputTimeout;
 		private String excludedAnnotation;
 		private String applicationPackage;
+		private boolean withOnDeviceLibrary;
 
 		public static Builder testRunParameters() {
 			return new Builder();
@@ -128,7 +134,12 @@ public class TestRunParameters {
 		public TestRunParameters build() {
 			return new TestRunParameters(this);
 		}
-	}
+
+		public Builder withOnDeviceLibrary(boolean withOnDeviceLib) {
+			this.withOnDeviceLibrary = withOnDeviceLib;
+			return this;
+		}
+    }
 
 	private TestRunParameters(Builder builder) {
 		test = builder.test;
@@ -137,6 +148,7 @@ public class TestRunParameters {
 		testRunnerArguments = builder.testRunnerArguments;
 		testOutputTimeout = builder.testOutputTimeout;
 		deviceInterface = builder.deviceInterface;
+		withOnDeviceLibrary = builder.withOnDeviceLibrary;
 		isCoverageEnabled = builder.isCoverageEnabled;
 		this.excludedAnnotation = builder.excludedAnnotation;
 		this.applicationPackage = builder.applicationPackage;

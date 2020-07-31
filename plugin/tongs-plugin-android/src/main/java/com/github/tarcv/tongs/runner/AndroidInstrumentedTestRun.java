@@ -17,8 +17,8 @@ import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
-import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.runner.listeners.BaseListener;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
 import com.github.tarcv.tongs.suite.ApkTestCase;
@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
 import static java.lang.String.format;
 
 public class AndroidInstrumentedTestRun {
@@ -78,13 +77,18 @@ public class AndroidInstrumentedTestRun {
 			testMethodName = test.getTestMethod();
 			testCase = test.getTestCase();
 
-			String encodedClassName = remoteAndroidTestRunnerFactory.encodeTestName(testClassName);
-			String encodedMethodName = remoteAndroidTestRunnerFactory.encodeTestName(testMethodName);
+			if (testRunParameters.isWithOnDeviceLibrary()) {
+				String encodedClassName = remoteAndroidTestRunnerFactory.encodeTestName(testClassName);
+				String encodedMethodName = remoteAndroidTestRunnerFactory.encodeTestName(testMethodName);
 
-			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", encodedClassName);
-			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", encodedMethodName);
+				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", encodedClassName);
+				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", encodedMethodName);
 
-			addFilterAndCustomArgs(runner, TESTCASE_FILTER);
+				addFilterAndCustomArgs(runner, TESTCASE_FILTER);
+			} else {
+				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "class",
+						testClassName + "#" + testMethodName);
+			}
 
 			if (testRunParameters.isCoverageEnabled()) {
 				runner.setCoverage(true);
@@ -96,7 +100,9 @@ public class AndroidInstrumentedTestRun {
 			testCase = new TestCase(ApkTestCase.class, "dummy", "dummy.Dummy", "dummy", Collections.singletonList("dummy"));
 
 			runner.addBooleanArg("log", true);
-			addFilterAndCustomArgs(runner, COLLECTING_RUN_FILTER);
+			if (testRunParameters.isWithOnDeviceLibrary()) {
+				addFilterAndCustomArgs(runner, COLLECTING_RUN_FILTER);
+			}
 		}
 
 		String excludedAnnotation = testRunParameters.getExcludedAnnotation();
