@@ -14,11 +14,11 @@ package com.github.tarcv.tongs.api.result
 
 import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.devices.Pool
-import com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool
-import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.result.Table.Companion.tableFromFile
 import com.github.tarcv.tongs.api.run.ResultStatus
-import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
+import com.github.tarcv.tongs.api.testcases.TestCase
+import org.apache.commons.lang3.StringEscapeUtils
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.time.Duration
@@ -30,6 +30,11 @@ sealed class RunTesult
  * Request next compatibe runner to execute a test case
  */
 class Delegate: RunTesult()
+
+private val logger = LoggerFactory.getLogger(TestCaseRunResult::class.java)
+private fun errorMessage(path: TestCaseFile): String {
+    return "Failed to read report data from file '$path'"
+}
 
 // TODO: merge with com.github.tarcv.tongs.summary.TestResult
 data class TestCaseRunResult(
@@ -154,8 +159,14 @@ class FileMonoTextReportData(
 ): TestReportData(title), MonoTextReportData {
     override val monoText: String
         get() {
-            return monoTextPath.toFile()
-                    .readText(StandardCharsets.UTF_8)
+            return try {
+                monoTextPath.toFile()
+                        .readText(StandardCharsets.UTF_8)
+            } catch (e: Exception) {
+                val errorMessage = errorMessage(monoTextPath)
+                logger.error(errorMessage, e)
+                "ERROR: $errorMessage\n$e"
+            }
         }
 }
 
@@ -167,8 +178,15 @@ class SimpleHtmlReportData(title: String, override val html: String): TestReport
 class FileHtmlReportData(title: String, private val htmlPath: TestCaseFile): TestReportData(title), HtmlReportData {
     override val html: String
         get() {
-            return htmlPath.toFile()
-                    .readText(StandardCharsets.UTF_8)
+            return try {
+                htmlPath.toFile()
+                        .readText(StandardCharsets.UTF_8)
+            } catch (e: Exception) {
+                val errorMessage = errorMessage(htmlPath)
+                logger.error(errorMessage, e)
+                "<p class='tongs-error-message'>${StringEscapeUtils.escapeHtml4(errorMessage)}</p>" +
+                        "<p class='tongs-error-exception>${StringEscapeUtils.escapeHtml4(e.toString())}</p>"
+            }
         }
 }
 
@@ -183,7 +201,19 @@ class FileTableReportData(
         private val tableJsonReader: (File) -> Table.TableJson
 ): TestReportData(title), TableReportData {
     override val table: Table
-        get() = tableFromFile(tablePath, tableJsonReader)
+        get() = try {
+            tableFromFile(tablePath, tableJsonReader)
+        } catch (e: Exception) {
+            val errorMessage = errorMessage(tablePath)
+            logger.error(errorMessage, e)
+            Table(
+                    listOf("<ERROR>"),
+                    listOf(
+                            listOf(errorMessage),
+                            listOf(e.toString())
+                    )
+            )
+        }
 }
 
 class ImageReportData(title: String, private val image: TestCaseFile): TestReportData(title) {
