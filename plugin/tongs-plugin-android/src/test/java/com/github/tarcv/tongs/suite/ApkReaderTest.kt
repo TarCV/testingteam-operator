@@ -55,7 +55,7 @@ class ApkReaderTest {
                         "com.github.tarcv.test.happy",
                         emptyList(),
                         listOf(
-                                AnnotationInfo("android.support.test.filters.SdkSuppress", mapOf(
+                                AnnotationInfo("androidx.test.filters.SdkSuppress", mapOf(
                                         "minSdkVersion" to 23
                                 )),
                                 AnnotationInfo("org.junit.Test", emptyMap())
@@ -69,7 +69,7 @@ class ApkReaderTest {
                         "com.github.tarcv.test.happy",
                         emptyList(),
                         listOf(
-                                AnnotationInfo("android.support.test.filters.SdkSuppress", mapOf(
+                                AnnotationInfo("androidx.test.filters.SdkSuppress", mapOf(
                                         "minSdkVersion" to 23
                                 )),
                                 AnnotationInfo("org.junit.Test", emptyMap())

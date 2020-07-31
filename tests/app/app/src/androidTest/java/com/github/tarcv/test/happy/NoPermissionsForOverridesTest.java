@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -11,9 +11,9 @@
 package com.github.tarcv.test.happy;
 
 import android.content.pm.PackageManager;
-import android.support.test.filters.SdkSuppress;
-import android.support.test.rule.ActivityTestRule;
-import android.support.v4.content.ContextCompat;
+import androidx.test.filters.SdkSuppress;
+import androidx.test.rule.ActivityTestRule;
+import androidx.core.content.ContextCompat;
 import com.github.tarcv.test.MainActivity;
 import com.github.tarcv.tongs.GrantPermission;
 import static org.junit.Assert.assertEquals;

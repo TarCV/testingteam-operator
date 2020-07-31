@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -10,7 +10,7 @@
 
 package com.github.tarcv.test.happy;
 
-import android.support.test.rule.ActivityTestRule;
+import androidx.test.rule.ActivityTestRule;
 import com.github.tarcv.test.MainActivity;
 import org.junit.Rule;
 import org.junit.Test;
