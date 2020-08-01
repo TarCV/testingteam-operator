@@ -10,11 +10,11 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.utils.toSystemLineSeparator
-import com.github.tarcv.tongs.api.run.TestCaseEvent
-import com.github.tarcv.tongs.runner.listeners.ResultListener
 import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.run.aTestCaseEvent
 import com.github.tarcv.tongs.api.testcases.aTestCase
+import com.github.tarcv.tongs.runner.listeners.ResultListener
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -102,10 +102,11 @@ Tests run: 1,  Failures: 2
 
 """
 
-        assertEquals(ResultStatus.FAIL, listener.result.status)
+        val result = listener.finishAndGetResult()
+        assertEquals(ResultStatus.FAIL, result.status)
         assertEquals(
                 expectedOutput.trim().toSystemLineSeparator(),
-                listener.result.output.trim().toSystemLineSeparator()
+                result.output.trim().toSystemLineSeparator()
         )
     }
 }

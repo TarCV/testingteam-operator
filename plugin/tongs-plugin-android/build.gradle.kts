@@ -37,6 +37,7 @@ dependencies {
     implementation("com.madgag:animated-gif-lib:1.2") // TODO: move GIF creation back to plugin api or runner
 
     testImplementation(project(":tongs-common-test"))
+    testImplementation(kotlin("test"))
     testImplementation(extra.deps.getValue("junit"))
     testImplementation(extra.deps.getValue("hamcrest"))
 }

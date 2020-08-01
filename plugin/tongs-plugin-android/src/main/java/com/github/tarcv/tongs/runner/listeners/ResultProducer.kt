@@ -15,15 +15,16 @@ package com.github.tarcv.tongs.runner.listeners
 import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.api.devices.Diagnostics
 import com.github.tarcv.tongs.api.devices.Pool
-import com.github.tarcv.tongs.injector.GsonInjector.gson
-import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.api.result.*
-import com.github.tarcv.tongs.runner.*
 import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData.Type
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
 import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.injector.GsonInjector.gson
+import com.github.tarcv.tongs.model.AndroidDevice
+import com.github.tarcv.tongs.runner.AndroidRunContext
+import com.github.tarcv.tongs.runner.PreregisteringLatch
 import com.github.tarcv.tongs.util.parseJavaTrace
 import java.time.Instant
 
@@ -58,9 +59,6 @@ class ResultProducer(
     private val coverageListener = getCoverageTestRunListener(context.configuration, androidDevice, context.fileManager, context.pool, context.testCaseEvent, latch)
 
     override fun requestListeners(): List<BaseListener> {
-        if (resultListener.result.status != null) {
-            throw IllegalStateException("Can't request listeners once tests are executed")
-        }
         return listOf(
                 resultListener,
                 logCatListener,
@@ -69,7 +67,7 @@ class ResultProducer(
     }
 
     override fun getResult(): TestCaseRunResult {
-        val shellResult = resultListener.result
+        val shellResult = resultListener.finishAndGetResult()
 
         val gson = gson()
         val reportBlocks = listOf(
