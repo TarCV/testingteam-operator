@@ -73,6 +73,7 @@ class ScreenRecorder implements Runnable {
     private void pullTestVideo() throws IOException, AdbCommandRejectedException, TimeoutException, SyncException {
         logger.trace("Started pulling file {} to {}", remoteFilePath, localVideoFile);
         long startNanos = nanoTime();
+        localVideoFile.getParentFile().mkdirs();
         deviceInterface.pullFile(remoteFilePath, localVideoFile.toString());
         logger.trace("Pulling finished in {}ms {}", Utils.millisSinceNanoTime(startNanos), remoteFilePath);
     }
