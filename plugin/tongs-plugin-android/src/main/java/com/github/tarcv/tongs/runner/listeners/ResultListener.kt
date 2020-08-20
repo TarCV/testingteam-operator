@@ -11,30 +11,18 @@ package com.github.tarcv.tongs.runner.listeners
 
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.api.run.ResultStatus
-import com.github.tarcv.tongs.api.run.TestCaseEvent
-import com.github.tarcv.tongs.runner.PreregisteringLatch
 import org.slf4j.LoggerFactory
 import javax.annotation.concurrent.GuardedBy
 import javax.annotation.concurrent.ThreadSafe
 
 @ThreadSafe
-class ResultListener(private val currentTestCaseEvent: TestCaseEvent,
-                     latch: PreregisteringLatch) : BaseListener(latch), FullTestRunListener {
+class ResultListener(private val runName: String) : RunListener {
 
     private val lock = Any()
 
-    @field:GuardedBy("lock") private var _result: ShellResult = ShellResult()
-
-    fun finishAndGetResult(): ShellResult = synchronized(lock) {
-        if (state != State.RUN_ENDED && state != State.RUN_FAILED) {
-            logger.warn("Run ${currentTestCaseEvent.testCase} ended unexpectedly (probably the device got disconnected)")
-            runEnded()
-        }
-        _result
-    }
-
-    @GuardedBy("lock") private var expectedTests = -1
-    @GuardedBy("lock") private var state = State.BEFORE_RUN
+    @field:GuardedBy("lock") public var result: ShellResult = ShellResult()
+        get() = synchronized(lock) { field }
+        private set
 
     data class ShellResult(
             val status: ResultStatus? = null,
@@ -45,104 +33,23 @@ class ResultListener(private val currentTestCaseEvent: TestCaseEvent,
             val endTime: Long? = null
     )
 
-    override fun testRunStarted(runName: String, testCount: Int) {
+    override fun onRunStarted() {
         synchronized(lock) {
-            expectedTests = testCount
-            if (testCount > 0) {
-                checkAndUpdate(State.BEFORE_RUN, State.RUN_STARTED_OR_TEST_ENDED, null)
-            } else {
-                logger.error("No tests were found in ${currentTestCaseEvent.testCase} run")
-                fatallyFailRun()
+            result = result.copy(startTime = System.currentTimeMillis())
+        }
+    }
+
+    override fun onRunFinished() {
+        synchronized(lock) {
+            if (result.startTime != null) {
+                result = result.copy(endTime = System.currentTimeMillis())
             }
         }
     }
 
-    override fun testStarted(test: TestIdentifier) {
+    override fun onTestFinished(testIdentifier: TestIdentifier, resultStatus: ResultStatus, trace: String, hasStarted: Boolean) {
         synchronized(lock) {
-            _result = _result.copy(startTime = System.currentTimeMillis())
-            checkAndUpdate(State.RUN_STARTED_OR_TEST_ENDED, State.TEST_STARTED, null)
-        }
-    }
-    override fun testFailed(test: TestIdentifier, trace: String) {
-        synchronized(lock) {
-            appendTrace(trace)
-            testEndedWithStatus(ResultStatus.FAIL)
-        }
-    }
-
-    override fun testAssumptionFailure(test: TestIdentifier, trace: String) {
-        appendTrace(trace)
-        testEndedWithStatus(ResultStatus.ASSUMPTION_FAILED)
-    }
-
-    override fun testIgnored(test: TestIdentifier) {
-        testEndedWithStatus(ResultStatus.IGNORED)
-    }
-
-    override fun testEnded(test: TestIdentifier, testMetrics: Map<String, String>) {
-        synchronized(lock) {
-            if (state == State.TEST_STARTED) {
-                testEndedWithStatus(ResultStatus.PASS)
-            }
-
-            mergeMetrics(testMetrics)
-        }
-    }
-
-    override fun testRunFailed(errorMessage: String) {
-        synchronized(lock) {
-            try {
-                appendTrace(errorMessage)
-                fatallyFailRun()
-            } finally {
-                onWorkFinished()
-            }
-        }
-    }
-
-    private fun appendTrace(trace: String) {
-        val newTrace = _result.trace.let {
-            if (it.isNullOrBlank()) {
-                trace
-            } else {
-                it + "\n\n" + trace
-            }
-        }
-        _result = _result.copy(trace = newTrace)
-    }
-
-    override fun testRunStopped(elapsedTime: Long) {}
-    override fun testRunEnded(elapsedTime: Long, runMetrics: Map<String, String>?) {
-        this.testRunEnded(elapsedTime, "", runMetrics)
-    }
-
-    override fun testRunEnded(elapsedTime: Long, output: String, runMetrics: Map<String, String>?) {
-        synchronized(lock) {
-            _result = _result.copy(output = output)
-            if (runMetrics != null) {
-                mergeMetrics(runMetrics)
-            }
-            runEnded()
-        }
-    }
-
-    @GuardedBy("lock")
-    private fun runEnded() {
-        if (state != State.RUN_FAILED && expectedTests != 0) {
-            logger.error("Executed too little or too much tests in ${currentTestCaseEvent.testCase} run")
-            fatallyFailRun()
-        }
-        onWorkFinished()
-    }
-
-    private fun testEndedWithStatus(resultStatus: ResultStatus) {
-        synchronized(lock) {
-            if (_result.startTime != null) {
-                _result = _result.copy(endTime = System.currentTimeMillis())
-            }
-
-            expectedTests -= 1
-            val newStatus = _result.status.let {
+            val newStatus = result.status.let {
                 if (it == null) {
                     resultStatus
                 } else if (it.overrideCompareTo(resultStatus) >= 0) {
@@ -152,41 +59,78 @@ class ResultListener(private val currentTestCaseEvent: TestCaseEvent,
                 }
             }
 
-            checkAndUpdate(State.TEST_STARTED, State.RUN_STARTED_OR_TEST_ENDED, newStatus)
+            appendTrace(trace)
+
+            result = result.copy(status = newStatus)
+        }
+    }
+
+    override fun addTestMetrics(testIdentifier: TestIdentifier, testMetrics: Map<String, String>, hasStarted: Boolean) {
+        synchronized(lock) {
+            mergeMetrics(testMetrics)
+        }
+    }
+
+    override fun onRunFailure(errorMessage: String) {
+        synchronized(lock) {
+            result = result.copy(status = ResultStatus.ERROR)
+
+            if (errorMessage.isNotEmpty()) {
+                appendOutput(errorMessage)
+            }
+        }
+    }
+
+    override fun addRunData(runOutput: String, runMetrics: Map<String, String>) {
+        synchronized(lock) {
+            appendOutput(runOutput)
+            mergeMetrics(runMetrics)
         }
     }
 
     @GuardedBy("lock")
+    private fun appendTrace(trace: String) {
+        if (trace.isEmpty()) return
+
+        val newTrace = result.trace.let {
+            if (it.isNullOrBlank()) {
+                trace
+            } else {
+                it + "\n\n" + trace
+            }
+        }
+        result = result.copy(trace = newTrace)
+    }
+
+    @GuardedBy("lock")
+    private fun appendOutput(output: String) {
+        if (output.isEmpty()) return
+
+        result = result.copy(output = result.output.appendBlock(output))
+    }
+
+    private fun String.appendBlock(block: String): String {
+        val newString = let {
+            if (it.isNullOrBlank()) {
+                block
+            } else {
+                it + "\n\n" + block
+            }
+        }
+        return newString
+    }
+
+    @GuardedBy("lock")
     private fun mergeMetrics(testMetrics: Map<String, String>) {
-        val metrics = _result.metrics.let {
-            if (it.isEmpty()) {
+        val metrics = result.metrics.let {
+            if (it.isNullOrEmpty()) {
                 testMetrics
             } else {
                 // TODO: implement merging
                 it + testMetrics
             }
         }
-        _result = _result.copy(metrics = metrics)
-    }
-
-    @GuardedBy("lock")
-    private fun checkAndUpdate(expectedState: State, nextState: State, newStatus: ResultStatus?) {
-        if (state == expectedState) {
-            if (newStatus != null) {
-                _result = _result.copy(status = newStatus)
-            }
-
-            state = nextState
-        } else {
-            fatallyFailRun()
-        }
-        return Unit
-    }
-
-    @GuardedBy("lock")
-    private fun fatallyFailRun() {
-        _result = _result.copy(status = ResultStatus.ERROR)
-        state = State.RUN_FAILED
+        result = result.copy(metrics = metrics)
     }
 
     private enum class State {

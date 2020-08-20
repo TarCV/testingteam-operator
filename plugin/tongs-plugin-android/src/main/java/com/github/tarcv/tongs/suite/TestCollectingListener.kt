@@ -9,15 +9,15 @@
  */
 package com.github.tarcv.tongs.suite
 
+import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.github.tarcv.tongs.runner.listeners.BaseListener
 import java.util.*
 import javax.annotation.concurrent.GuardedBy
 
 /**
  * Records identifiers of started tests
  */
-class TestCollectingListener : BaseListener(null) {
+class TestCollectingListener : ITestRunListener {
     private val lock = Any()
 
     @GuardedBy("lock")

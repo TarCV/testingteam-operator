@@ -22,7 +22,6 @@ import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.suite.ApkTestCase
-import java.util.concurrent.TimeUnit
 
 class AndroidInstrumentedTestCaseRunnerFactory: TestCaseRunnerFactory<AndroidInstrumentedTestCaseRunner> {
     override fun testCaseRunners(context: TestCaseRunnerContext): Array<out AndroidInstrumentedTestCaseRunner> {
@@ -37,18 +36,11 @@ class AndroidInstrumentedTestCaseRunner(val context: TestCaseRunnerContext): Tes
 
     override fun run(arguments: TestCaseRunnerArguments): RunTesult {
         val androidTestRunFactory = TestRunFactoryInjector.testRunFactory(context.configuration)
-        val workCountdownLatch = PreregisteringLatch()
         val runContext = AndroidRunContext(context, arguments)
         val testRun = androidTestRunFactory.createTestRun(runContext, arguments.testCaseEvent,
                 context.device as AndroidDevice,
-                context.pool,
-                workCountdownLatch)
-        workCountdownLatch.finalizeRegistering()
-        return try {
-            testRun.execute()
-        } finally {
-            workCountdownLatch.await(15, TimeUnit.SECONDS)
-        }
+                context.pool)
+        return testRun.execute()
     }
 
 }

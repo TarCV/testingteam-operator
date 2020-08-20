@@ -9,12 +9,14 @@
  */
 package com.github.tarcv.tongs.runner
 
+import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.utils.toSystemLineSeparator
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.run.aTestCaseEvent
 import com.github.tarcv.tongs.api.testcases.aTestCase
 import com.github.tarcv.tongs.runner.listeners.ResultListener
+import com.github.tarcv.tongs.runner.listeners.RunListenerAdapter
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -23,9 +25,11 @@ class TongsInstrumentationResultParserTest {
     private val testMethodName = "failureFromEspresso[failAfter = true]"
     private val testCase = TestCaseEvent.aTestCaseEvent(aTestCase(testShortClassName, testMethodName))
 
-    private val latch = PreregisteringLatch()
-    private val listener = ResultListener(testCase, latch)
-    private val parser = TongsInstrumentationResultParser("unitTest", listOf(listener))
+    private val listener = ResultListener(testCase.toString())
+    private val parser = TongsInstrumentationResultParser(
+            "unitTest",
+            listOf(RunListenerAdapter(testCase.toString(), TestIdentifier(testCase.testClass,testCase.testMethod), listOf(listener)))
+    )
 
     private val afterMethodException = """java.lang.RuntimeException: Exception from afterMethod
     at ${testCase.testClass}.afterMethod($testShortClassName.java:30)
@@ -102,7 +106,7 @@ Tests run: 1,  Failures: 2
 
 """
 
-        val result = listener.finishAndGetResult()
+        val result = listener.result
         assertEquals(ResultStatus.FAIL, result.status)
         assertEquals(
                 expectedOutput.trim().toSystemLineSeparator(),

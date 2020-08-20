@@ -11,12 +11,11 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.device.DeviceTestFilesCleaner;
 import com.github.tarcv.tongs.runner.TestRetryer;
 import com.github.tarcv.tongs.util.TestPipelineEmulator;
 import org.jmock.Expectations;
@@ -25,11 +24,10 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
+import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestCaseEvent;
 import static com.github.tarcv.tongs.api.testcases.TestCaseExtKt.aTestCase;
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
-import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.util.TestPipelineEmulator.Builder.testPipelineEmulator;
 
 public class RetryListenerTest {
@@ -51,7 +49,6 @@ public class RetryListenerTest {
 
     @Test
     public void reschedulesTestIfTestRunFailedAndDeleteTraceFiles() {
-        PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         RetryListener retryListener =
                 new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner);
 
@@ -72,7 +69,6 @@ public class RetryListenerTest {
 
     @Test
     public void doesNotDeleteTraceFilesIfCannotRescheduleTestAfterTestRunFailed() {
-        PreregisteringLatch workCountdownLatch = new PreregisteringLatch();
         RetryListener retryListener =
                 new RetryListener(pool, device, fatalCrashedTestCaseEvent, testRetryer, deviceTestFilesCleaner);
 

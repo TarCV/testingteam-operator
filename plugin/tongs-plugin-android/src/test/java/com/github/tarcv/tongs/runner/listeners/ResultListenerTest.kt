@@ -14,13 +14,11 @@ import com.android.utils.toSystemLineSeparator
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.testcases.TestCase
-import com.github.tarcv.tongs.runner.PreregisteringLatch
 import com.github.tarcv.tongs.suite.ApkTestCase
 import org.junit.Test
 import kotlin.test.asserter
 
 class ResultListenerTest {
-    private val latch = PreregisteringLatch()
     private val event = TestCaseEvent(
             TestCase(
                     ApkTestCase::class.java,
@@ -37,18 +35,21 @@ class ResultListenerTest {
             0
     )
     private val test = TestIdentifier(event.testClass, event.testMethod)
-    private val listener = ResultListener(event, latch)
+    private val resultListener = ResultListener("runName")
+    private val listener = RunListenerAdapter("runName", test, listOf(resultListener))
 
     private val trace = "error trace"
 
     @Test
     fun normalSuccess() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 1)
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.PASS, result.status)
         asserter.assertEquals(null, "", result.output)
         asserter.assertEquals(null, "", result.trace)
@@ -56,13 +57,15 @@ class ResultListenerTest {
 
     @Test
     fun normalFailure() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 1)
         listener.testStarted(test)
         listener.testFailed(test, trace)
         listener.testEnded(test, emptyMap())
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.FAIL, result.status)
         asserter.assertEquals(null, "", result.output)
         asserter.assertEquals(null, trace, result.trace)
@@ -70,31 +73,36 @@ class ResultListenerTest {
 
     @Test
     fun normalError() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 1)
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
         listener.testRunFailed("runFailure")
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.ERROR, result.status)
-        asserter.assertEquals(null, "", result.output)
-        asserter.assertEquals(null, "runFailure", result.trace)
+        asserter.assertEquals(null, "runFailure", result.output)
+        asserter.assertEquals(null, "", result.trace)
     }
 
     @Test
     fun emptyRun() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 0)
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.ERROR, result.status)
-        asserter.assertEquals(null, "", result.output)
+        asserter.assertEquals(null, "No expected tests were found", result.output)
         asserter.assertEquals(null, "", result.trace)
     }
 
     @Test
     fun normalMultipleSuccess() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 3)
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
@@ -103,8 +111,9 @@ class ResultListenerTest {
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.PASS, result.status)
         asserter.assertEquals(null, "", result.output)
         asserter.assertEquals(null, "", result.trace)
@@ -112,6 +121,7 @@ class ResultListenerTest {
 
     @Test
     fun singleFailureInMultipleTests() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 5)
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
@@ -125,8 +135,9 @@ class ResultListenerTest {
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.FAIL, result.status)
         asserter.assertEquals(null, "", result.output)
         asserter.assertEquals(null, trace, result.trace)
@@ -134,6 +145,7 @@ class ResultListenerTest {
 
     @Test
     fun multipleFailuresInMultipleTests() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 5)
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
@@ -148,8 +160,9 @@ class ResultListenerTest {
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.FAIL, result.status)
         asserter.assertEquals(null, "", result.output)
         asserter.assertEquals(
@@ -161,6 +174,7 @@ class ResultListenerTest {
 
     @Test
     fun differentFailuresInMultipleTests1() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 2)
         listener.testStarted(test)
         listener.testAssumptionFailure(test, trace)
@@ -169,8 +183,9 @@ class ResultListenerTest {
         listener.testIgnored(test)
         listener.testEnded(test, emptyMap())
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.ASSUMPTION_FAILED, result.status)
         asserter.assertEquals(null, "", result.output)
         asserter.assertEquals(null, trace, result.trace)
@@ -178,6 +193,7 @@ class ResultListenerTest {
 
     @Test
     fun differentFailuresInMultipleTests2() {
+        listener.onBeforeTestRunStarted()
         listener.testRunStarted("run", 5)
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
@@ -193,8 +209,9 @@ class ResultListenerTest {
         listener.testStarted(test)
         listener.testEnded(test, emptyMap())
         listener.testRunEnded(1000, emptyMap())
+        listener.onAfterTestRunEnded()
 
-        val result = listener.finishAndGetResult()
+        val result = resultListener.result
         asserter.assertEquals(null, ResultStatus.FAIL, result.status)
         asserter.assertEquals(null, "", result.output)
         asserter.assertEquals(

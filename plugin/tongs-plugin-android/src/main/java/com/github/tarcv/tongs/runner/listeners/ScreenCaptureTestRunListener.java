@@ -12,26 +12,23 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.api.result.TestCaseFileManager;
+import com.github.tarcv.tongs.model.AndroidDevice;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-class ScreenCaptureTestRunListener extends BaseListener {
+class ScreenCaptureTestRunListener extends BaseCaptureTestRunListener {
     private final TestCaseFileManager fileManager;
     private final IDevice deviceInterface;
     private final Pool pool;
     private final AndroidDevice device;
 
     private ScreenCapturer screenCapturer;
-    private boolean hasFailed;
 
-    public ScreenCaptureTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
-        super(latch);
+    public ScreenCaptureTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device) {
         this.fileManager = fileManager;
         this.deviceInterface = device.getDeviceInterface();
         this.pool = pool;
@@ -39,46 +36,28 @@ class ScreenCaptureTestRunListener extends BaseListener {
     }
 
     @Override
-    public void testRunStarted(String runName, int testCount) {
-    }
-
-    @Override
-    public void testStarted(TestIdentifier test) {
-        hasFailed = false;
-        screenCapturer = new ScreenCapturer(deviceInterface, fileManager, pool, device, test);
+    public void onRunStarted() {
+        screenCapturer = new ScreenCapturer(deviceInterface, fileManager, pool, device);
         new Thread(screenCapturer, "ScreenCapturer").start();
     }
 
     @Override
-    public void testFailed(TestIdentifier test, String trace) {
-        hasFailed = true;
-    }
-
-    @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
-        screenCapturer.stopCapturing(hasFailed);
-    }
-
-    @Override
-    public void testIgnored(TestIdentifier test) {
-        screenCapturer.stopCapturing(hasFailed);
-    }
-
-    @Override
-    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-        screenCapturer.stopCapturing(hasFailed);
-    }
-
-    @Override
-    public void testRunFailed(String errorMessage) {
-    }
-
-    @Override
-    public void testRunStopped(long elapsedTime) {
+    public void onRunFinished() {
+        screenCapturer.stopCapturing(isHasFailed());
     }
 
     @NotNull
     public TestCaseFile getFile() {
         return screenCapturer.getFile();
+    }
+
+    @Override
+    public void addTestMetrics(@NotNull TestIdentifier testIdentifier, @NotNull Map<String, String> testMetrics, boolean hasStarted) {
+
+    }
+
+    @Override
+    public void addRunData(@NotNull String runOutput, @NotNull Map<String, String> runMetrics) {
+
     }
 }

@@ -15,12 +15,14 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.api.result.TestCaseFileManager;
+import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.model.AndroidDevice;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +32,7 @@ import java.util.Map;
 import static com.github.tarcv.tongs.api.result.StandardFileTypes.JSON_LOG;
 import static com.github.tarcv.tongs.api.result.StandardFileTypes.RAW_LOG;
 
-class LogCatTestRunListener extends BaseListener {
+class LogCatTestRunListener implements RunListener {
 	private final LogcatReceiver logcatReceiver;
     private final TestCaseFileManager fileManager;
     private final Pool pool;
@@ -40,68 +42,44 @@ class LogCatTestRunListener extends BaseListener {
 
 	private final TestCaseFile tableFile;
 	private final TestCaseFile rawFile;
+	private final TestCase testCase;
 
-	public LogCatTestRunListener(Gson gson, TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
-		super(latch);
+	public LogCatTestRunListener(Gson gson,
+								 TestCaseFileManager fileManager,
+								 Pool pool,
+								 AndroidDevice device,
+								 TestCase testCase
+	) {
 		this.logcatReceiver = new LogcatReceiver(device);
-        this.gson = gson;
-        this.fileManager = fileManager;
-        this.pool = pool;
+		this.gson = gson;
+		this.fileManager = fileManager;
+		this.pool = pool;
 		this.device = device;
+		this.testCase = testCase;
 		this.tableFile = new TestCaseFile(fileManager, JSON_LOG, "");
 		this.rawFile = new TestCaseFile(fileManager, RAW_LOG, "");
 	}
 
 	@Override
-	public void testRunStarted(String runName, int testCount) {
-		logcatReceiver.start(runName);
+	public void onRunStarted() {
+		logcatReceiver.start(testCase.toString());
 	}
 
 	@Override
-	public void testStarted(TestIdentifier test) {
-	}
-
-	@Override
-	public void testFailed(TestIdentifier test, String trace) {
-	}
-
-    @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
-    }
-
-    @Override
-    public void testIgnored(TestIdentifier test) {
-    }
-
-    @Override
-	public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
+	public void onRunFinished() {
 		List<LogCatMessage> copyOfLogCatMessages = logcatReceiver.getMessages();
 		synchronized (messages) {
 			messages.clear();
 			messages.addAll(copyOfLogCatMessages);
 		}
 		LogCatWriter logCatWriter = new CompositeLogCatWriter(
-                new TableLogCatWriter(gson, tableFile),
-                new RawLogCatWriter(fileManager, pool, device, rawFile));
-        LogCatSerializer logCatSerializer = new LogCatSerializer(test, logCatWriter);
+				new TableLogCatWriter(gson, tableFile),
+				new RawLogCatWriter(fileManager, pool, device, rawFile));
+		TestIdentifier test = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
+		LogCatSerializer logCatSerializer = new LogCatSerializer(test, logCatWriter);
 		logCatSerializer.serializeLogs(copyOfLogCatMessages);
-	}
 
-	@Override
-	public void testRunFailed(String errorMessage) {
-	}
-
-	@Override
-	public void testRunStopped(long elapsedTime) {
-	}
-
-	@Override
-	public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
-    	try {
-			logcatReceiver.stop();
-		} finally {
-    		onWorkFinished();
-		}
+		logcatReceiver.stop();
 	}
 
 	public TestCaseFile getTableFile() {
@@ -110,5 +88,25 @@ class LogCatTestRunListener extends BaseListener {
 
 	public TestCaseFile getRawFile() {
 		return rawFile;
+	}
+
+	@Override
+	public void onTestFinished(@NotNull TestIdentifier testIdentifier, @NotNull ResultStatus resultStatus, @NotNull String trace, boolean hasStarted) {
+
+	}
+
+	@Override
+	public void onRunFailure(@NotNull String errorMessage) {
+
+	}
+
+	@Override
+	public void addTestMetrics(@NotNull TestIdentifier testIdentifier, @NotNull Map<String, String> testMetrics, boolean hasStarted) {
+
+	}
+
+	@Override
+	public void addRunData(@NotNull String runOutput, @NotNull Map<String, String> runMetrics) {
+
 	}
 }
