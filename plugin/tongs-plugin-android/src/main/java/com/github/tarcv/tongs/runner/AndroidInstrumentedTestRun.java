@@ -74,10 +74,12 @@ public class AndroidInstrumentedTestRun {
 		String testClassName;
 		String testMethodName;
 		TestCase testCase;
+		String specialFilter;
 		if (test != null) {
 			testClassName = test.getTestClass();
 			testMethodName = test.getTestMethod();
 			testCase = test.getTestCase();
+			specialFilter = TESTCASE_FILTER;
 
 			if (testRunParameters.isWithOnDeviceLibrary()) {
 				String encodedClassName = remoteAndroidTestRunnerFactory.encodeTestName(testClassName);
@@ -85,8 +87,6 @@ public class AndroidInstrumentedTestRun {
 
 				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", encodedClassName);
 				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", encodedMethodName);
-
-				addFilterAndCustomArgs(runner, TESTCASE_FILTER);
 			} else {
 				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "class",
 						testClassName + "#" + testMethodName);
@@ -100,12 +100,14 @@ public class AndroidInstrumentedTestRun {
 			testClassName = "Test case collection";
 			testMethodName = "";
 			testCase = new TestCase(ApkTestCase.class, "dummy", "dummy.Dummy", "dummy", Collections.singletonList("dummy"));
+			specialFilter = COLLECTING_RUN_FILTER;
 
 			runner.addBooleanArg("log", true);
-			if (testRunParameters.isWithOnDeviceLibrary()) {
-				addFilterAndCustomArgs(runner, COLLECTING_RUN_FILTER);
-			}
 		}
+
+		addFilterAndCustomArgs(
+				runner,
+				testRunParameters.isWithOnDeviceLibrary() ? specialFilter : null);
 
 		String excludedAnnotation = testRunParameters.getExcludedAnnotation();
 		if (!Strings.isNullOrEmpty(excludedAnnotation)) {
@@ -139,7 +141,7 @@ public class AndroidInstrumentedTestRun {
         return resultProducer.getResult();
     }
 
-	private void addFilterAndCustomArgs(RemoteAndroidTestRunner runner, String collectingRunFilter) {
+	private void addFilterAndCustomArgs(RemoteAndroidTestRunner runner, @Nullable String collectingRunFilter) {
 		testRunParameters.getTestRunnerArguments().entrySet().stream()
 				.filter(nameValue -> !nameValue.getKey().equals("filter"))
 				.filter(nameValue -> !nameValue.getKey().startsWith("tongs_"))
@@ -149,13 +151,11 @@ public class AndroidInstrumentedTestRun {
 				});
 
 		@Nullable String customFilters = testRunParameters.getTestRunnerArguments().get("filter");
-		String filters;
-		if (customFilters != null) {
-			filters = customFilters + "," + collectingRunFilter;
-		} else {
-			filters = collectingRunFilter;
+		String filters = Stream.of(customFilters, collectingRunFilter)
+				.filter(filter -> filter != null)
+				.collect(Collectors.joining(","));
+		if (!filters.isEmpty()) {
+			runner.addInstrumentationArg("filter", filters);
 		}
-
-		runner.addInstrumentationArg("filter", filters);
 	}
 }

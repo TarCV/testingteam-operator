@@ -11,8 +11,11 @@
 package com.github.tarcv.tongs.system;
 
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
-
 import org.apache.commons.text.StringEscapeUtils;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Various utils for DDMS
@@ -56,15 +59,57 @@ public class DdmsUtils {
     }
 
     public static String escapeArgumentForCommandLine(String value) {
-        String escapedValue = StringEscapeUtils.escapeXSI(value);
-        String restoredValue = unescapeInstrumentationArg(value);
+        String escapedValue = escapeNonAscii(StringEscapeUtils.escapeXSI(value));
 
+        /* TODO
+        String restoredValue = unescapeInstrumentationArg(value);
         // Guard against cases where unescapeXSI(escapeXSI(x))!=x (mostly for invisible chars)
         if (!value.equals(restoredValue)) {
             throw new IllegalArgumentException("Running '" + value + "' is not supported");
         }
+        */
 
         return escapedValue;
+    }
+
+    private static String escapeNonAscii(String escapeXSI) {
+        ArrayList<Integer> result = new ArrayList<>();
+        AtomicBoolean inEscape = new AtomicBoolean(false);
+        escapeXSI.codePoints().forEachOrdered(code -> {
+            if (code < 0x20 || code > 0x7f) {
+                if (inEscape.compareAndSet(false, true)) {
+                    assert "$".codePoints().count() == 1;
+                    assert "'".codePoints().count() == 1;
+                    assert "\\".codePoints().count() == 1;
+                    assert "x".codePoints().count() == 1;
+                    result.add("$".codePointAt(0));
+                    result.add("'".codePointAt(0));
+                }
+
+                byte[] encoded = new String(new int[]{code}, 0, 1).getBytes(StandardCharsets.UTF_8);
+                for (byte b : encoded) {
+                    result.add("\\".codePointAt(0));
+                    result.add("x".codePointAt(0));
+
+                    String byteCode = String.format("%02x", (0x100 + b) % 0x100);
+                    assert byteCode.codePoints().count() == 2;
+                    byteCode.codePoints().forEach(c -> result.add(c));
+                }
+            } else {
+                boolean endEscaping = inEscape.compareAndSet(true, false);
+                if (endEscaping) {
+                    assert "'".codePoints().count() == 1;
+                    result.add("'".codePointAt(0));
+                }
+                result.add(code);
+            }
+        });
+        if (inEscape.get()) {
+            assert "'".codePoints().count() == 1;
+            result.add("'".codePointAt(0));
+        }
+        int[] resultArray = result.stream().mapToInt(i -> i).toArray();
+        return new String(resultArray, 0, resultArray.length);
     }
 
     /**

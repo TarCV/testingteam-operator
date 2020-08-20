@@ -5,7 +5,7 @@ import org.junit.runner.manipulation.Filter
 
 class F2Filter : Filter() {
     override fun shouldRun(description: Description): Boolean {
-        val filteredOutTest = description.methodName?.startsWith("filteredByF2Filter") ?: false
+        val filteredOutTest = description.methodName?.startsWith("filteredByF2Filter") == true
         return !filteredOutTest
     }
 
