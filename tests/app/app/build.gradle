@@ -62,7 +62,11 @@ dependencies {
     androidTestImplementation "androidx.test:core:$testVersion"
     androidTestImplementation "androidx.test:rules:$testVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVersion"
-    androidTestCompileOnly 'com.github.tarcv.tongs:tongs-ondevice'
+    if (Boolean.valueOf(System.getenv("CI_NO_ONDEVICE"))) {
+        androidTestCompileOnly 'com.github.tarcv.tongs:tongs-ondevice'
+    } else {
+        androidTestImplementation 'com.github.tarcv.tongs:tongs-ondevice'
+    }
 }
 
 tongs {
