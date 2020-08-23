@@ -40,4 +40,5 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(extra.deps.getValue("junit"))
     testImplementation(extra.deps.getValue("hamcrest"))
+    testImplementation(extra.deps.getValue("junitParams"))
 }

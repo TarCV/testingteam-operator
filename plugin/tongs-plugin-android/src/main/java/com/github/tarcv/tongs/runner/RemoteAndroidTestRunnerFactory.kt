@@ -17,11 +17,10 @@ import com.android.ddmlib.testrunner.TestIdentifier
 import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData
 import com.github.tarcv.tongs.api.result.StackTrace
 import com.github.tarcv.tongs.api.result.TestCaseRunResult
-import com.github.tarcv.tongs.runner.listeners.BroadcastingListener
-import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
 import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.runner.listeners.BroadcastingListener
 import com.github.tarcv.tongs.system.DdmsUtils
-import com.github.tarcv.tongs.system.DdmsUtils.unescapeInstrumentationArg
+import org.apache.commons.text.StringEscapeUtils
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.*
@@ -94,7 +93,7 @@ class TestAndroidTestRunnerFactory : IRemoteAndroidTestRunnerFactory {
                                 TestIdentifierCommandPattern.matchEntire(command)
                                         ?.groupValues
                                         ?.drop(1) // group 0 is the entire match
-                                        ?.map { unescapeInstrumentationArg(it) }
+                                        ?.map { StringEscapeUtils.unescapeXSI(it) }
                                         ?: throw IllegalStateException()
                         listeners.testRunStarted("emulators", 1)
                         listeners.fireTest("$testClass#$testMethod", functionalTestTestIdentifierDuration)

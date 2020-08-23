@@ -282,7 +282,7 @@ class ApkTestInfoReader {
 
                 fun appendPart() {
                     list.add(builder.toString())
-                    builder.clear()
+                    builder.delete(0, builder.length)
                 }
 
                 fun toList(): List<String> {

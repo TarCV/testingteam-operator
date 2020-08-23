@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -13,14 +13,21 @@ package com.github.tarcv.tongs.system;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import org.apache.commons.text.StringEscapeUtils;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Various utils for DDMS
  */
 public class DdmsUtils {
+
+    public static final Pattern SINGLE_QUOTE_PATTERN = Pattern.compile("'");
+    public static final Pattern SAFE_STRING_PATTERN = Pattern.compile("^[A-Za-z0-9_]*$");
+
     private DdmsUtils() {}
 
     /**
@@ -33,7 +40,7 @@ public class DdmsUtils {
      * @param testClassName Class name to use
      * @param testMethodName Method name to use
      */
-    public static void properlySetMethodName(
+    public static void properlySetClassName(
             RemoteAndroidTestRunner runner,
             String testClassName,
             String testMethodName) {
@@ -59,29 +66,65 @@ public class DdmsUtils {
     }
 
     public static String escapeArgumentForCommandLine(String value) {
-        String escapedValue = escapeNonAscii(StringEscapeUtils.escapeXSI(value));
-
-        /* TODO
-        String restoredValue = unescapeInstrumentationArg(value);
-        // Guard against cases where unescapeXSI(escapeXSI(x))!=x (mostly for invisible chars)
-        if (!value.equals(restoredValue)) {
-            throw new IllegalArgumentException("Running '" + value + "' is not supported");
+        if (noEscapingNeeded(value)) {
+            return value;
         }
-        */
 
-        return escapedValue;
+        ArrayList<String> variants = new ArrayList<>(2);
+        variants.add(escapeNonAscii(StringEscapeUtils.escapeXSI(value), null));
+        variants.add(escapeNonAscii(singleQuote(value), '\''));
+
+        return variants.stream()
+                .sorted((o1, o2) -> Integer.compare(o1.length(), o2.length()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException());
     }
 
-    private static String escapeNonAscii(String escapeXSI) {
+    static boolean noEscapingNeeded(String value) {
+        return SAFE_STRING_PATTERN.matcher(value).matches();
+    }
+
+    static String singleQuote(String str) {
+        StringBuffer buffer = new StringBuffer("'");
+        Matcher matcher = SINGLE_QUOTE_PATTERN.matcher(str);
+        String replacement = Matcher.quoteReplacement("'\\''");
+        while (matcher.find()) {
+            matcher.appendReplacement(buffer, replacement);
+        }
+        matcher.appendTail(buffer);
+        buffer.append("'");
+
+        String result = buffer.toString();
+        if (result.startsWith("''")) {
+            result = result.substring(2);
+        }
+        if (result.endsWith("''")) {
+            result = result.substring(0, result.length() - 2);
+        }
+        return result;
+    }
+
+    static String escapeNonAscii(String str, @Nullable Character quote) {
         ArrayList<Integer> result = new ArrayList<>();
         AtomicBoolean inEscape = new AtomicBoolean(false);
-        escapeXSI.codePoints().forEachOrdered(code -> {
+        Integer quoteCodepoint;
+        if (quote != null) {
+            assert String.valueOf(quote).codePoints().count() == 1;
+            quoteCodepoint = String.valueOf(quote).codePointAt(0);
+        } else {
+            quoteCodepoint = null;
+        }
+
+        str.codePoints().forEachOrdered(code -> {
             if (code < 0x20 || code > 0x7f) {
                 if (inEscape.compareAndSet(false, true)) {
                     assert "$".codePoints().count() == 1;
                     assert "'".codePoints().count() == 1;
                     assert "\\".codePoints().count() == 1;
                     assert "x".codePoints().count() == 1;
+                    if (quoteCodepoint != null) {
+                        result.add(quoteCodepoint);
+                    }
                     result.add("$".codePointAt(0));
                     result.add("'".codePointAt(0));
                 }
@@ -100,6 +143,9 @@ public class DdmsUtils {
                 if (endEscaping) {
                     assert "'".codePoints().count() == 1;
                     result.add("'".codePointAt(0));
+                    if (quoteCodepoint != null) {
+                        result.add(quoteCodepoint);
+                    }
                 }
                 result.add(code);
             }
@@ -107,15 +153,11 @@ public class DdmsUtils {
         if (inEscape.get()) {
             assert "'".codePoints().count() == 1;
             result.add("'".codePointAt(0));
+            if (quoteCodepoint != null) {
+                result.add(quoteCodepoint);
+            }
         }
         int[] resultArray = result.stream().mapToInt(i -> i).toArray();
         return new String(resultArray, 0, resultArray.length);
-    }
-
-    /**
-     * For now this method is used in functional tests only
-     */
-    public static String unescapeInstrumentationArg(String value) {
-        return StringEscapeUtils.unescapeXSI(value);
     }
 }
