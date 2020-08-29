@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import com.github.tarcv.tongs.model.AndroidDevice;
-import com.github.tarcv.tongs.runner.PreregisteringLatch;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -24,24 +23,23 @@ import java.util.Map;
 
 import static com.github.tarcv.tongs.api.result.StandardFileTypes.SCREENRECORD;
 
-class ScreenRecorderTestRunListener extends BaseListener {
+class ScreenRecorderTestRunListener extends BaseCaptureTestRunListener {
     private final TestCaseFileManager fileManager;
     private final Pool pool;
     private final AndroidDevice device;
     private final IDevice deviceInterface;
 
-    private boolean hasFailed;
-    private ScreenRecorderStopper screenRecorderStopper;
+    private final ScreenRecorderStopper screenRecorderStopper;
 
     @NotNull
     public final TestCaseFile file;
 
-    public ScreenRecorderTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device, PreregisteringLatch latch) {
-        super(latch);
+    public ScreenRecorderTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device) {
         this.fileManager = fileManager;
         this.pool = pool;
         this.device = device;
         deviceInterface = device.getDeviceInterface();
+        screenRecorderStopper = new ScreenRecorderStopper(deviceInterface);
         file = new TestCaseFile(fileManager, SCREENRECORD, "");
     }
 
@@ -51,57 +49,24 @@ class ScreenRecorderTestRunListener extends BaseListener {
     }
 
     @Override
-    public void testRunStarted(String runName, int testCount) {
-    }
-
-    @Override
-    public void testStarted(TestIdentifier test) {
-        hasFailed = false;
-        File localVideoFile = file.create();
-        screenRecorderStopper = new ScreenRecorderStopper(deviceInterface);
-        ScreenRecorder screenRecorder = new ScreenRecorder(test, screenRecorderStopper, localVideoFile, deviceInterface);
+    public void onRunStarted() {
+        File localVideoFile = file.toFile();
+        ScreenRecorder screenRecorder = new ScreenRecorder(screenRecorderStopper, localVideoFile, deviceInterface);
         new Thread(screenRecorder, "ScreenRecorder").start();
     }
 
     @Override
-    public void testFailed(TestIdentifier test, String trace) {
-        hasFailed = true;
+    public void onRunFinished() {
+        screenRecorderStopper.stopScreenRecord(isHasFailed());
     }
 
     @Override
-    public void testAssumptionFailure(TestIdentifier test, String trace) {
-        try {
-            screenRecorderStopper.stopScreenRecord(hasFailed);
-        } finally {
-            onWorkFinished();
-        }
+    public void addTestMetrics(@NotNull TestIdentifier testIdentifier, @NotNull Map<String, String> testMetrics, boolean hasStarted) {
+
     }
 
     @Override
-    public void testIgnored(TestIdentifier test) {
-        try {
-            screenRecorderStopper.stopScreenRecord(hasFailed);
-        } finally {
-            onWorkFinished();
-        }
-    }
-
-    @Override
-    public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
-        try {
-            screenRecorderStopper.stopScreenRecord(hasFailed);
-        } finally {
-            onWorkFinished();
-        }
-    }
-
-    @Override
-    public void testRunFailed(String errorMessage) {
-        hasFailed = true;
-    }
-
-    @Override
-    public void testRunStopped(long elapsedTime) {
+    public void addRunData(@NotNull String runOutput, @NotNull Map<String, String> runMetrics) {
 
     }
 }

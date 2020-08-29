@@ -14,7 +14,6 @@
 package com.github.tarcv.tongs.system.io;
 
 import com.android.ddmlib.*;
-import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.system.DdmsUtils;
 import org.slf4j.Logger;
@@ -58,7 +57,7 @@ public class RemoteFileManager {
     }
 
     private static final AtomicInteger videoIndex = new AtomicInteger();
-    public static String remoteVideoForTest(TestIdentifier test) {
+    public static String remoteVideoForTest() {
         // Incrementing is ok as this method is called only once for each test attempt
         String filename = String.format("scrn%x.mp4", videoIndex.getAndIncrement());
 

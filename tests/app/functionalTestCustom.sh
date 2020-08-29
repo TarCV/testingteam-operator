@@ -61,15 +61,25 @@ if [[ ${CI_STUBBED} != 'true' ]]; then
     ./gradlew :app:uninstallF2Debug :app:uninstallF2DebugAndroidTest --stacktrace
 fi
 
+set +e
+CI_NO_ONDEVICE=true ./gradlew :app:tongsF2DebugAndroidTest --stacktrace && exit 1
+set -e
+
+./gradlew :app:testF2DebugUnitTest
+
 
 
 cleanReportsAndLogs
 
+if [[ ${CI_STUBBED} != 'true' ]]; then
+    ./gradlew :app:uninstallF1Debug :app:uninstallF1DebugAndroidTest
+    ./gradlew :app:uninstallF2Debug :app:uninstallF2DebugAndroidTest --stacktrace
+fi
+
 rm app/tongs.json || true
 cp app/tongs.sample.json app/tongs.json
-TEST_ROOT="$(pwd)"
-TEST_ROOT=$(echo "$TEST_ROOT" | perl -lape 's/^\/([a-z])\//$1:\//g')
-SDK_PATH=$(echo "$ANDROID_HOME" | sed 's#\\#/#' | perl -lape 's/^\/([a-z])\//$1:\//g')
+TEST_ROOT=$(pwd | perl -lape 's/^\/([a-z])\//$1:\//g')
+SDK_PATH=$(echo "$ANDROID_SDK_ROOT" | sed 's#\\#/#' | perl -lape 's/^\/([a-z])\//$1:\//g')
 sed -i.bak "s/DEVICE1/${DEVICE1}/" app/tongs.json
 sed -i.bak "s/DEVICE2/${DEVICE2}/" app/tongs.json
 sed -i.bak "s#TEST_ROOT#${TEST_ROOT}#" app/tongs.json
@@ -82,6 +92,17 @@ fi
 pushd ../../plugin
     set +e
     ./gradlew :tongs-runner:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json" && exit 1
+    set -e
+popd
+./gradlew :app:testF2DebugUnitTest
+
+
+
+cleanReportsAndLogs
+
+pushd ../../plugin
+    set +e
+    CI_NO_ONDEVICE=true ./gradlew :tongs-runner:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json" && exit 1
     set -e
 popd
 ./gradlew :app:testF2DebugUnitTest

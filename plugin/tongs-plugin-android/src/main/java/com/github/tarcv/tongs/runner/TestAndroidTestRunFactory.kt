@@ -15,12 +15,10 @@ package com.github.tarcv.tongs.runner
 import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.runner.listeners.IResultProducer
 import com.github.tarcv.tongs.runner.listeners.TestResultProducer
-import com.github.tarcv.tongs.api.run.TestCaseRunnerContext
 
 class TestAndroidTestRunFactory(configuration: TongsConfiguration): AndroidTestRunFactory(configuration) {
     override fun createResultProducer(
-            testRunContext: AndroidRunContext,
-            workCountdownLatch: PreregisteringLatch
+            testRunContext: AndroidRunContext
     ): IResultProducer {
         return TestResultProducer(testRunContext)
     }

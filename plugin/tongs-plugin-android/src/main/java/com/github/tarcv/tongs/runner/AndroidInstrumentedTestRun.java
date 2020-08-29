@@ -17,10 +17,10 @@ import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
-import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
-import com.github.tarcv.tongs.runner.listeners.BaseListener;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
+import com.github.tarcv.tongs.runner.listeners.RunListenerAdapter;
 import com.github.tarcv.tongs.suite.ApkTestCase;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 import com.google.common.base.Strings;
@@ -31,8 +31,9 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
 import static java.lang.String.format;
 
 public class AndroidInstrumentedTestRun {
@@ -41,13 +42,13 @@ public class AndroidInstrumentedTestRun {
 	public static final String COLLECTING_RUN_FILTER = "com.github.tarcv.tongs.ondevice.AnnontationReadingFilter";
 	private final String poolName;
 	private final TestRunParameters testRunParameters;
-	private final List<BaseListener> testRunListeners;
+	private final List<? extends ITestRunListener> testRunListeners;
 	private final IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory;
 	private final IResultProducer resultProducer;
 
 	public AndroidInstrumentedTestRun(String poolName,
                                       TestRunParameters testRunParameters,
-                                      List<BaseListener> testRunListeners,
+                                      List<? extends ITestRunListener> testRunListeners,
                                       IResultProducer resultProducer,
                                       IRemoteAndroidTestRunnerFactory remoteAndroidTestRunnerFactory) {
         this.poolName = poolName;
@@ -73,18 +74,23 @@ public class AndroidInstrumentedTestRun {
 		String testClassName;
 		String testMethodName;
 		TestCase testCase;
+		String specialFilter;
 		if (test != null) {
 			testClassName = test.getTestClass();
 			testMethodName = test.getTestMethod();
 			testCase = test.getTestCase();
+			specialFilter = TESTCASE_FILTER;
 
-			String encodedClassName = remoteAndroidTestRunnerFactory.encodeTestName(testClassName);
-			String encodedMethodName = remoteAndroidTestRunnerFactory.encodeTestName(testMethodName);
+			if (testRunParameters.isWithOnDeviceLibrary()) {
+				String encodedClassName = remoteAndroidTestRunnerFactory.encodeTestName(testClassName);
+				String encodedMethodName = remoteAndroidTestRunnerFactory.encodeTestName(testMethodName);
 
-			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", encodedClassName);
-			remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", encodedMethodName);
-
-			addFilterAndCustomArgs(runner, TESTCASE_FILTER);
+				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterClass", encodedClassName);
+				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "tongs_filterMethod", encodedMethodName);
+			} else {
+				remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner, "class",
+						testClassName + "#" + testMethodName);
+			}
 
 			if (testRunParameters.isCoverageEnabled()) {
 				runner.setCoverage(true);
@@ -94,10 +100,14 @@ public class AndroidInstrumentedTestRun {
 			testClassName = "Test case collection";
 			testMethodName = "";
 			testCase = new TestCase(ApkTestCase.class, "dummy", "dummy.Dummy", "dummy", Collections.singletonList("dummy"));
+			specialFilter = COLLECTING_RUN_FILTER;
 
 			runner.addBooleanArg("log", true);
-			addFilterAndCustomArgs(runner, COLLECTING_RUN_FILTER);
 		}
+
+		addFilterAndCustomArgs(
+				runner,
+				testRunParameters.isWithOnDeviceLibrary() ? specialFilter : null);
 
 		String excludedAnnotation = testRunParameters.getExcludedAnnotation();
 		if (!Strings.isNullOrEmpty(excludedAnnotation)) {
@@ -108,18 +118,30 @@ public class AndroidInstrumentedTestRun {
 		}
 
 		try {
+			for (ITestRunListener testRunListener : testRunListeners) { // TODO: refactor this
+				if (testRunListener instanceof RunListenerAdapter) {
+					((RunListenerAdapter) testRunListener).onBeforeTestRunStarted();
+				}
+			}
+
 			logger.info("Cmd: " + runner.getAmInstrumentCommand());
 			runner.run(testRunListeners.toArray(new ITestRunListener[0]));
 		} catch (ShellCommandUnresponsiveException | TimeoutException e) {
 			logger.warn("Test: " + testClassName + " got stuck. You can increase the timeout in settings if it's too strict");
 		} catch (AdbCommandRejectedException | IOException e) {
 			throw new RuntimeException(format("Error while running test %s %s", testClassName, testMethodName), e);
+		} finally {
+			for (ITestRunListener testRunListener : testRunListeners) { // TODO: refactor this
+				if (testRunListener instanceof RunListenerAdapter) {
+					((RunListenerAdapter) testRunListener).onAfterTestRunEnded();
+				}
+			}
 		}
 
         return resultProducer.getResult();
     }
 
-	private void addFilterAndCustomArgs(RemoteAndroidTestRunner runner, String collectingRunFilter) {
+	private void addFilterAndCustomArgs(RemoteAndroidTestRunner runner, @Nullable String collectingRunFilter) {
 		testRunParameters.getTestRunnerArguments().entrySet().stream()
 				.filter(nameValue -> !nameValue.getKey().equals("filter"))
 				.filter(nameValue -> !nameValue.getKey().startsWith("tongs_"))
@@ -129,13 +151,11 @@ public class AndroidInstrumentedTestRun {
 				});
 
 		@Nullable String customFilters = testRunParameters.getTestRunnerArguments().get("filter");
-		String filters;
-		if (customFilters != null) {
-			filters = customFilters + "," + collectingRunFilter;
-		} else {
-			filters = collectingRunFilter;
+		String filters = Stream.of(customFilters, collectingRunFilter)
+				.filter(filter -> filter != null)
+				.collect(Collectors.joining(","));
+		if (!filters.isEmpty()) {
+			runner.addInstrumentationArg("filter", filters);
 		}
-
-		runner.addInstrumentationArg("filter", filters);
 	}
 }

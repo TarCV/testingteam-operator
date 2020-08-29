@@ -11,26 +11,26 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
-import com.android.ddmlib.*;
-import com.android.ddmlib.testrunner.TestIdentifier;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.RawImage;
+import com.android.ddmlib.TimeoutException;
 import com.github.tarcv.tongs.Utils;
 import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.Color;
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 
 import static com.github.tarcv.tongs.api.result.StandardFileTypes.ANIMATION;
 import static com.github.tarcv.tongs.api.result.StandardFileTypes.SCREENSHOT;
@@ -43,7 +43,6 @@ class ScreenCapturer implements Runnable {
     private final TestCaseFileManager fileManager;
     private final Pool pool;
     private final Device device;
-    private final TestIdentifier test;
 
     private final Object lock = new Object();
     private final List<File> files = new ArrayList<>();
@@ -51,12 +50,11 @@ class ScreenCapturer implements Runnable {
     private boolean hasFailed;
     private final TestCaseFile animationFile;
 
-    ScreenCapturer(IDevice deviceInterface, TestCaseFileManager fileManager, Pool pool, Device device, TestIdentifier test) {
+    ScreenCapturer(IDevice deviceInterface, TestCaseFileManager fileManager, Pool pool, Device device) {
         this.deviceInterface = deviceInterface;
         this.fileManager = fileManager;
         this.pool = pool;
         this.device = device;
-        this.test = test;
         this.animationFile = new TestCaseFile(fileManager, ANIMATION, "");
     }
 
@@ -66,7 +64,7 @@ class ScreenCapturer implements Runnable {
             int count = 0;
             capturing = true;
             while (capturing) {
-                getScreenshot(test, count++);
+                getScreenshot(count++);
                 pauseTillNextScreenCapture();
             }
 
@@ -79,14 +77,14 @@ class ScreenCapturer implements Runnable {
         }
     }
 
-    private void pauseTillNextScreenCapture() {
+    private static void pauseTillNextScreenCapture() {
         try {
             Thread.sleep(300);
         } catch (InterruptedException ignored) {
         }
     }
 
-    private void getScreenshot(TestIdentifier test, int sequenceNumber) {
+    private void getScreenshot(int sequenceNumber) {
         try {
             logger.trace("Started getting screenshot");
             long startNanos = nanoTime();

@@ -20,6 +20,7 @@ import com.github.tarcv.tongs.api.devices.DisplayGeometry;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.github.tarcv.tongs.device.DeviceUtilsKt.computeDiagnostics;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -39,6 +40,7 @@ public class AndroidDevice extends Device {
 	@Nullable
 	private final DisplayGeometry geometry;
     private final Diagnostics diagnostics;
+	private final AtomicBoolean hasOnDeviceLibrary = new AtomicBoolean(true);
 
 	@NotNull
 	@Override
@@ -103,7 +105,15 @@ public class AndroidDevice extends Device {
 		return serial;
 	}
 
-	public static class Builder {
+	public boolean hasOnDeviceLibrary() {
+		return hasOnDeviceLibrary.get();
+	}
+
+	public void setHasOnDeviceLibrary(boolean newValue) {
+		hasOnDeviceLibrary.set(newValue);
+	}
+
+    public static class Builder {
         private String serial = "Unspecified serial";
         private String manufacturer = "Unspecified manufacturer";
         private String model = "Unspecified model";

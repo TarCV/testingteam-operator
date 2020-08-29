@@ -11,22 +11,20 @@
 
 package com.github.tarcv.tongs.runner;
 
+import com.android.ddmlib.testrunner.ITestRunListener;
+import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.api.TongsConfiguration;
-import com.github.tarcv.tongs.api.run.TestCaseRunnerContext;
-import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector;
-import com.github.tarcv.tongs.model.AndroidDevice;
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
-import com.github.tarcv.tongs.runner.listeners.BaseListener;
-import com.github.tarcv.tongs.runner.listeners.IResultProducer;
-import com.github.tarcv.tongs.runner.listeners.ResultProducer;
-import com.github.tarcv.tongs.runner.listeners.TestCollectorResultProducer;
+import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector;
+import com.github.tarcv.tongs.model.AndroidDevice;
+import com.github.tarcv.tongs.runner.listeners.*;
 import com.github.tarcv.tongs.suite.TestCollectingListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 public class AndroidTestRunFactory {
 
@@ -38,35 +36,44 @@ public class AndroidTestRunFactory {
 
     public AndroidInstrumentedTestRun createTestRun(AndroidRunContext testRunContext, TestCaseEvent testCase,
                                                     AndroidDevice device,
-                                                    Pool pool,
-                                                    PreregisteringLatch workCountdownLatch) {
-        TestRunParameters testRunParameters = createTestParameters(testCase, device, configuration);
+                                                    Pool pool) {
+        TestRunParameters testRunParameters = createTestParameters(testCase,
+                device,
+                configuration,
+                device.hasOnDeviceLibrary());
 
-        List<BaseListener> testRunListeners = new ArrayList<>();
-        IResultProducer resultProducer = createResultProducer(testRunContext, workCountdownLatch);
+        List<RunListener> testRunListeners = new ArrayList<>();
+        IResultProducer resultProducer = createResultProducer(testRunContext);
         testRunListeners.addAll(resultProducer.requestListeners());
 
         return new AndroidInstrumentedTestRun(
                 pool.getName(),
                 testRunParameters,
-                testRunListeners,
+                Collections.singletonList(
+                        new RunListenerAdapter(testCase.toString(),
+                                new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod()),
+                                testRunListeners)
+                ),
                 resultProducer,
                 RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration)
         );
     }
 
     @NotNull
-    protected IResultProducer createResultProducer(AndroidRunContext testRunContext, PreregisteringLatch workCountdownLatch) {
-        return new ResultProducer(testRunContext, workCountdownLatch);
+    protected IResultProducer createResultProducer(AndroidRunContext testRunContext) {
+        return new ResultProducer(testRunContext);
     }
 
     public AndroidInstrumentedTestRun createCollectingRun(AndroidDevice device,
                                                           Pool pool,
                                                           TestCollectingListener testCollectingListener,
-                                                          CountDownLatch latch) {
-        TestRunParameters testRunParameters = createTestParameters(null, device, configuration);
+                                                          boolean withOnDeviceLib) {
+        TestRunParameters testRunParameters = createTestParameters(null,
+                device,
+                configuration,
+                withOnDeviceLib);
 
-        List<BaseListener> testRunListeners = new ArrayList<>();
+        List<ITestRunListener> testRunListeners = new ArrayList<>();
         testRunListeners.add(testCollectingListener);
 
         return new AndroidInstrumentedTestRun(
@@ -78,7 +85,7 @@ public class AndroidTestRunFactory {
         );
     }
 
-    private static TestRunParameters createTestParameters(TestCaseEvent testCase, AndroidDevice device, TongsConfiguration configuration) {
+    private static TestRunParameters createTestParameters(TestCaseEvent testCase, AndroidDevice device, TongsConfiguration configuration, boolean withOnDeviceLib) {
         return TestRunParameters.Builder.testRunParameters()
                 .withDeviceInterface(device.getDeviceInterface())
                 .withTest(testCase)
@@ -87,6 +94,7 @@ public class AndroidTestRunFactory {
                 .withTestRunner(configuration.getTestRunnerClass())
                 .withTestRunnerArguments(configuration.getTestRunnerArguments())
                 .withTestOutputTimeout((int) configuration.getTestOutputTimeout())
+                .withOnDeviceLibrary(withOnDeviceLib)
                 .withCoverageEnabled(configuration.isCoverageEnabled())
                 .withExcludedAnnotation(configuration.getExcludedAnnotation())
                 .build();

@@ -12,8 +12,6 @@
 package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.*;
-import com.android.ddmlib.testrunner.TestIdentifier;
-
 import com.github.tarcv.tongs.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +38,9 @@ class ScreenRecorder implements Runnable {
     private final IDevice deviceInterface;
     private final ScreenRecorderStopper screenRecorderStopper;
 
-    public ScreenRecorder(TestIdentifier test, ScreenRecorderStopper screenRecorderStopper, File localVideoFile,
+    public ScreenRecorder(ScreenRecorderStopper screenRecorderStopper, File localVideoFile,
                           IDevice deviceInterface) {
-        remoteFilePath = remoteVideoForTest(test);
+        remoteFilePath = remoteVideoForTest();
         this.screenRecorderStopper = screenRecorderStopper;
         this.localVideoFile = localVideoFile;
         this.deviceInterface = deviceInterface;
@@ -73,6 +71,7 @@ class ScreenRecorder implements Runnable {
     private void pullTestVideo() throws IOException, AdbCommandRejectedException, TimeoutException, SyncException {
         logger.trace("Started pulling file {} to {}", remoteFilePath, localVideoFile);
         long startNanos = nanoTime();
+        localVideoFile.getParentFile().mkdirs();
         deviceInterface.pullFile(remoteFilePath, localVideoFile.toString());
         logger.trace("Pulling finished in {}ms {}", Utils.millisSinceNanoTime(startNanos), remoteFilePath);
     }

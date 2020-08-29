@@ -10,7 +10,7 @@
 
 package com.github.tarcv.test.happy;
 
-import android.support.test.rule.ActivityTestRule;
+import androidx.test.rule.ActivityTestRule;
 import com.github.tarcv.test.MainActivity;
 import org.junit.Rule;
 import org.junit.Test;

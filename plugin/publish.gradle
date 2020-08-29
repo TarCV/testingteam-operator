@@ -1,5 +1,5 @@
 apply plugin: 'maven'
-apply plugin: 'maven-publish'
+apply plugin: 'maven-publish' // TODO: consider removing one of these
 
 project.afterEvaluate {
     publishing {

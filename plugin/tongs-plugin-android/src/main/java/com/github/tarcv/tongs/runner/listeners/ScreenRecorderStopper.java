@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@ package com.github.tarcv.tongs.runner.listeners;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.github.tarcv.tongs.system.adb.CollectingShellOutputReceiver;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ class ScreenRecorderStopper {
     private static final int PAUSE_BETWEEN_RECORDER_PROCESS_KILL = 300;
     private final NullOutputReceiver nullOutputReceiver = new NullOutputReceiver();
     private final IDevice deviceInterface;
-    private boolean hasFailed;
+    private boolean hasFailed = true; // assume a test is failed when we don't know
 
     ScreenRecorderStopper(IDevice deviceInterface) {
         this.deviceInterface = deviceInterface;
@@ -55,16 +54,20 @@ class ScreenRecorderStopper {
     private boolean attemptToGracefullyKillScreenRecord() {
         CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
         try {
-            deviceInterface.executeShellCommand("ps |grep screenrecord", receiver);
+            deviceInterface.executeShellCommand("ps -a |grep screenrecord", receiver);
             String pid = extractPidOfScreenrecordProcess(receiver);
             if (isNotBlank(pid)) {
                 logger.trace("Killing PID {} on {}", pid, deviceInterface.getSerialNumber());
                 deviceInterface.executeShellCommand("kill -2 " + pid, nullOutputReceiver);
                 return true;
+            } else {
+                // some devices don't report PID
+                deviceInterface.executeShellCommand("killall -2 screenrecord", nullOutputReceiver);
             }
             logger.trace("Did not kill any screen recording process");
         } catch (Exception e) {
             logger.error("Error while killing recording processes", e);
+            return true;
         }
         return false;
     }

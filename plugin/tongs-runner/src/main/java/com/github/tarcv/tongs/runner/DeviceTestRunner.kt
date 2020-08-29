@@ -15,50 +15,49 @@ package com.github.tarcv.tongs.runner
 
 import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.devices.Pool
-import com.github.tarcv.tongs.api.result.*
-import com.github.tarcv.tongs.injector.*
+import com.github.tarcv.tongs.api.result.Delegate
+import com.github.tarcv.tongs.api.result.StackTrace
+import com.github.tarcv.tongs.api.result.TestCaseFileManager
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.run.*
+import com.github.tarcv.tongs.injector.ActualConfiguration
+import com.github.tarcv.tongs.injector.ConfigurationInjector
+import com.github.tarcv.tongs.injector.RuleManagerFactory
 import com.github.tarcv.tongs.injector.listeners.TestRunListenersTongsFactoryInjector
 import com.github.tarcv.tongs.injector.system.FileManagerInjector
-import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.api.run.*
-import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.injector.withRulesWithoutAfter
+import com.github.tarcv.tongs.model.TestCaseEventQueue
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
 import org.slf4j.LoggerFactory
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
-import java.lang.IllegalStateException
 import java.time.Instant
 import java.util.concurrent.CountDownLatch
 
 class DeviceTestRunner(private val pool: Pool,
                        private val device: Device,
-                       private val queueOfTestsInPool: TestCaseEventQueue,
-                       private val deviceCountDownLatch: CountDownLatch,
-                       private val progressReporter: ProgressReporter,
                        private val ruleManagerFactory: RuleManagerFactory
-) : Runnable {
-    override fun run() {
+) {
+    private val rules = ruleManagerFactory.create(DeviceRunRuleFactory::class.java,
+            listOf(AndroidSetupDeviceRuleFactory()),
+            { factory, context: DeviceRunRuleContext -> factory.deviceRules(context) }
+    ).createRulesFrom { configuration -> DeviceRunRuleContext(configuration, pool, device) }
+
+    fun run(
+            queueOfTestsInPool: TestCaseEventQueue,
+            deviceCountDownLatch: CountDownLatch,
+            progressReporter: ProgressReporter
+    ) {
         try {
-            val rules = ruleManagerFactory.create(DeviceRunRuleFactory::class.java,
-                    listOf(AndroidSetupDeviceRuleFactory()),
-                    { factory, context: DeviceRunRuleContext -> factory.deviceRules(context) }
-            ).createRulesFrom { configuration -> DeviceRunRuleContext(configuration, pool, device) }
-            var executedBeforeRules = false
             try {
                 while (true) {
                     val testCaseTask = queueOfTestsInPool.pollForDevice(device, 10)
                     if (testCaseTask != null) {
-                        if (!executedBeforeRules) {
-                            // No need to run rules when there is no tests to execute
-                            executedBeforeRules = true
-                            rules.forEach { it.before() }
-                        }
-
                         testCaseTask.doWork { testCaseEvent: TestCaseEvent ->
                             val startTimestampUtc = Instant.now()
                             try {
-                                runEvent(testCaseEvent, startTimestampUtc)
+                                runEvent(testCaseEvent, startTimestampUtc, progressReporter, queueOfTestsInPool)
                                         .validateRunResult(testCaseEvent, startTimestampUtc, "Something")
                                         .copy(endTimestampUtc = Instant.now())
                             } catch (e: Exception) {
@@ -70,12 +69,7 @@ class DeviceTestRunner(private val pool: Pool,
                     }
                 }
             } finally {
-                if (executedBeforeRules) {
-                    // TODO: execute only successful rules
-                    rules
-                            .asReversed()
-                            .forEach { it.after() }
-                }
+                runAfterRules()
             }
         } finally {
             logger.info("Device {} from pool {} finished", device.serial, pool.name)
@@ -83,7 +77,12 @@ class DeviceTestRunner(private val pool: Pool,
         }
     }
 
-    private fun runEvent(testCaseEvent: TestCaseEvent, startTimestampUtc: Instant): TestCaseRunResult {
+    private fun runEvent(
+            testCaseEvent: TestCaseEvent,
+            startTimestampUtc: Instant,
+            progressReporter: ProgressReporter,
+            queueOfTestsInPool: TestCaseEventQueue
+    ): TestCaseRunResult {
         val testCaseFileManager: TestCaseFileManager = TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCaseEvent.testCase)
         val configuration = ConfigurationInjector.configuration()
 
@@ -226,6 +225,17 @@ class DeviceTestRunner(private val pool: Pool,
         } catch (e: Exception) {
             fatalErrorResult(context.testCaseEvent, e, context.startTimestampUtc)
         }
+    }
+
+    fun runBeforeRules() {
+        rules.forEach { it.before() }
+    }
+
+    private fun runAfterRules() {
+        // TODO: execute only successful rules
+        rules
+                .asReversed()
+                .forEach { it.after() }
     }
 
     companion object {

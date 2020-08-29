@@ -14,19 +14,18 @@
 package com.github.tarcv.tongs.injector
 
 import com.github.tarcv.tongs.TongsRunner
+import com.github.tarcv.tongs.Utils
+import com.github.tarcv.tongs.api.run.TestCaseRunner
+import com.github.tarcv.tongs.api.run.TestCaseRunnerContext
+import com.github.tarcv.tongs.api.run.TestCaseRunnerFactory
+import com.github.tarcv.tongs.api.testcases.TestCaseRule
+import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
+import com.github.tarcv.tongs.api.testcases.TestCaseRuleFactory
 import com.github.tarcv.tongs.injector.pooling.PoolLoaderInjector.poolLoader
 import com.github.tarcv.tongs.injector.runner.PoolTestRunnerFactoryInjector
 import com.github.tarcv.tongs.injector.runner.ProgressReporterInjector
 import com.github.tarcv.tongs.injector.summary.SummaryGeneratorHookInjector
 import com.github.tarcv.tongs.plugin.android.PropertiesTestCaseRuleFactory
-import com.github.tarcv.tongs.api.testcases.TestCaseRule
-import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
-import com.github.tarcv.tongs.api.testcases.TestCaseRuleFactory
-import com.github.tarcv.tongs.Utils
-import com.github.tarcv.tongs.api.run.TestCaseRunner
-import com.github.tarcv.tongs.api.run.TestCaseRunnerContext
-import com.github.tarcv.tongs.api.run.TestCaseRunnerFactory
-import com.github.tarcv.tongs.runner.AndroidInstrumentedTestCaseRunner
 import com.github.tarcv.tongs.runner.AndroidInstrumentedTestCaseRunnerFactory
 import org.slf4j.LoggerFactory
 
@@ -53,7 +52,8 @@ object TongsRunnerInjector {
                 ProgressReporterInjector.progressReporter(),
                 SummaryGeneratorHookInjector.summaryGeneratorHook(),
                 ruleManager,
-                runnerManager
+                runnerManager,
+                ruleManagerFactory
         )
 
         logger.debug("Bootstrap of TongsRunner took: {} milliseconds", Utils.millisSinceNanoTime(startNanos))

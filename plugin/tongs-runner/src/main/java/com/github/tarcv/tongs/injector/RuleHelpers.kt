@@ -10,8 +10,8 @@
 package com.github.tarcv.tongs.injector
 
 import com.github.tarcv.tongs.Configuration
-import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.api.HasConfiguration
+import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.api.run.RunConfiguration
 import org.slf4j.Logger
 import java.lang.reflect.InvocationTargetException
@@ -185,7 +185,7 @@ inline fun <R, V>withRulesWithoutAfter(
                 try {
                     beforeAction(it)
                 } catch (t: Throwable) {
-                    logger.error("Exception $inRuleText (in before method)")
+                    logger.error("Exception $inRuleText (in before method)", t)
                     lastException = t
                 }
                 return@takeWhile true
@@ -231,7 +231,7 @@ inline fun <R, V>withRules(
                                 }
                             }
                 } catch (t: Throwable) {
-                    logger.error("Exception $inRuleText (in after method)")
+                    logger.error("Exception $inRuleText (in after method)", t)
                     acc
                             .fold(
                                     { t },

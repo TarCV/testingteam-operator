@@ -24,6 +24,7 @@ ext.deps = [
     jcommander: "com.beust:jcommander:1.48",
     jmockJUnit: "org.jmock:jmock-junit4:${versions.jmock}",
     junit: "junit:junit:${versions.junit}",
+    junitParams: 'pl.pragmatists:JUnitParams:1.1.1',
     koin: "org.koin:koin-core:${versions.koin}",
     koinTest: "org.koin:koin-test:${versions.koin}",
     koinJava: "org.koin:koin-java:2.0.1" // TODO: update to versions.koin once it is released

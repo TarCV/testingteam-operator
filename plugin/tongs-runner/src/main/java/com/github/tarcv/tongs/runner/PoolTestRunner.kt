@@ -13,28 +13,28 @@
  */
 package com.github.tarcv.tongs.runner
 
+import com.github.tarcv.tongs.TongsRunner
 import com.github.tarcv.tongs.Utils
-import com.github.tarcv.tongs.injector.RuleManagerFactory
-import com.github.tarcv.tongs.injector.withRules
-import com.github.tarcv.tongs.api.devices.Pool
-import com.github.tarcv.tongs.model.TestCaseEventQueue
 import com.github.tarcv.tongs.api.run.PoolRunRuleContext
 import com.github.tarcv.tongs.api.run.PoolRunRuleFactory
+import com.github.tarcv.tongs.injector.RuleManagerFactory
+import com.github.tarcv.tongs.injector.withRules
+import com.github.tarcv.tongs.model.TestCaseEventQueue
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 
 class PoolTestRunner(
         private val deviceTestRunnerFactory: DeviceTestRunnerFactory,
-        private val pool: Pool,
+        private val poolTask: TongsRunner.PoolTask,
         private val testCases: TestCaseEventQueue,
         private val poolCountDownLatch: CountDownLatch,
         private val progressReporter: ProgressReporter,
         private val ruleManagerFactory: RuleManagerFactory
 ) : Runnable {
     override fun run() {
-        val poolName = pool.name
-        val devicesInPool = pool.size()
+        val poolName = poolTask.pool.name
+        val devicesInPool = poolTask.pool.size()
         val concurrentDeviceExecutor: ExecutorService = Utils.namedExecutor(devicesInPool, "DeviceExecutor-%d")
         try {
             logger.info("Pool {} started", poolName)
@@ -54,7 +54,7 @@ class PoolTestRunner(
         val rules = ruleManagerFactory.create(PoolRunRuleFactory::class.java,
                 emptyList(),
                 { factory, context: PoolRunRuleContext -> factory.poolRules(context) })
-                .createRulesFrom { configuration -> PoolRunRuleContext(configuration, pool) }
+                .createRulesFrom { configuration -> PoolRunRuleContext(configuration, poolTask.pool) }
 
         withRules(
                 logger,
@@ -66,10 +66,10 @@ class PoolTestRunner(
                     ret
                 }
         ) {
-            for (device in pool.devices) {
-                val deviceTestRunner = deviceTestRunnerFactory.createDeviceTestRunner(pool, testCases,
-                        deviceCountDownLatch, device, progressReporter, ruleManagerFactory)
-                concurrentDeviceExecutor.execute(deviceTestRunner)
+            for (deviceRunner in poolTask.deviceRunners) {
+                concurrentDeviceExecutor.execute {
+                    deviceRunner.second.run(testCases, deviceCountDownLatch, progressReporter)
+                }
             }
             deviceCountDownLatch.await()
         }

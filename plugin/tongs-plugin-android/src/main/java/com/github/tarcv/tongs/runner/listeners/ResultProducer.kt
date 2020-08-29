@@ -15,25 +15,25 @@ package com.github.tarcv.tongs.runner.listeners
 import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.api.devices.Diagnostics
 import com.github.tarcv.tongs.api.devices.Pool
-import com.github.tarcv.tongs.injector.GsonInjector.gson
-import com.github.tarcv.tongs.model.*
 import com.github.tarcv.tongs.api.result.*
-import com.github.tarcv.tongs.runner.*
 import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData.Type
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
 import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.injector.GsonInjector.gson
+import com.github.tarcv.tongs.model.AndroidDevice
+import com.github.tarcv.tongs.runner.AndroidRunContext
 import com.github.tarcv.tongs.util.parseJavaTrace
 import java.time.Instant
 
 interface IResultProducer {
-    fun requestListeners(): List<BaseListener>
+    fun requestListeners(): List<RunListener>
     fun getResult(): TestCaseRunResult
 }
 
 class TestCollectorResultProducer(private val pool: Pool, private val device: AndroidDevice): IResultProducer {
-    override fun requestListeners(): List<BaseListener> = emptyList()
+    override fun requestListeners(): List<RunListener> = emptyList()
 
     override fun getResult(): TestCaseRunResult {
         return TestCaseRunResult(
@@ -48,19 +48,16 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
 }
 
 class ResultProducer(
-        private val context: AndroidRunContext,
-        private val latch: PreregisteringLatch
+        private val context: AndroidRunContext
 ) : IResultProducer {
     private val androidDevice = context.device
-    private val resultListener = ResultListener(context.testCaseEvent, latch)
-    private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, androidDevice, latch)
-    private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, context.pool, androidDevice, latch)
-    private val coverageListener = getCoverageTestRunListener(context.configuration, androidDevice, context.fileManager, context.pool, context.testCaseEvent, latch)
+    private val resultListener = ResultListener(context.testCaseEvent.testCase.toString())
+    private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, androidDevice,
+            context.testCaseEvent.testCase)
+    private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, context.pool, androidDevice)
+    private val coverageListener = getCoverageTestRunListener(context.configuration, androidDevice, context.fileManager, context.pool, context.testCaseEvent)
 
-    override fun requestListeners(): List<BaseListener> {
-        if (resultListener.result.status != null) {
-            throw IllegalStateException("Can't request listeners once tests are executed")
-        }
+    override fun requestListeners(): List<RunListener> {
         return listOf(
                 resultListener,
                 logCatListener,
@@ -123,7 +120,7 @@ class ResultProducer(
         }
     }
 
-    private fun addTraceReport(screenTraceListener: BaseListener): TestReportData? {
+    private fun addTraceReport(screenTraceListener: RunListener): TestReportData? {
         val dataTitle = "Screen recording"
         return if (screenTraceListener is ScreenRecorderTestRunListener) {
             VideoReportData(dataTitle, screenTraceListener.file)
@@ -134,13 +131,13 @@ class ResultProducer(
         }
     }
 
-    private fun getScreenTraceTestRunListener(fileManager: TestCaseFileManager, pool: Pool, device: AndroidDevice, latch: PreregisteringLatch): BaseListener {
+    private fun getScreenTraceTestRunListener(fileManager: TestCaseFileManager, pool: Pool, device: AndroidDevice): RunListener {
         return if (Diagnostics.VIDEO == device.supportedVisualDiagnostics) {
-            ScreenRecorderTestRunListener(fileManager, pool, device, latch)
+            ScreenRecorderTestRunListener(fileManager, pool, device)
         } else if (Diagnostics.SCREENSHOTS == device.supportedVisualDiagnostics && context.configuration.canFallbackToScreenshots()) {
-            ScreenCaptureTestRunListener(fileManager, pool, device, latch)
+            ScreenCaptureTestRunListener(fileManager, pool, device)
         } else {
-            BaseListenerWrapper(null, NoOpITestRunListener())
+            NoOpRunListener()
         }
     }
 
@@ -148,10 +145,11 @@ class ResultProducer(
                                            device: AndroidDevice,
                                            fileManager: TestCaseFileManager,
                                            pool: Pool,
-                                           testCase: TestCaseEvent,
-                                           latch: PreregisteringLatch): BaseListener {
+                                           testCase: TestCaseEvent): RunListener {
         return if (configuration.isCoverageEnabled) {
-            CoverageListener(device, fileManager, pool, testCase, latch)
-        } else BaseListenerWrapper(null, NoOpITestRunListener())
+            CoverageListener(device, fileManager, pool, testCase)
+        } else {
+            NoOpRunListener()
+        }
     }
 }
