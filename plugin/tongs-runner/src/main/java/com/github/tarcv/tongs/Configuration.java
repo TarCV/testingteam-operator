@@ -16,20 +16,18 @@ package com.github.tarcv.tongs;
 import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.NONE;
 import static com.github.tarcv.tongs.system.axmlparser.InstrumentationInfoFactory.parseFromFile;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
 
 public class Configuration implements TongsConfiguration {
@@ -488,17 +486,5 @@ public class Configuration implements TongsConfiguration {
 
             return poolingStrategy;
         }
-    }
-
-    public static Builder aConfigurationBuilder() {
-        File nullFile = new File(".");
-
-        return new Configuration.Builder()
-                .withAndroidSdk(nullFile)
-                .withApplicationPackage("com.github.tarcv.tongstest")
-                .withInstrumentationPackage("com.github.tarcv.tongstest")
-                .withTestRunnerClass("android.support.test.runner.AndroidJUnitRunner")
-                .withTestRunnerArguments(Collections.emptyMap())
-                .withOutput(nullFile);
     }
 }
