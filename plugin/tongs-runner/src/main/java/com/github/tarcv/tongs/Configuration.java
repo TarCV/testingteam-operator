@@ -14,7 +14,6 @@
 package com.github.tarcv.tongs;
 
 import com.github.tarcv.tongs.api.TongsConfiguration;
-import com.github.tarcv.tongs.PoolingStrategy;
 import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
 
@@ -252,7 +251,7 @@ public class Configuration implements TongsConfiguration {
     public Configuration withPluginConfiguration(Map<String, Object> pluginConfiguration) {
         return newBuilder()
                 .withPluginConfiguration(pluginConfiguration)
-                .build();
+                .build(false);
     }
 
     public static class Builder {
@@ -399,7 +398,7 @@ public class Configuration implements TongsConfiguration {
             return this;
         }
 
-        public Configuration build() {
+        public Configuration build(boolean withWarnings) {
             checkNotNull(androidSdk, "SDK is required.");
             checkArgument(androidSdk.exists(), "SDK directory does not exist.");
             if (instrumentationApk != null) {
@@ -438,8 +437,10 @@ public class Configuration implements TongsConfiguration {
             checkArgument(totalAllowedRetryQuota >= 0, "Total allowed retry quota should not be negative.");
             checkArgument(retryPerTestCaseQuota >= 0, "Retry per test case quota should not be negative.");
             retryPerTestCaseQuota = assignValueOrDefaultIfZero(retryPerTestCaseQuota, Defaults.RETRY_QUOTA_PER_TEST_CASE);
-            logArgumentsBadInteractions();
-            poolingStrategy = validatePoolingStrategy(poolingStrategy);
+            if (withWarnings) {
+                logArgumentsBadInteractions();
+            }
+            poolingStrategy = validatePoolingStrategy(poolingStrategy, withWarnings);
             return new Configuration(this);
         }
 
@@ -463,9 +464,11 @@ public class Configuration implements TongsConfiguration {
          * We need to make sure zero or one strategy has been passed. If zero default to pool per device. If more than one
          * we throw an exception.
          */
-        private PoolingStrategy validatePoolingStrategy(PoolingStrategy poolingStrategy) {
+        private PoolingStrategy validatePoolingStrategy(PoolingStrategy poolingStrategy, boolean withWarnings) {
             if (poolingStrategy == null) {
-                logger.warn("No strategy was chosen in configuration, so defaulting to one pool per device");
+                if (withWarnings) {
+                    logger.warn("No strategy was chosen in configuration, so defaulting to one pool per device");
+                }
                 poolingStrategy = new PoolingStrategy();
                 poolingStrategy.eachDevice = true;
             } else {

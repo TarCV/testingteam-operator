@@ -18,7 +18,6 @@ import com.beust.jcommander.JCommander
 import com.beust.jcommander.Parameter
 import com.beust.jcommander.ParameterException
 import com.github.tarcv.tongs.injector.GsonInjector
-import com.github.tarcv.tongs.Utils
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
@@ -72,7 +71,7 @@ object TongsCli {
                     .withExcludedAnnotation(tongsConfiguration.excludedAnnotation)
                     .withTongsIntegrationTestRunType(tongsConfiguration.tongsIntegrationTestRunType)
                     .withPluginConfiguration(tongsConfiguration.configuration)
-                    .build()
+                    .build(true)
 
             val tongs = Tongs(configuration)
             if (!tongs.run() && !tongsConfiguration.ignoreFailures) {
