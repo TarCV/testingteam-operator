@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,6 +14,7 @@
 package com.github.tarcv.tongs.summary;
 
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
+import com.github.tarcv.tongs.api.run.ResultStatus;
 import com.google.common.base.Function;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
@@ -23,8 +24,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.github.tarcv.tongs.api.run.ResultStatus.IGNORED;
-import static com.github.tarcv.tongs.api.run.ResultStatus.PASS;
 import static com.google.common.collect.Collections2.transform;
 
 public class OutcomeAggregator {
@@ -60,7 +59,7 @@ public class OutcomeAggregator {
             @Override
             @Nullable
             public Boolean apply(@Nullable TestCaseRunResult input) {
-                return PASS.equals(input.getStatus()) || IGNORED.equals(input.getStatus());
+                return ResultStatus.isFailure(input.getStatus());
             }
         };
     }
