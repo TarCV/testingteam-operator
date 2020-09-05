@@ -9,19 +9,24 @@
  */
 package com.github.tarcv.tongs.summary
 
-import com.github.tarcv.tongs.Configuration.aConfigurationBuilder
+import com.github.tarcv.tongs.aConfigurationBuilder
 import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.devices.Pool
+import com.github.tarcv.tongs.api.result.*
+import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
 import com.github.tarcv.tongs.injector.summary.OutcomeAggregatorInjector.outcomeAggregator
 import com.github.tarcv.tongs.injector.summary.SummaryCompilerInjector.summaryCompiler
 import com.github.tarcv.tongs.injector.summary.SummaryPrinterInjector.summaryPrinter
-import com.github.tarcv.tongs.model.*
-import com.github.tarcv.tongs.api.result.*
-import com.github.tarcv.tongs.system.io.*
-import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.suite.ApkTestCase
-import com.google.gson.*
+import com.github.tarcv.tongs.system.io.FileManager
+import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
+import com.github.tarcv.tongs.system.io.TongsFileManager
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonParseException
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.startsWith
 import org.junit.Assert
@@ -129,7 +134,7 @@ class SummarizerIntegrationTest {
                         "filter" to "com.github.tarcv.test.F2Filter"
                 ))
                 .withOutput(temporaryFolder.root)
-                .build()
+                .build(true)
         val runnerModule = module {
             single { configuration }
         }
