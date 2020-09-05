@@ -17,8 +17,11 @@ buildscript {
     dependencies {
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0"
     }
 }
+
+apply plugin: "org.sonarqube"
 
 Closure repos = {
     mavenCentral()
@@ -38,6 +41,16 @@ allprojects {
     group = GROUP
 }
 
+project(':tongs-ondevice') {
+    sonarqube {
+        skipProject = true
+    }
+}
+project(':tongs-gradle-plugin') {
+    sonarqube {
+        skipProject = true
+    }
+}
 subprojects { project ->
     project.afterEvaluate {
         if (plugins.hasPlugin('com.android.library')) {
@@ -66,4 +79,13 @@ tasks.register('jacocoMergedReport', JacocoReport.class) { task ->
 }
 jacocoMergedReport.dependsOn {
     subprojects*.test
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "TarCV_tongs"
+        property "sonar.projectName", "Tongs"
+        property "sonar.organization", "tarcv"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
 }
