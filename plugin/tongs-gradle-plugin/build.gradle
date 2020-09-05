@@ -12,14 +12,19 @@
 apply plugin: 'groovy'
 apply plugin: 'project-report'
 
-sourceCompatibility = rootProject.sourceCompatibility
-targetCompatibility = rootProject.sourceCompatibility
+
+apply from: '../dependencies.gradle'
+
+java {
+    sourceCompatibility = javaSourceCompatibility
+    targetCompatibility = javaTargetCompatibility
+}
 
 dependencies {
     compileOnly gradleApi()
     compileOnly localGroovy()
     compile project(':tongs-runner')
-    compileOnly "com.android.tools.build:gradle:$androidPlugin"
+    compileOnly "com.android.tools.build:gradle:${versions.androidPlugin}"
 }
 
 jar {
