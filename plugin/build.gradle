@@ -57,6 +57,14 @@ subprojects { project ->
             project.apply(from: file('publishAndroid.gradle'))
         } else if (plugins.hasPlugin('org.gradle.java')) {
             project.apply(from: file('publish.gradle'))
+
+            task copyPomForCi(type: Sync) {
+                dependsOn 'generatePomFileForArtifactPublication'
+                from 'build/publications/artifact'
+                into "${rootProject.projectDir}/ci/poms/${project.projectDir.name}"
+                include 'pom-default.xml'
+                rename 'pom-default.xml', 'pom.xml'
+            }
         }
     }
 }
