@@ -135,7 +135,7 @@ class ResultProducer(
         return if (Diagnostics.VIDEO == device.supportedVisualDiagnostics) {
             ScreenRecorderTestRunListener(fileManager, pool, device)
         } else if (Diagnostics.SCREENSHOTS == device.supportedVisualDiagnostics && context.configuration.canFallbackToScreenshots()) {
-            ScreenCaptureTestRunListener(fileManager, pool, device)
+            ScreenCaptureTestRunListener(fileManager, device)
         } else {
             NoOpRunListener()
         }

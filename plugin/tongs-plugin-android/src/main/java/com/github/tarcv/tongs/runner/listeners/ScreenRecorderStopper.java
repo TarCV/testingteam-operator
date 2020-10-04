@@ -72,10 +72,11 @@ class ScreenRecorderStopper {
         return false;
     }
 
-    private void pauseBetweenProcessKill() {
+    private static void pauseBetweenProcessKill() {
         try {
             Thread.sleep(PAUSE_BETWEEN_RECORDER_PROCESS_KILL);
         } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -90,7 +91,7 @@ class ScreenRecorderStopper {
      * @return the string representing the screenrecord process PID
      */
     @Nullable
-    private String extractPidOfScreenrecordProcess(CollectingShellOutputReceiver receiver) {
+    private static String extractPidOfScreenrecordProcess(CollectingShellOutputReceiver receiver) {
         String output = receiver.getOutput();
         if (isBlank(output)) {
             return null;

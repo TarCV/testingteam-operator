@@ -16,8 +16,6 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.RawImage;
 import com.android.ddmlib.TimeoutException;
 import com.github.tarcv.tongs.Utils;
-import com.github.tarcv.tongs.api.devices.Device;
-import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import com.madgag.gif.fmsware.AnimatedGifEncoder;
@@ -29,6 +27,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,8 +40,6 @@ class ScreenCapturer implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ScreenCapturer.class);
     private final IDevice deviceInterface;
     private final TestCaseFileManager fileManager;
-    private final Pool pool;
-    private final Device device;
 
     private final Object lock = new Object();
     private final List<File> files = new ArrayList<>();
@@ -50,38 +47,40 @@ class ScreenCapturer implements Runnable {
     private boolean hasFailed;
     private final TestCaseFile animationFile;
 
-    ScreenCapturer(IDevice deviceInterface, TestCaseFileManager fileManager, Pool pool, Device device) {
+    ScreenCapturer(IDevice deviceInterface, TestCaseFileManager fileManager) {
         this.deviceInterface = deviceInterface;
         this.fileManager = fileManager;
-        this.pool = pool;
-        this.device = device;
         this.animationFile = new TestCaseFile(fileManager, ANIMATION, "");
     }
 
     @Override
     public void run() {
+        Thread currentThread = Thread.currentThread();
         synchronized (lock) {
-            int count = 0;
-            capturing = true;
-            while (capturing) {
-                getScreenshot(count++);
-                pauseTillNextScreenCapture();
-            }
+            try {
+                int count = 0;
+                capturing = true;
+                while (capturing) {
+                    getScreenshot(count++);
+                    pauseTillNextScreenCapture();
+                }
 
-            if (hasFailed) {
-                File file = animationFile.create();
-                createGif(files, file);
+                if (hasFailed) {
+                    File file = animationFile.create();
+                    createGif(files, file);
+                }
+            } catch (InterruptedException e) {
+                logger.warn("Screenshot capturer thread was interrupted", e);
+                currentThread.interrupt();
+            } finally {
+                deleteFiles(files);
+                files.clear();
             }
-            deleteFiles(files);
-            files.clear();
         }
     }
 
-    private static void pauseTillNextScreenCapture() {
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException ignored) {
-        }
+    private static void pauseTillNextScreenCapture() throws InterruptedException {
+        Thread.sleep(300);
     }
 
     private void getScreenshot(int sequenceNumber) {
@@ -89,7 +88,7 @@ class ScreenCapturer implements Runnable {
             logger.trace("Started getting screenshot");
             long startNanos = nanoTime();
             RawImage screenshot = deviceInterface.getScreenshot();
-            File file = fileManager.createFile(SCREENSHOT);
+            File file = fileManager.createFile(SCREENSHOT, sequenceNumber);
             files.add(file);
             ImageIO.write(bufferedImageFrom(screenshot), SCREENSHOT.getSuffix(), file);
             logger.trace("Finished writing screenshot in {}ms to: {}", Utils.millisSinceNanoTime(startNanos), file);
@@ -105,7 +104,7 @@ class ScreenCapturer implements Runnable {
         }
     }
 
-    private BufferedImage bufferedImageFrom(RawImage rawImage) {
+    private static BufferedImage bufferedImageFrom(RawImage rawImage) {
         BufferedImage image = new BufferedImage(rawImage.width, rawImage.height, TYPE_INT_ARGB);
 
         int index = 0;
@@ -119,7 +118,7 @@ class ScreenCapturer implements Runnable {
         return image;
     }
 
-    private void createGif(List<File> files, File file) {
+    private static void createGif(List<File> files, File file) {
         try {
             AnimatedGifEncoder encoder = new AnimatedGifEncoder();
             encoder.start(file.getAbsolutePath());
@@ -148,9 +147,15 @@ class ScreenCapturer implements Runnable {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void deleteFiles(List<File> files) {
+    private static void deleteFiles(List<File> files) {
         for (File file : files) {
-            file.delete();
+            try {
+                Files.deleteIfExists(file.toPath());
+            } catch (IOException e) {
+                if (logger.isWarnEnabled()) {
+                    logger.warn(String.format("Failed to delete %s", file), e);
+                }
+            }
         }
     }
 
