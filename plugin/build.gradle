@@ -52,6 +52,7 @@ subprojects { project ->
                 from 'build/publications/artifact'
                 into "${rootProject.projectDir}/ci/poms/${project.projectDir.name}"
                 include 'pom-default.xml'
+                rename 'pom-default.xml', 'pom.xml'
             }
         }
     }
