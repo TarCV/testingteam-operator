@@ -18,12 +18,11 @@ import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Diagnostics;
 import com.github.tarcv.tongs.api.devices.DisplayGeometry;
 import com.github.tarcv.tongs.api.devices.Pool;
+import com.github.tarcv.tongs.api.result.StackTrace;
+import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.github.tarcv.tongs.api.run.ResultStatus;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.api.testcases.TestCase;
-import com.github.tarcv.tongs.model.*;
-import com.github.tarcv.tongs.api.result.StackTrace;
-import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,13 +31,9 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.github.tarcv.tongs.runner.PoolTestRunner.DROPPED_BY;
-import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
 import static com.github.tarcv.tongs.api.run.ResultStatus.ERROR;
-import static com.github.tarcv.tongs.api.run.ResultStatus.FAIL;
+import static com.github.tarcv.tongs.summary.PoolSummary.Builder.aPoolSummary;
 import static com.github.tarcv.tongs.summary.Summary.Builder.aSummary;
-import static java.lang.String.format;
-import static java.util.Locale.ENGLISH;
 
 public class SummaryCompiler {
     private final TongsConfiguration configuration;
@@ -85,26 +80,15 @@ public class SummaryCompiler {
 
     private static void addFatalCrashedPools(Collection<Pool> pools, Map<Pool, Collection<TestCaseEvent>> testCases, Summary.Builder summaryBuilder) {
         Sets.difference(new HashSet<>(pools), testCases.keySet())
-                .forEach(pool -> {
-                    summaryBuilder.addFatalError("Pool " + pool.getName() + " not executed");
-                });
-    }
-
-    private static Device getPoolWatchdog(String poolName) {
-        return AndroidDevice.Builder.aDevice()
-                .withSerial(DROPPED_BY + poolName)
-                .withManufacturer("Clumsy-" + poolName)
-                .withModel("Clumsy=" + poolName)
-                .build();
+                .forEach(pool -> summaryBuilder.addFatalError("Pool " + pool.getName() + " not executed"));
     }
 
     private static void addFailedOrCrashedTests(Collection<TestCaseRunResult> testResultsForPool, Summary.Builder summaryBuilder) {
         for (TestCaseRunResult testResult : testResultsForPool) {
             int totalFailureCount = testResult.getTotalFailureCount();
             if (totalFailureCount > 0) {
-                String failedTest = format(ENGLISH, "%d times %s", totalFailureCount, getTestResultData(testResult));
                 summaryBuilder.addFailedTests(testResult);
-            } else if (testResult.getStatus() == ERROR || testResult.getStatus() == FAIL) {
+            } else if (ResultStatus.isFailure(testResult.getStatus())) {
                 // totalFailureCount of 0 here means something went wrong and this is actually a fatal crash
                 // TODO: handle this in a way that makes sure testResult.status == ERROR from plugins POV
                 summaryBuilder.addFatalCrashedTest(testResult);
@@ -114,39 +98,29 @@ public class SummaryCompiler {
 
     private static void addFatalCrashedTests(Pool pool, Collection<TestCaseEvent> testCasesForPool, Collection<TestCaseRunResult> testResultsForPool, Summary.Builder summaryBuilder) {
         Set<TestCase> processedTests = testResultsForPool.stream()
-                .map(testResult -> testResult.getTestCase())
+                .map(TestCaseRunResult::getTestCase)
                 .collect(Collectors.toSet());
         Set<TestCase> allTests = testCasesForPool.stream()
-                .map(testCaseEvent -> testCaseEvent.getTestCase())
+                .map(TestCaseEvent::getTestCase)
                 .collect(Collectors.toSet());
 
         Sets.difference(allTests, processedTests)
                 .stream()
-                .map(testResultItem -> {
-                    return new TestCaseRunResult(pool, NO_DEVICE,
+                .map(testResultItem -> new TestCaseRunResult(pool, NO_DEVICE,
                             testResultItem,
                             ERROR, Collections.singletonList(new StackTrace("FatalError", "Fatally crashed", "Fatally crashed")),
                             Instant.now(), Instant.EPOCH, Instant.now(), Instant.EPOCH,
-                            0, Collections.emptyMap(), null, Collections.emptyList());
-                })
-                .forEach(testCaseRunResult -> {
-                    summaryBuilder.addFatalCrashedTest(testCaseRunResult);
-                });
+                            0, Collections.emptyMap(), null, Collections.emptyList())
+                )
+                .forEach(summaryBuilder::addFatalCrashedTest);
     }
 
     private static void addIgnoredTests(Collection<TestCaseRunResult> ignoredTestResults, Summary.Builder summaryBuilder) {
         ignoredTestResults.stream()
                 .filter(r ->
                         // TODO: check ASSUMPTION_FAILED eventually executed on some device are not considered skipped
-                        r.getStatus() == ResultStatus.IGNORED || r.getStatus() == ResultStatus.ASSUMPTION_FAILED)
-                .forEach(testCaseRunResult -> {
-                    summaryBuilder.addIgnoredTest(testCaseRunResult);
-                });
-    }
-
-    private static String getTestResultData(TestCaseRunResult testResult) {
-        return format(ENGLISH, "%s#%s on %s", testResult.getTestCase().getTestClass(), testResult.getTestCase().getTestMethod(),
-                testResult.getDevice().getSerial());
+                        ResultStatus.isIgnored(r.getStatus()))
+                .forEach(summaryBuilder::addIgnoredTest);
     }
 
     private static final Device NO_DEVICE = new Device() {

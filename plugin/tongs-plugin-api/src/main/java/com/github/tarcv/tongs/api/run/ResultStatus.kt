@@ -25,5 +25,10 @@ enum class ResultStatus(private val overrideOrder: Int) {
         fun isFailure(status: ResultStatus): Boolean {
             return status !in listOf(PASS, IGNORED, ASSUMPTION_FAILED)
         }
+
+        @JvmStatic
+        fun isIgnored(status: ResultStatus): Boolean {
+            return status in listOf(IGNORED, ASSUMPTION_FAILED)
+        }
     }
 }

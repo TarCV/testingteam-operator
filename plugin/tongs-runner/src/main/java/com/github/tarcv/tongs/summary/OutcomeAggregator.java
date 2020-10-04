@@ -20,7 +20,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,8 +30,8 @@ public class OutcomeAggregator {
 
     public boolean aggregate(Summary summary) {
         if (summary == null || summary.getPoolSummaries().isEmpty() || !summary.getFatalCrashedTests().isEmpty()) {
-            if (summary != null && !summary.getFatalCrashedTests().isEmpty()) {
-                logger.error("There are tests left unprocessed: " + summary.getFatalCrashedTests());
+            if (summary != null && logger.isErrorEnabled() && !summary.getFatalCrashedTests().isEmpty()) {
+                logger.error(String.format("There are tests left unprocessed: %s", summary.getFatalCrashedTests()));
             }
             return false;
         }
@@ -42,29 +41,19 @@ public class OutcomeAggregator {
         return and(poolOutcomes);
     }
 
-    public static Function<? super PoolSummary, Boolean> toPoolOutcome() {
-        return new Function<PoolSummary, Boolean>() {
-            @Override
-            @Nullable
-            public Boolean apply(@Nullable PoolSummary input) {
-                final Collection<TestCaseRunResult> testResults = input.getTestResults();
-                final Collection<Boolean> testOutcomes = transform(testResults, toTestOutcome());
-                return !testOutcomes.isEmpty() && and(testOutcomes);
-            }
-        };
+    public static Function<PoolSummary, Boolean> toPoolOutcome() {
+        return (input -> {
+            final Collection<TestCaseRunResult> testResults = input.getTestResults();
+            final Collection<Boolean> testOutcomes = transform(testResults, toTestOutcome());
+            return !testOutcomes.isEmpty() && and(testOutcomes);
+        });
     }
 
     private static Function<TestCaseRunResult, Boolean> toTestOutcome() {
-        return new Function<TestCaseRunResult, Boolean>() {
-            @Override
-            @Nullable
-            public Boolean apply(@Nullable TestCaseRunResult input) {
-                return ResultStatus.isFailure(input.getStatus());
-            }
-        };
+        return (input -> !ResultStatus.isFailure(input.getStatus()));
     }
 
     private static Boolean and(final Collection<Boolean> booleans) {
-        return BooleanUtils.and(booleans.toArray(new Boolean[booleans.size()]));
+        return BooleanUtils.and(booleans.toArray(new Boolean[0]));
     }
 }

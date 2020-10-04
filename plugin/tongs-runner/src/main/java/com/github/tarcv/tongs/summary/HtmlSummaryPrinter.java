@@ -13,21 +13,20 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.io.HtmlGenerator;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
-import com.github.tarcv.tongs.system.io.FileManager;
+import com.github.tarcv.tongs.io.HtmlGenerator;
 import com.github.tarcv.tongs.system.io.FileUtils;
 import com.google.common.io.Resources;
 import org.lesscss.LessCompiler;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.github.tarcv.tongs.io.Files.copyResource;
 import static com.github.tarcv.tongs.api.result.StandardFileTypes.DOT_WITHOUT_EXTENSION;
 import static com.github.tarcv.tongs.api.result.StandardFileTypes.HTML;
-import static com.google.common.base.Charsets.UTF_8;
+import static com.github.tarcv.tongs.io.Files.copyResource;
 import static java.util.function.Function.identity;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 
@@ -53,15 +52,12 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
 	private final File htmlOutput;
 	private final File staticOutput;
     private final HtmlGenerator htmlGenerator;
-	private final FileManager fileManager;
 
 	public HtmlSummaryPrinter(
-    		File rootOutput,
-			HtmlGenerator htmlGenerator,
-			FileManager fileManager
+			File rootOutput,
+			HtmlGenerator htmlGenerator
 	) {
         this.htmlGenerator = htmlGenerator;
-        this.fileManager = fileManager;
         htmlOutput = new File(rootOutput, HTML_OUTPUT);
 		staticOutput = new File(htmlOutput, STATIC);
 	}
@@ -72,7 +68,7 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
         htmlOutput.mkdirs();
 		copyAssets();
 		generateCssFromLess();
-		HtmlSummary htmlSummary = HtmlConverters.toHtmlSummary(fileManager, summary);
+		HtmlSummary htmlSummary = HtmlConverters.toHtmlSummary(summary);
         htmlGenerator.generateHtml("tongspages/index.html", htmlOutput, INDEX_FILENAME, htmlSummary);
         generatePoolHtml(htmlSummary);
 		generatePoolTestsHtml(summary, htmlSummary);
@@ -87,10 +83,10 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
     private void generateCssFromLess() {
 		try {
 			LessCompiler compiler = new LessCompiler();
-			String less = Resources.toString(getClass().getResource("/spoon.less"), UTF_8);
+			String less = Resources.toString(getClass().getResource("/spoon.less"), StandardCharsets.UTF_8);
 			String css = compiler.compile(less);
 			File cssFile = new File(staticOutput, "spoon.css");
-			writeStringToFile(cssFile, css);
+			writeStringToFile(cssFile, css, StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -120,7 +116,7 @@ public class HtmlSummaryPrinter implements SummaryPrinter {
 	@SuppressWarnings("ResultOfMethodCallIgnored")
     private void generatePoolTestsHtml(Summary summary, HtmlSummary htmlSummary) {
 		Map<String, HtmlPoolSummary> namesToHtmlPools = htmlSummary.getPools().stream()
-				.collect(Collectors.toMap(htmlPoolSummary -> htmlPoolSummary.getPoolName(), identity()));
+				.collect(Collectors.toMap(HtmlPoolSummary::getPoolName, identity()));
 		for (TestCaseRunResult testResult : summary.getAllTests()) {
 			HtmlPoolSummary pool = namesToHtmlPools.get(testResult.getPool().getName());
 
