@@ -14,7 +14,7 @@ ext.versions = [
 
 ext.deps = [
     jsr305: "com.google.code.findbugs:jsr305:3.0.1",
-    guava: "com.google.guava:guava:19.0",
+    guava: "com.google.guava:guava:24.1.1-jre",
     ddmlib: "com.android.tools.ddms:ddmlib:${versions.androidTools}",
     sdklib: "com.android.tools:common:${versions.androidTools}",
     androidToolsCommon: "com.android.tools:common:${versions.androidTools}",
