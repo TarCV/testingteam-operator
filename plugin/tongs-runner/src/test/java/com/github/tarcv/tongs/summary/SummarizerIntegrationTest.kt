@@ -237,9 +237,15 @@ class SummarizerIntegrationTest {
                         aFile to aResource
                     }
                     .forEach { (aFile, aResource) ->
-                        val actualBody = aFile.bufferedReader().readLines()
-                        val expectedBody = Companion::class.java.getResourceAsStream(aResource).bufferedReader().readLines()
-                        Assert.assertEquals("${aFile.path} has expected contents", expectedBody, actualBody)
+                        val actualText = aFile.readLines().joinToString(System.lineSeparator())
+                        val expectedBody = Companion::class.java.getResourceAsStream(aResource).bufferedReader()
+                                .use{ it.readLines() }
+                                .joinToString(System.lineSeparator())
+                        Assert.assertFalse("${aFile.path} should not contain unresolved symbols",
+                                actualText.contains(DefaultHelper.placeholderForUnresolvedSymbols))
+
+                        Assert.assertEquals("${aFile.path} should have expected contents",
+                                expectedBody, actualText)
                     }
         }
 
