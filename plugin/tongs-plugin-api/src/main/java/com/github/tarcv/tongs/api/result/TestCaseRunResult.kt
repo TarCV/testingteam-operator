@@ -29,7 +29,7 @@ sealed class RunTesult
 /**
  * Request next compatibe runner to execute a test case
  */
-class Delegate: RunTesult()
+object Delegate: RunTesult()
 
 private val logger = LoggerFactory.getLogger(TestCaseRunResult::class.java)
 private fun errorMessage(path: TestCaseFile): String {
@@ -246,8 +246,8 @@ class Table(headerStrings: Collection<String>, rowStrings: Collection<Collection
     fun writeToFile(output: TestCaseFile, jsonFileWriter: (File, TableJson) -> Unit) {
         val headerStrings = headers.map { it.title }
         val rowStringLists = rows
-                .map {
-                    it.cells.map { it.text }
+                .map { row ->
+                    row.cells.map { it.text }
                 }
         val adaptedForJson = TableJson(headerStrings, rowStringLists)
 

@@ -12,7 +12,6 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import com.github.tarcv.tongs.model.AndroidDevice;
@@ -24,9 +23,6 @@ import java.util.Map;
 import static com.github.tarcv.tongs.api.result.StandardFileTypes.SCREENRECORD;
 
 class ScreenRecorderTestRunListener extends BaseCaptureTestRunListener {
-    private final TestCaseFileManager fileManager;
-    private final Pool pool;
-    private final AndroidDevice device;
     private final IDevice deviceInterface;
 
     private final ScreenRecorderStopper screenRecorderStopper;
@@ -34,10 +30,7 @@ class ScreenRecorderTestRunListener extends BaseCaptureTestRunListener {
     @NotNull
     public final TestCaseFile file;
 
-    public ScreenRecorderTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device) {
-        this.fileManager = fileManager;
-        this.pool = pool;
-        this.device = device;
+    public ScreenRecorderTestRunListener(TestCaseFileManager fileManager, AndroidDevice device) {
         deviceInterface = device.getDeviceInterface();
         screenRecorderStopper = new ScreenRecorderStopper(deviceInterface);
         file = new TestCaseFile(fileManager, SCREENRECORD, "");

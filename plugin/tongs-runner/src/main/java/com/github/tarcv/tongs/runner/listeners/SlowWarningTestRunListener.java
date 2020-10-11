@@ -49,7 +49,7 @@ class SlowWarningTestRunListener extends TongsTestListener {
     }
 
     @Override
-    public void onTestFailed(TestCaseRunResult failureResult) {
+    public void onTestFailed(@NotNull TestCaseRunResult failureResult) {
         onTestEnded();
     }
 

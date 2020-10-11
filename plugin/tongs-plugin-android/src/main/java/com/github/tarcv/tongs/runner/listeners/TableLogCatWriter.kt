@@ -17,7 +17,6 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.github.tarcv.tongs.api.result.Table
 import com.github.tarcv.tongs.api.result.TestCaseFile
 import com.google.gson.Gson
-import java.util.*
 import java.util.function.Function
 import java.util.stream.Collectors
 
@@ -37,7 +36,7 @@ class TableLogCatWriter(
     }
 
     fun convertToTable(messages: List<LogCatMessage>): Table {
-        val headers = Arrays.asList("appName",
+        val headers = listOf("appName",
                 "logLevel",
                 "message",
                 "pid",
@@ -47,7 +46,7 @@ class TableLogCatWriter(
         )
         val rows: List<List<String>> = messages.stream()
                 .map(Function { logCatMessage: LogCatMessage ->
-                    Arrays.asList(logCatMessage.appName,
+                    listOf(logCatMessage.appName,
                             logCatMessage.logLevel.stringValue,
                             logCatMessage.message, logCatMessage.pid.toString(),
                             logCatMessage.tag, logCatMessage.tid.toString(),

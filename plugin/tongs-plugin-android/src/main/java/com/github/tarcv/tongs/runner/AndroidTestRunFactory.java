@@ -42,9 +42,8 @@ public class AndroidTestRunFactory {
                 configuration,
                 device.hasOnDeviceLibrary());
 
-        List<RunListener> testRunListeners = new ArrayList<>();
         IResultProducer resultProducer = createResultProducer(testRunContext);
-        testRunListeners.addAll(resultProducer.requestListeners());
+        List<RunListener> testRunListeners = new ArrayList<>(resultProducer.requestListeners());
 
         return new AndroidInstrumentedTestRun(
                 pool.getName(),

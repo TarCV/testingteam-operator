@@ -14,15 +14,8 @@ package com.github.tarcv.tongs.runner;
 import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.injector.RuleManagerFactory;
-import com.github.tarcv.tongs.system.adb.Installer;
 
 public class DeviceTestRunnerFactory {
-
-    private final Installer installer;
-
-    public DeviceTestRunnerFactory(Installer installer) {
-        this.installer = installer;
-    }
 
     public DeviceTestRunner createDeviceTestRunner(Pool pool,
                                                    Device device,

@@ -146,7 +146,6 @@ class ScreenCapturer implements Runnable {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void deleteFiles(List<File> files) {
         for (File file : files) {
             try {

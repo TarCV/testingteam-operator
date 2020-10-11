@@ -24,16 +24,15 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 class ConsoleLoggingTestRunListener extends TongsTestListener {
     private static final PrintStream consolePrinter = System.out;
     private static final Logger logger = LoggerFactory.getLogger(ConsoleLoggingTestRunListener.class);
     private static final String PERCENT = "%02d%%";
-    private final SimpleDateFormat testTimeFormat = new SimpleDateFormat("mm.ss"); // SDF cannot be static
+    private final SimpleDateFormat testTimeFormat = new SimpleDateFormat("mm.ss", Locale.ROOT); // SDF cannot be static
     private final String serial;
     private final String modelName;
     private final ProgressReporter progressReporter;
@@ -53,18 +52,18 @@ class ConsoleLoggingTestRunListener extends TongsTestListener {
 
     @Override
     public void onTestStarted() {
-        consolePrinter.println(format("%s %s %s %s [%s] %s", runningTime(), progress(), failures(), modelName,
-                serial, testCase(test)));
+        consolePrinter.printf("%s %s %s %s [%s] %s%n", runningTime(), progress(), failures(), modelName,
+                serial, testCase(test));
     }
 
     @Override
-    public void onTestFailed(TestCaseRunResult failureResult) {
-        consolePrinter.println(format("%s %s %s %s [%s] Failed %s%n %s", runningTime(), progress(), failures(), modelName,
-                serial, testCase(test), joinStackTraces(failureResult)));
+    public void onTestFailed(@NotNull TestCaseRunResult failureResult) {
+        consolePrinter.printf("%s %s %s %s [%s] Failed %s%n %s%n", runningTime(), progress(), failures(), modelName,
+                serial, testCase(test), joinStackTraces(failureResult));
     }
 
     @Override
-    public void onTestAssumptionFailure(TestCaseRunResult skipped) {
+    public void onTestAssumptionFailure(@NotNull TestCaseRunResult skipped) {
         if (logger.isDebugEnabled()) {
             logger.debug("test={}", testCase(test));
             logger.debug("assumption failure {}", joinStackTraces(skipped));
@@ -72,7 +71,7 @@ class ConsoleLoggingTestRunListener extends TongsTestListener {
     }
 
     @Override
-    public void onTestSkipped(TestCaseRunResult skipped) {
+    public void onTestSkipped(@NotNull TestCaseRunResult skipped) {
         if (logger.isDebugEnabled()) {
             logger.debug("ignored test {} {}", testCase(test), joinStackTraces(skipped));
         }

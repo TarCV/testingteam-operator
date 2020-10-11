@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,21 +11,13 @@
 
 package com.github.tarcv.tongs.system;
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
-import com.github.tarcv.tongs.api.TongsConfiguration;
-import com.github.tarcv.tongs.model.Permission;
-
+import com.android.ddmlib.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
-
-import javax.annotation.Nonnull;
 
 import static java.lang.String.format;
 
@@ -33,18 +25,13 @@ public class PermissionGrantingManager {
 
     private static final NullOutputReceiver NO_OP_RECEIVER = new NullOutputReceiver();
 
-    private final Logger logger = LoggerFactory.getLogger(PermissionGrantingManager.class);
-    private final TongsConfiguration configuration;
-
-    public PermissionGrantingManager(@Nonnull TongsConfiguration configuration) {
-        this.configuration = configuration;
-    }
+    private static final Logger logger = LoggerFactory.getLogger(PermissionGrantingManager.class);
 
     public void revokePermissions(@Nonnull String applicationPackage,
                                   @Nonnull IDevice device,
                                   @Nonnull List<String> permissionsToRevoke) {
         if (!permissionsToRevoke.isEmpty()) {
-            long start = System.currentTimeMillis();
+            final long start = System.currentTimeMillis();
             for (String permissionToRevoke : permissionsToRevoke) {
                 try {
                     device.executeShellCommand(format("pm revoke %s %s",
@@ -62,7 +49,7 @@ public class PermissionGrantingManager {
                                   @Nonnull IDevice device,
                                   @Nonnull List<String> permissionsToGrant) {
         if (!permissionsToGrant.isEmpty()) {
-            long start = System.currentTimeMillis();
+            final long start = System.currentTimeMillis();
             for (String permissionToGrant : permissionsToGrant) {
                 try {
                     String command = format("pm grant %s %s", applicationPackage, permissionToGrant);
@@ -75,11 +62,6 @@ public class PermissionGrantingManager {
 
             logger.debug("Granting permissions: {} (took {}ms)", permissionsToGrant, (System.currentTimeMillis() - start));
         }
-    }
-
-    private static boolean deviceApiLevelInRange(@Nonnull IDevice device, @Nonnull Permission permission) {
-        int featureLevel = device.getVersion().getFeatureLevel();
-        return permission.getMaxSdkVersion() >= featureLevel && permission.getMinSdkVersion() <= featureLevel;
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HtmlGeneratorInjector {
-    private final static ConcurrentMapTemplateCache CACHE = new ConcurrentMapTemplateCache();
+public final class HtmlGeneratorInjector {
+    private static final ConcurrentMapTemplateCache CACHE = new ConcurrentMapTemplateCache();
 
     private HtmlGeneratorInjector() {}
 
@@ -52,26 +52,24 @@ public class HtmlGeneratorInjector {
         TongsHelpers.register(handlebars);
     }
 
-    private static void registerNonConflictingHelpers(Handlebars handlebars,  Enum<? extends Helper>[] helpers, Enum<? extends Helper>[] excludeConflictsWith) {
+    private static void registerNonConflictingHelpers(Handlebars handlebars,  Enum<? extends Helper<?>>[] helpers, Enum<? extends Helper<?>>[] excludeConflictsWith) {
         Set<String> reservedNames = Arrays.stream(excludeConflictsWith)
-                .map(helper -> helper.name())
+                .map(Enum::name)
                 .collect(Collectors.toSet());
         Arrays.stream(helpers)
                 .filter(helper -> {
                     // filter out helpers with conflicting names
                     return !reservedNames.contains(helper.name());
                 })
-                .forEach(helper -> {
-                    registerEnumHelper(handlebars, helper);
-                });
+                .forEach(helper -> registerEnumHelper(handlebars, helper));
     }
 
-    private static Handlebars registerEnumHelper(Handlebars handlebars, Enum<? extends Helper> helper) {
-        return handlebars.registerHelper(helper.name(), (Helper) helper);
+    private static Handlebars registerEnumHelper(Handlebars handlebars, Enum<? extends Helper<?>> helper) {
+        return handlebars.registerHelper(helper.name(), (Helper<?>) helper);
     }
 
-    private static void registerEnumHelpers(Handlebars handlebars, Enum<? extends Helper>[] helpers) {
-        for (Enum<? extends Helper> helper : helpers) {
+    private static void registerEnumHelpers(Handlebars handlebars, Enum<? extends Helper<?>>[] helpers) {
+        for (Enum<? extends Helper<?>> helper : helpers) {
             registerEnumHelper(handlebars, helper);
         }
     }

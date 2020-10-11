@@ -197,7 +197,7 @@ inline fun <R, V>withRulesWithoutAfter(
         Pair(allowedRules, lastException)
     }
 
-    var actionResult: Result<V> = if (lastException == null) {
+    val actionResult: Result<V> = if (lastException == null) {
         try {
             Result.success(block())
         } catch (t: Throwable) {

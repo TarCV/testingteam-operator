@@ -15,11 +15,11 @@ package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.IDevice
 import com.github.tarcv.tongs.api.TongsConfiguration
-import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.api.run.TestCaseRunRule
 import com.github.tarcv.tongs.api.run.TestCaseRunRuleAfterArguments
 import com.github.tarcv.tongs.api.run.TestCaseRunRuleContext
 import com.github.tarcv.tongs.api.run.TestCaseRunRuleFactory
+import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.system.PermissionGrantingManager
 
 class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidPermissionGrantingTestCaseRunRule> {
@@ -49,7 +49,7 @@ class AndroidPermissionGrantingTestCaseRunRule(
         private val deviceInterface: IDevice,
         private val permissionsToGrant: List<String>
 ) : TestCaseRunRule {
-    private val permissionGrantingManager = PermissionGrantingManager(configuration)
+    private val permissionGrantingManager = PermissionGrantingManager()
 
     override fun before() {
         permissionGrantingManager.grantPermissions(configuration.applicationPackage,
