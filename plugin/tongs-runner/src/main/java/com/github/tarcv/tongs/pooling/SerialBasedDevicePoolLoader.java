@@ -34,18 +34,17 @@ public class SerialBasedDevicePoolLoader implements DevicePoolLoader {
         this.manualPooling = manualPooling;
     }
 
+    @Override
 	public Collection<Pool> loadPools(List<Device> devices) {
-		Collection<Pool> pools = new ArrayList<>();
+        final Collection<Pool> pools = new ArrayList<>();
 
         for (Entry<String, Collection<String>> pool : manualPooling.groupings.entrySet()) {
-            Pool.Builder poolBuilder = aDevicePool().withName(pool.getKey());
+            final Pool.Builder poolBuilder = aDevicePool().withName(pool.getKey());
             for (String serial : pool.getValue()) {
-                Device device = devices.stream()
+                final Device device = devices.stream()
                         .filter(d -> d.getSerial().equals(serial))
                         .findFirst()
-                        .orElseThrow(() -> {
-                            return new RuntimeException("Device with the serial '" + serial + "' was not found");
-                        });
+                        .orElseThrow(() -> new RuntimeException("Device with the serial '" + serial + "' was not found"));
                 if (device != null) {
                     poolBuilder.addDevice(device);
                 }

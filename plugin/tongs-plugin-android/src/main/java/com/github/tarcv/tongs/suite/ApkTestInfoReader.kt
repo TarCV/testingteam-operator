@@ -71,7 +71,7 @@ class ApkTestInfoReader {
                 .classes
                 .filter(Companion::isClass)
                 .flatMap { clazz ->
-                    (clazz.getVirtualMethods() + clazz.getDirectMethods())
+                    (clazz.virtualMethods + clazz.directMethods)
                             .filter { it.name !in ignoredMethods }
                             .filter {
                                 AccessFlags.ABSTRACT !in it.accessFlags
@@ -144,7 +144,7 @@ class ApkTestInfoReader {
         val testClass = knownClasses[testClassName]
         if (testClass == null) {
             // TODO: log
-            return
+                return
         }
         appendSuperclassAnnotationsRoot(testClass, knownClasses, out)
 

@@ -14,12 +14,13 @@
 package com.github.tarcv.tongs.pooling.geometry;
 
 import com.android.ddmlib.IDevice;
-import com.github.tarcv.tongs.device.DisplayGeometryRetrievalStrategy;
 import com.github.tarcv.tongs.api.devices.DisplayGeometry;
+import com.github.tarcv.tongs.device.DisplayGeometryRetrievalStrategy;
 import com.github.tarcv.tongs.system.adb.CollectingShellOutputReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -38,7 +39,7 @@ public class RegexDisplayGeometryRetrievalStrategy implements DisplayGeometryRet
     public RegexDisplayGeometryRetrievalStrategy(String command, CommandOutputLogger commandOutputLogger, String... regexes) {
         this.command = command;
         this.commandOutputLogger = commandOutputLogger;
-        this.regexes = regexes;
+        this.regexes = Arrays.copyOf(regexes, regexes.length);
     }
 
     @Override
@@ -56,7 +57,7 @@ public class RegexDisplayGeometryRetrievalStrategy implements DisplayGeometryRet
             device.executeShellCommand(command, receiver);
             String commandOutput = receiver.getOutput();
             commandOutputLogger.logCommandOutput(serial, commandOutput);
-            Pattern xxnnn = Pattern.compile("(\\w+?)(\\d+)");
+            final Pattern xxnnn = Pattern.compile("(\\w+?)(\\d+)");
             for (String regex : regexes) {
                 Pattern pattern;
                 try {

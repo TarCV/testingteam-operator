@@ -23,12 +23,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.NONE;
 import static com.github.tarcv.tongs.system.axmlparser.InstrumentationInfoFactory.parseFromFile;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Arrays.asList;
 
 public class Configuration implements TongsConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
@@ -431,7 +431,7 @@ public class Configuration implements TongsConfiguration {
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);
             testRunnerArguments = assignValueOrDefaultIfNull(testRunnerArguments, Defaults.TEST_RUNNER_ARGUMENTS);
             testOutputTimeout = assignValueOrDefaultIfZero(testOutputTimeout, Defaults.TEST_OUTPUT_TIMEOUT_MILLIS);
-            excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.<String>emptyList());
+            excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.emptyList());
             checkArgument(totalAllowedRetryQuota >= 0, "Total allowed retry quota should not be negative.");
             checkArgument(retryPerTestCaseQuota >= 0, "Retry per test case quota should not be negative.");
             retryPerTestCaseQuota = assignValueOrDefaultIfZero(retryPerTestCaseQuota, Defaults.RETRY_QUOTA_PER_TEST_CASE);
@@ -463,20 +463,20 @@ public class Configuration implements TongsConfiguration {
          * we throw an exception.
          */
         private PoolingStrategy validatePoolingStrategy(PoolingStrategy poolingStrategy, boolean withWarnings) {
-            if (poolingStrategy == null) {
+            PoolingStrategy fixedStategy = poolingStrategy;
+            if (fixedStategy == null) {
                 if (withWarnings) {
                     logger.warn("No strategy was chosen in configuration, so defaulting to one pool per device");
                 }
-                poolingStrategy = new PoolingStrategy();
-                poolingStrategy.eachDevice = true;
+                fixedStategy = new PoolingStrategy();
+                fixedStategy.eachDevice = true;
             } else {
-                long selectedStrategies = asList(
-                        poolingStrategy.eachDevice,
-                        poolingStrategy.splitTablets,
-                        poolingStrategy.computed,
-                        poolingStrategy.manual)
-                        .stream()
-                        .filter(p -> p != null)
+                long selectedStrategies = Stream.of(
+                        fixedStategy.eachDevice,
+                        fixedStategy.splitTablets,
+                        fixedStategy.computed,
+                        fixedStategy.manual)
+                        .filter(Objects::nonNull)
                         .count();
                 if (selectedStrategies > Defaults.STRATEGY_LIMIT) {
                     throw new IllegalArgumentException("You have selected more than one strategies in configuration. " +
@@ -484,7 +484,7 @@ public class Configuration implements TongsConfiguration {
                 }
             }
 
-            return poolingStrategy;
+            return fixedStategy;
         }
     }
 }

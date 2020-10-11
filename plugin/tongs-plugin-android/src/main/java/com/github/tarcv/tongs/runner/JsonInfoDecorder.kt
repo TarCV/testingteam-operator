@@ -63,9 +63,9 @@ internal class JsonInfoDecorder {
                     }
 
                     val children = it.get("sChildren").asJsonArray
-                            .map {
+                            .map { child ->
                                 val (uniqueId, semiUniqueId, readableName) =
-                                        it.asString.split(Regex("(?<=\\d)-"), limit = 3) // an ID might be negative
+                                        child.asString.split(Regex("(?<=\\d)-"), limit = 3) // an ID might be negative
                                 RawItem(uniqueId.toInt(), semiUniqueId.toInt(), readableName, null, actualItem)
                             }
                     unboundItems.addAll(children)

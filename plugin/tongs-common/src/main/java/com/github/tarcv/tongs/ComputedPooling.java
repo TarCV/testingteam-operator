@@ -11,6 +11,7 @@
 package com.github.tarcv.tongs;
 
 import com.github.tarcv.tongs.api.devices.Device;
+import com.github.tarcv.tongs.api.devices.DisplayGeometry;
 
 import java.util.Map;
 
@@ -24,7 +25,12 @@ public class ComputedPooling {
 
             @Override
             public int getParameter(Device device) {
-                return device.getGeometry().getSwDp();
+                DisplayGeometry geometry = device.getGeometry();
+                if (geometry != null) {
+                    return geometry.getSwDp();
+                } else {
+                    return 0;
+                }
             }
 
             @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -35,6 +35,7 @@ public class ComputedDevicePoolLoader implements DevicePoolLoader {
         this.computedPoolsCategorizer = new ComputedPoolsCategorizer(computedPooling);
     }
 
+    @Override
     public Collection<Pool> loadPools(List<Device> devices) {
         Collection<Pool> pools = createComputedPools(devices);
         ensureAllPoolsAreRepresented(pools);
