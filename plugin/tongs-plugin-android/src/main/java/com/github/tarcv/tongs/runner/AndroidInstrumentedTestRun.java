@@ -39,6 +39,7 @@ public class AndroidInstrumentedTestRun {
 	private static final Logger logger = LoggerFactory.getLogger(AndroidInstrumentedTestRun.class);
 	private static final String TESTCASE_FILTER = "com.github.tarcv.tongs.ondevice.ClassMethodFilter";
 	public static final String COLLECTING_RUN_FILTER = "com.github.tarcv.tongs.ondevice.AnnontationReadingFilter";
+	private static final String FILTER_ARGUMENT = "filter";
 	private final String poolName;
 	private final TestRunParameters testRunParameters;
 	private final List<? extends ITestRunListener> testRunListeners;
@@ -139,19 +140,20 @@ public class AndroidInstrumentedTestRun {
 
 	private void addFilterAndCustomArgs(RemoteAndroidTestRunner runner, @Nullable String collectingRunFilter) {
 		testRunParameters.getTestRunnerArguments().entrySet().stream()
-				.filter(nameValue -> !"filter".equals(nameValue.getKey()))
+				.filter(nameValue -> !FILTER_ARGUMENT.equals(nameValue.getKey()))
 				.filter(nameValue -> !nameValue.getKey().startsWith("tongs_"))
-				.forEach(nameValue -> {
-					remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner,
-							nameValue.getKey(), nameValue.getValue());
-				});
+				.forEach(nameValue -> remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(
+						runner,
+						nameValue.getKey(),
+						nameValue.getValue()
+				));
 
-		@Nullable String customFilters = testRunParameters.getTestRunnerArguments().get("filter");
+		@Nullable String customFilters = testRunParameters.getTestRunnerArguments().get(FILTER_ARGUMENT);
 		String filters = Stream.of(customFilters, collectingRunFilter)
 				.filter(Objects::nonNull)
 				.collect(Collectors.joining(","));
 		if (!filters.isEmpty()) {
-			runner.addInstrumentationArg("filter", filters);
+			runner.addInstrumentationArg(FILTER_ARGUMENT, filters);
 		}
 	}
 }

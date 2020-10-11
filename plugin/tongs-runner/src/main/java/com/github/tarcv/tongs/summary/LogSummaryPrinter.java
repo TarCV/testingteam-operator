@@ -45,24 +45,33 @@ public class LogSummaryPrinter implements SummaryPrinter {
         for (PoolSummary poolSummary : summary.getPoolSummaries()) {
             printMiniSummary(poolSummary);
         }
-        List<TestCaseRunResult> suppressedTests = summary.getIgnoredTests();
-        if (suppressedTests.isEmpty()) {
-            logger.info("No suppressed tests.");
-        } else {
-            logger.info("Suppressed tests:");
-            for (TestCaseRunResult s : suppressedTests) {
-                logger.info(s.getTestCase().toString());
+
+        printSuppressedTestsList(summary);
+    }
+
+    private static void printSuppressedTestsList(Summary summary) {
+        if (logger.isInfoEnabled()) {
+            List<TestCaseRunResult> suppressedTests = summary.getIgnoredTests();
+            if (suppressedTests.isEmpty()) {
+                logger.info("No suppressed tests.");
+            } else {
+                logger.info("Suppressed tests:");
+                for (TestCaseRunResult s : suppressedTests) {
+                    logger.info(s.getTestCase().toString());
+                }
             }
         }
     }
 
     private static void printMiniSummary(PoolSummary poolSummary) {
-        logger.info(String.format("% 3d E  % 3d F  % 3d P: %s",
-                getResultsWithStatus(poolSummary.getTestResults(), ERROR).size(),
-                getResultsWithStatus(poolSummary.getTestResults(), FAIL).size(),
-                getResultsWithStatus(poolSummary.getTestResults(), PASS).size(),
-                poolSummary.getPoolName()
-        ));
+        if (logger.isInfoEnabled()) {
+            logger.info(String.format("% 3d E  % 3d F  % 3d P: %s",
+                    getResultsWithStatus(poolSummary.getTestResults(), ERROR).size(),
+                    getResultsWithStatus(poolSummary.getTestResults(), FAIL).size(),
+                    getResultsWithStatus(poolSummary.getTestResults(), PASS).size(),
+                    poolSummary.getPoolName()
+            ));
+        }
     }
 
     private static StringBuilder getPoolSummary(PoolSummary poolSummary, ResultStatus resultStatus) {

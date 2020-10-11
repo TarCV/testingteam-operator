@@ -54,7 +54,7 @@ class ResultProducer(
     private val resultListener = ResultListener(context.testCaseEvent.testCase.toString())
     private val logCatListener = LogCatTestRunListener(gson(), context.fileManager, context.pool, androidDevice,
             context.testCaseEvent.testCase)
-    private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, context.pool, androidDevice)
+    private val screenTraceListener = getScreenTraceTestRunListener(context.fileManager, androidDevice)
     private val coverageListener = getCoverageTestRunListener(context.configuration, androidDevice, context.fileManager, context.pool, context.testCaseEvent)
 
     override fun requestListeners(): List<RunListener> {
@@ -131,7 +131,7 @@ class ResultProducer(
         }
     }
 
-    private fun getScreenTraceTestRunListener(fileManager: TestCaseFileManager, pool: Pool, device: AndroidDevice): RunListener {
+    private fun getScreenTraceTestRunListener(fileManager: TestCaseFileManager, device: AndroidDevice): RunListener {
         return if (Diagnostics.VIDEO == device.supportedVisualDiagnostics) {
             ScreenRecorderTestRunListener(fileManager, device)
         } else if (Diagnostics.SCREENSHOTS == device.supportedVisualDiagnostics && context.configuration.canFallbackToScreenshots()) {
