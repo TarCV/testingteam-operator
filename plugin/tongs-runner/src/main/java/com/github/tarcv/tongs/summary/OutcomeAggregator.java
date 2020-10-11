@@ -15,15 +15,14 @@ package com.github.tarcv.tongs.summary;
 
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
 import com.github.tarcv.tongs.api.run.ResultStatus;
-import com.google.common.base.Function;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
-
-import static com.google.common.collect.Collections2.transform;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class OutcomeAggregator {
     private static final Logger logger = LoggerFactory.getLogger(OutcomeAggregator.class);
@@ -37,14 +36,19 @@ public class OutcomeAggregator {
         }
 
         List<PoolSummary> poolSummaries = summary.getPoolSummaries();
-        Collection<Boolean> poolOutcomes = transform(poolSummaries, toPoolOutcome());
+        Collection<Boolean> poolOutcomes = poolSummaries.stream()
+                .map(toPoolOutcome())
+                .collect(Collectors.toList());
         return and(poolOutcomes);
     }
 
     public static Function<PoolSummary, Boolean> toPoolOutcome() {
         return (input -> {
             final Collection<TestCaseRunResult> testResults = input.getTestResults();
-            final Collection<Boolean> testOutcomes = transform(testResults, toTestOutcome());
+            final Collection<Boolean> testOutcomes = testResults.stream()
+                    .map(toTestOutcome())
+                    .collect(Collectors.toList());
+
             return !testOutcomes.isEmpty() && and(testOutcomes);
         });
     }
