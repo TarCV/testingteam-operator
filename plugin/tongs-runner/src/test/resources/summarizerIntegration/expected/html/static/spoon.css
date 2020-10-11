@@ -71,7 +71,7 @@ body {
   border-bottom: 2px solid #89c989;
 }
 .test-result.warn {
-  border-bottom: 2px solid ##ffffcc;
+  border-bottom: 2px solid #ffffcc;
 }
 .test-result.fail,
 .test-result.error {

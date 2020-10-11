@@ -59,8 +59,8 @@ class TemplateHelpersTest {
 
     @Test
     fun readableMethodNameIsAccesibleViaHelper() {
-        val html = htmlGenerator().generateHtmlFromInline("{{readableMethodName string}}", Model(string = "testFooBar[123]_bar"))
-        Assert.assertEquals("Foo Bar[123], Bar", html)
+        val html = htmlGenerator().generateHtmlFromInline("{{readableMethodName string}}", Model(string = "testFo56oBar[123]_bar ASC"))
+        Assert.assertEquals("Fo 56 O Bar[123] Bar Asc", html)
     }
 
     class Model(

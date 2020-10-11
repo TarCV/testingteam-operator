@@ -57,7 +57,7 @@
                                     {{#headers}}{{#if (eq title 'message')}}<th class="message">Message</th>{{/if}}{{/headers}}
                                 </tr>
 {{#rows}}
-                                <tr class="line {{logLevel}}">
+                                <tr class="line {{#cells}}{{#if (eq header.title 'logLevel')}}{{text}}{{/if}}{{/cells}}">
                                     {{#cells}}{{#if (eq header.title 'pid')}}<td>{{text}}</td>{{/if}}{{/cells}}
                                     {{#cells}}{{#if (eq header.title 'tag')}}<td>{{text}}</td>{{/if}}{{/cells}}
                                     {{#cells}}{{#if (eq header.title 'logLevel')}}<td>{{text}}</td>{{/if}}{{/cells}}
@@ -71,7 +71,7 @@
                         <table class="table">
                             <tr>{{#headers}}<th>{{.}}</th>{{/headers}}</tr>
                             {{#rows}}
-                            <tr class="line {{logLevel}}">{{#cells}}<td>{{.}}</td>{{/cells}}</tr>
+                            <tr class="line">{{#cells}}<td>{{.}}</td>{{/cells}}</tr>
                             {{/rows}}
                         </table>
                     {{/if}}
