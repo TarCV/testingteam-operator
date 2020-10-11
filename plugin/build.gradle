@@ -10,7 +10,7 @@
  */
 
 buildscript {
-    ext.kotlin_version = '1.3.10' // should be the same as in dependencies.gradle
+    ext.kotlin_version = '1.3.50' // should be the same as in dependencies.gradle
     repositories {
         mavenCentral()
     }

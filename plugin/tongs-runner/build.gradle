@@ -25,8 +25,8 @@ java {
 }
 
 dependencies {
-    compile project(':tongs-common')
-    compile project(':tongs-plugin-api')
+    api project(':tongs-common')
+    api project(':tongs-plugin-api')
     implementation project(':tongs-plugin-android')
 
     implementation deps.koin
@@ -52,7 +52,7 @@ dependencies {
     testImplementation(
             deps.jmock,
             deps.jmockJUnit)
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 jar {
