@@ -69,7 +69,7 @@ class ResultProducer(
         val shellResult = resultListener.result
 
         val gson = gson()
-        val reportBlocks = listOf(
+        val reportBlocks = listOfNotNull(
                 addOutput(shellResult.output),
                 addTraceReport(screenTraceListener),
                 FileTableReportData("Logcat", logCatListener.tableFile, { tableFile ->
@@ -81,7 +81,7 @@ class ResultProducer(
                 }),
                 LinkedFileReportData("Logcat", logCatListener.rawFile),
                 LinkedFileReportData("Logcat as JSON", logCatListener.tableFile)
-        ).filterNotNull()
+        )
 
         val coverageReport = if (coverageListener is CoverageListener) {
             coverageListener.coverageFile
@@ -133,9 +133,9 @@ class ResultProducer(
 
     private fun getScreenTraceTestRunListener(fileManager: TestCaseFileManager, pool: Pool, device: AndroidDevice): RunListener {
         return if (Diagnostics.VIDEO == device.supportedVisualDiagnostics) {
-            ScreenRecorderTestRunListener(fileManager, pool, device)
+            ScreenRecorderTestRunListener(fileManager, device)
         } else if (Diagnostics.SCREENSHOTS == device.supportedVisualDiagnostics && context.configuration.canFallbackToScreenshots()) {
-            ScreenCaptureTestRunListener(fileManager, pool, device)
+            ScreenCaptureTestRunListener(fileManager, device)
         } else {
             NoOpRunListener()
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -15,6 +15,7 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.logcat.LogCatMessage;
 
+import java.util.Arrays;
 import java.util.List;
 
 class CompositeLogCatWriter implements LogCatWriter {
@@ -22,7 +23,7 @@ class CompositeLogCatWriter implements LogCatWriter {
 	private final LogCatWriter[] logCatWriters;
 
 	CompositeLogCatWriter(LogCatWriter... logCatWriters) {
-		this.logCatWriters = logCatWriters;
+		this.logCatWriters = Arrays.copyOf(logCatWriters, logCatWriters.length);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -26,10 +26,8 @@ class LogCatSerializer {
 	private final Pattern testStartPattern;
 	private final Pattern testEndPattern;
 	private final LogCatWriter logCatWriter;
-	private final TestIdentifier test;
 
 	LogCatSerializer(TestIdentifier test, LogCatWriter logCatWriter) {
-		this.test = test;
 		this.logCatWriter = logCatWriter;
 		testStartPattern = Pattern.compile(createPattern("started", test));
 		testEndPattern = Pattern.compile(createPattern("finished", test));

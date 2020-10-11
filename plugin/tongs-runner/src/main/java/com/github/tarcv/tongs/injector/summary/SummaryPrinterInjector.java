@@ -13,7 +13,6 @@
  */
 package com.github.tarcv.tongs.injector.summary;
 
-import com.github.tarcv.tongs.summary.XmlResultWriter;
 import com.github.tarcv.tongs.summary.*;
 
 import static com.github.tarcv.tongs.injector.ConfigurationInjector.configuredOutput;
@@ -38,7 +37,7 @@ public class SummaryPrinterInjector {
     }
 
     private static SummaryPrinter htmlSummaryPrinter() {
-        return new HtmlSummaryPrinter(configuredOutput(), htmlGenerator(), fileManager());
+        return new HtmlSummaryPrinter(configuredOutput(), htmlGenerator());
     }
 
     private static SummaryPrinter xmlSummaryPrinter() {

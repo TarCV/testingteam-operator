@@ -12,7 +12,7 @@
  */
 package com.github.tarcv.tongs.injector
 
-import com.github.tarcv.tongs.Configuration
+import com.github.tarcv.tongs.aConfigurationBuilder
 import com.github.tarcv.tongs.api.HasConfiguration
 import com.github.tarcv.tongs.api.run.RunConfiguration
 import org.hamcrest.CoreMatchers.`is`
@@ -49,7 +49,7 @@ class RuleManagerTest {
         }
 
         val ruleManagerFactory = RuleManagerFactory(
-                Configuration.aConfigurationBuilder().build(),
+                aConfigurationBuilder().build(true),
                 listOf(DefaultActualRuleFactory())
         )
 
@@ -108,7 +108,7 @@ class RuleManagerTest {
             override val configurationSections: Array<String> = arrayOf(conflictingName)
         }
 
-        val globalConfiguration = Configuration.aConfigurationBuilder()
+        val globalConfiguration = aConfigurationBuilder()
                 .withPluginConfiguration(mapOf(
                         uniqueSectionName to "${uniqueSectionName}Value",
                         conflictingName to "${conflictingName}Value1",
@@ -117,7 +117,7 @@ class RuleManagerTest {
                         "${conflictingName}/${RuleFactoryWithConflictingConfigurationSection2::class.jvmName}" to
                                 "${conflictingName}Value2"
                 ))
-                .build()
+                .build(true)
 
         val ruleManagerFactory = RuleManagerFactory(
                 globalConfiguration,

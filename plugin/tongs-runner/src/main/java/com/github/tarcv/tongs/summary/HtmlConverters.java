@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,20 +13,20 @@
  */
 package com.github.tarcv.tongs.summary;
 
-import com.github.tarcv.tongs.api.run.ResultStatus;
-import com.github.tarcv.tongs.api.result.TestCaseRunResult;
-import com.github.tarcv.tongs.system.io.FileManager;
-import com.google.common.base.Function;
-
 import javax.annotation.Nullable;
-
-import static com.google.common.collect.Collections2.transform;
+import java.util.Collection;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 class HtmlConverters {
+	private HtmlConverters() {}
 
-	public static HtmlSummary toHtmlSummary(FileManager fileManager, Summary summary) {
-		HtmlSummary htmlSummary = new HtmlSummary(
-				transform(summary.getPoolSummaries(), toHtmlPoolSummary(fileManager)),
+	public static HtmlSummary toHtmlSummary(Summary summary) {
+		Collection<HtmlPoolSummary> poolSummaries = summary.getPoolSummaries().stream()
+				.map(toHtmlPoolSummary())
+				.collect(Collectors.toList());
+		return new HtmlSummary(
+				poolSummaries,
 				summary.getTitle(),
 				summary.getSubtitle(),
 				summary.getIgnoredTests(),
@@ -35,16 +35,14 @@ class HtmlConverters {
         		summary.getFatalCrashedTests(),
         		summary.getFatalErrors() // TODO: Add to template
 		);
-		return htmlSummary;
 	}
 
 	private static Function<PoolSummary, HtmlPoolSummary> toHtmlPoolSummary(
-			final FileManager fileManager
 	) {
 		return new Function<PoolSummary, HtmlPoolSummary> () {
 			@Override
 			@Nullable
-			public HtmlPoolSummary apply(@Nullable PoolSummary poolSummary) {
+			public HtmlPoolSummary apply(PoolSummary poolSummary) {
 				return new HtmlPoolSummary(
 						getPoolStatus(poolSummary),
 						poolSummary.getTestResults(),
@@ -57,14 +55,5 @@ class HtmlConverters {
                 return (success != null && success? "pass" : "fail");
             }
         };
-	}
-
-	private static String computeStatus(@Nullable TestCaseRunResult input) {
-		String result  = input.getStatus().name().toLowerCase();
-		if(input.getStatus() == ResultStatus.PASS
-				&& input.getTotalFailureCount() > 0){
-			result = "warn";
-		}
-		return result;
 	}
 }

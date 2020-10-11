@@ -32,8 +32,8 @@ public class AnnontationReadingFilter extends Filter {
 
     @Override
     public boolean shouldRun(Description description) {
-        JSONObject info = new JSONObject();
-        JSONArray annotationsInfo = new JSONArray();
+        final JSONObject info = new JSONObject();
+        final JSONArray annotationsInfo = new JSONArray();
 
         try {
             final ArrayList<Description> children = description.getChildren();
@@ -83,7 +83,7 @@ public class AnnontationReadingFilter extends Filter {
         }
 
         Class<?> superclass = testClass.getSuperclass();
-        if (superclass != Object.class && superclass != testClass && superclass != null) {
+        if (!Object.class.equals(superclass) && !testClass.equals(superclass) && superclass != null) {
             appendSuperclassAnnotationsFull(superclass, annotationsInfo);
         }
     }
@@ -101,7 +101,7 @@ public class AnnontationReadingFilter extends Filter {
         appendAnnotationInfos(eligibleAnnotations, annotationsInfo);
     }
 
-    private void appendAnnotationInfos(Iterable<Annotation> annotations, JSONArray annotationsInfo) throws JSONException {
+    private static void appendAnnotationInfos(Iterable<Annotation> annotations, JSONArray annotationsInfo) throws JSONException {
         for (Annotation annotation: annotations) {
             JSONObject currentAnnotationInfo = new JSONObject();
             Class<? extends Annotation> annotationType = annotation.annotationType();
@@ -122,12 +122,10 @@ public class AnnontationReadingFilter extends Filter {
         }
     }
 
-    private Object getAnnotationParameterValue(Annotation annotation, Method method) {
+    private static Object getAnnotationParameterValue(Annotation annotation, Method method) {
         try {
             return method.invoke(annotation);
-        } catch (IllegalAccessException e) {
-            throw createAnnotationParameterValueException(method, e);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             throw createAnnotationParameterValueException(method, e);
         }
     }
@@ -136,7 +134,7 @@ public class AnnontationReadingFilter extends Filter {
         return new RuntimeException(String.format("Failed to get value of '%s' annotation parameter", method.getName()), e);
     }
 
-    private boolean isAnnotationParameter(Method method) {
+    private static boolean isAnnotationParameter(Method method) {
         if (method.getParameterTypes().length > 0) {
             return false;
         }
@@ -145,9 +143,9 @@ public class AnnontationReadingFilter extends Filter {
             case "hashCode":
             case "toString":
                 return false;
+            default:
+                return true;
         }
-
-        return true;
     }
 
     @Override

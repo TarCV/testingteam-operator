@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright (C) 2013 The Android Open Source Project
  *
  * Based on com/android/builder/testing/ConnectedDeviceProvider.java from Android Gradle Plugin 3.3.2 source code
@@ -26,17 +26,21 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
+import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.device.DeviceGeometryRetriever;
 import com.github.tarcv.tongs.device.DeviceLoader;
-import com.github.tarcv.tongs.api.devices.Device;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -86,53 +90,16 @@ public class ConnectedDeviceProvider {
                                 + adbLocation.getAbsolutePath());
             }
 
-            int getDevicesCountdown = timeOut;
-            final int sleepTime = 1000;
-            while (!bridge.hasInitialDeviceList() && getDevicesCountdown >= 0) {
-                try {
-                    Thread.sleep(sleepTime);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-
-                getDevicesCountdown -= sleepTime;
-            }
-
-            if (!bridge.hasInitialDeviceList()) {
-                throw new RuntimeException("Timeout getting device list.");
-            }
-
-            IDevice[] devices = bridge.getDevices();
-
+            IDevice[] devices = waitForInitialDeviceList(bridge, timeOut);
             if (devices.length == 0) {
                 localDevices.clear();
                 return;
             }
 
             final String androidSerialsEnv = System.getenv("ANDROID_SERIAL");
-            final boolean isValidSerial = androidSerialsEnv != null && !androidSerialsEnv.isEmpty();
+            @Nullable final Set<String> serialsFilter = asSerialsFilter(androidSerialsEnv);
 
-            final Set<String> serials;
-            if (isValidSerial) {
-                serials = Sets.newHashSet(Splitter.on(',').split(androidSerialsEnv));
-            } else {
-                serials = Sets.newHashSet();
-            }
-
-            final List<IDevice> filteredDevices = Lists.newArrayListWithCapacity(devices.length);
-            for (IDevice iDevice : devices) {
-                if (!isValidSerial || serials.contains(iDevice.getSerialNumber())) {
-                    serials.remove(iDevice.getSerialNumber());
-                    filteredDevices.add(iDevice);
-                }
-            }
-
-            if (!serials.isEmpty()) {
-                throw new RuntimeException(
-                        String.format(
-                                "Connected device with serial%s '%s' not found!",
-                                serials.size() == 1 ? "" : "s", Joiner.on("', '").join(serials)));
-            }
+            final List<IDevice> filteredDevices = filterDevices(devices, serialsFilter);
 
             for (IDevice device : filteredDevices) {
                 if (device.getState() == IDevice.DeviceState.ONLINE) {
@@ -152,7 +119,7 @@ public class ConnectedDeviceProvider {
             }
 
             if (localDevices.isEmpty()) {
-                if (isValidSerial) {
+                if (serialsFilter != null) {
                     throw new RuntimeException(
                             String.format(
                                     "Connected device with serial $1%s is not online.",
@@ -168,8 +135,65 @@ public class ConnectedDeviceProvider {
         }
     }
 
+    @Nullable
+    private static Set<String> asSerialsFilter(String androidSerialsEnv) {
+        final Set<String> serialsFilter;
+        if (!Strings.isNullOrEmpty(androidSerialsEnv)) {
+            serialsFilter = Sets.newHashSet(Splitter.on(',').trimResults().split(androidSerialsEnv));
+        } else {
+            serialsFilter = null;
+        }
+        return serialsFilter;
+    }
+
+    @NotNull
+    private static List<IDevice> filterDevices(IDevice[] devices, @Nullable Set<String> serialsFilter) {
+        if (serialsFilter == null) {
+            return Arrays.asList(devices);
+        }
+
+        final List<IDevice> filteredDevices;
+        filteredDevices = Lists.newArrayListWithCapacity(devices.length);
+        for (IDevice iDevice : devices) {
+            if (serialsFilter.contains(iDevice.getSerialNumber())) {
+                serialsFilter.remove(iDevice.getSerialNumber());
+                filteredDevices.add(iDevice);
+            }
+        }
+
+        if (!serialsFilter.isEmpty()) {
+            throw new RuntimeException(
+                    String.format(
+                            "Connected device with serial%s '%s' not found!",
+                            serialsFilter.size() == 1 ? "" : "s", Joiner.on("', '").join(serialsFilter)));
+        }
+
+        return filteredDevices;
+    }
+
+    private static IDevice[] waitForInitialDeviceList(AndroidDebugBridge bridge, int timeOut) {
+        int getDevicesCountdown = timeOut;
+        final int sleepTime = 1000;
+        while (!bridge.hasInitialDeviceList() && getDevicesCountdown >= 0) {
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Getting device list was cancelled", e);
+            }
+
+            getDevicesCountdown -= sleepTime;
+        }
+
+        if (!bridge.hasInitialDeviceList()) {
+            throw new RuntimeException("Timeout getting device list.");
+        }
+
+        return bridge.getDevices();
+    }
+
     private boolean hasDevicesWithDuplicateName() {
-        Set<String> deviceNames = new HashSet<String>();
+        Set<String> deviceNames = new HashSet<>();
         for (Device device : localDevices) {
             if (!deviceNames.add(device.getName())) {
                 return true;
@@ -219,20 +243,21 @@ public class ConnectedDeviceProvider {
 
         @Override
         public void printLog(Log.LogLevel logLevel, String tag, String message) {
+            final String logFormat = "[{}]: {}";
             switch (logLevel) {
                 case VERBOSE:
                 case DEBUG:
-                    logger.debug("[{}]: {}", tag, message);
+                    logger.debug(logFormat, tag, message);
                     break;
                 case INFO:
-                    logger.info("[{}]: {}", tag, message);
+                    logger.info(logFormat, tag, message);
                     break;
                 case WARN:
-                    logger.warn("[{}]: {}", tag, message);
+                    logger.warn(logFormat, tag, message);
                     break;
                 case ERROR:
                 case ASSERT:
-                    logger.error(null, "[{}]: {}", tag, message);
+                    logger.error(null, logFormat, tag, message);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown log level " + logLevel);

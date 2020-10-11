@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -17,9 +17,10 @@ import com.github.tarcv.tongs.ComputedPooling;
 import com.github.tarcv.tongs.DeviceCharacteristicReader;
 import com.github.tarcv.tongs.api.devices.Device;
 
-import java.util.*;
-
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
@@ -53,15 +54,13 @@ public class ComputedPoolsCategorizer {
 		return list;
 	}
 
-	private List<Bound> createBounds(ComputedPooling computedPooling) {
-		List<Bound> boundList = computedPooling.groups
+	private static List<Bound> createBounds(ComputedPooling computedPooling) {
+		return computedPooling.groups
 				.entrySet()
 				.stream()
 				.map(entry -> new Bound(entry.getKey(), entry.getValue()))
+				.sorted((o1, o2) -> Integer.compare(o1.getLower(), o2.getLower()))
 				.collect(toList());
-
-		boundList.sort((o1, o2) -> o1.getLower() - o2.getLower());
-		return boundList;
 	}
 
     private int findEnclosingBoundIndex(int parameter) {

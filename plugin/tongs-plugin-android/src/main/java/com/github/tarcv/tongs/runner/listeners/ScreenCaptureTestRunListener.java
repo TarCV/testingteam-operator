@@ -12,7 +12,6 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.result.TestCaseFile;
 import com.github.tarcv.tongs.api.result.TestCaseFileManager;
 import com.github.tarcv.tongs.model.AndroidDevice;
@@ -23,21 +22,17 @@ import java.util.Map;
 class ScreenCaptureTestRunListener extends BaseCaptureTestRunListener {
     private final TestCaseFileManager fileManager;
     private final IDevice deviceInterface;
-    private final Pool pool;
-    private final AndroidDevice device;
 
     private ScreenCapturer screenCapturer;
 
-    public ScreenCaptureTestRunListener(TestCaseFileManager fileManager, Pool pool, AndroidDevice device) {
+    public ScreenCaptureTestRunListener(TestCaseFileManager fileManager, AndroidDevice device) {
         this.fileManager = fileManager;
         this.deviceInterface = device.getDeviceInterface();
-        this.pool = pool;
-        this.device = device;
     }
 
     @Override
     public void onRunStarted() {
-        screenCapturer = new ScreenCapturer(deviceInterface, fileManager, pool, device);
+        screenCapturer = new ScreenCapturer(deviceInterface, fileManager);
         new Thread(screenCapturer, "ScreenCapturer").start();
     }
 
@@ -53,11 +48,11 @@ class ScreenCaptureTestRunListener extends BaseCaptureTestRunListener {
 
     @Override
     public void addTestMetrics(@NotNull TestIdentifier testIdentifier, @NotNull Map<String, String> testMetrics, boolean hasStarted) {
-
+        // nothing to do when metrics are added
     }
 
     @Override
     public void addRunData(@NotNull String runOutput, @NotNull Map<String, String> runMetrics) {
-
+        // nothing to do when run data is added
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -17,6 +17,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Writes the geometry command output to a file for diagnostics.
@@ -36,6 +37,6 @@ public class GeometryCommandOutputLogger implements CommandOutputLogger {
     public void logCommandOutput(String deviceIdentifier, String commandOutput) throws IOException {
         strategyDir.mkdirs();
         File file = new File(strategyDir, deviceIdentifier + "." + command.replaceAll("\\W+", "-") + ".txt");
-        FileUtils.writeStringToFile(file, commandOutput);
+        FileUtils.writeStringToFile(file, commandOutput, StandardCharsets.UTF_8);
     }
 }

@@ -10,12 +10,14 @@
  */
 package com.github.tarcv.tongs.model;
 
+import java.util.Objects;
+
 public class Permission {
 
     private  final String permissionName;
 
-    private int minSdkVersion = 1;
-    private int maxSdkVersion = Integer.MAX_VALUE;
+    private final int minSdkVersion;
+    private final int maxSdkVersion;
 
 
     private Permission(Builder builder) {
@@ -47,7 +49,7 @@ public class Permission {
 
         if (minSdkVersion != that.minSdkVersion) return false;
         if (maxSdkVersion != that.maxSdkVersion) return false;
-        return permissionName != null ? permissionName.equals(that.permissionName) : that.permissionName == null;
+        return Objects.equals(permissionName, that.permissionName);
     }
 
     @Override

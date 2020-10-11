@@ -13,7 +13,8 @@ package com.github.tarcv.tongs.runner.listeners;
 
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
-import com.github.tarcv.tongs.runner.*;
+import com.github.tarcv.tongs.runner.PoolProgressTracker;
+import com.github.tarcv.tongs.runner.ProgressReporter;
 import org.jetbrains.annotations.NotNull;
 
 class ProgressTestRunListener extends TongsTestListener {
@@ -25,7 +26,7 @@ class ProgressTestRunListener extends TongsTestListener {
     }
 
     @Override
-    public void onTestFailed(TestCaseRunResult failureResult) {
+    public void onTestFailed(@NotNull TestCaseRunResult failureResult) {
         poolProgressTracker.failedTest();
         poolProgressTracker.completedTest();
     }

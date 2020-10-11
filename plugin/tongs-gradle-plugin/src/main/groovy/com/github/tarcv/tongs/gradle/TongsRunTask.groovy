@@ -14,9 +14,9 @@
 package com.github.tarcv.tongs.gradle
 
 import com.github.tarcv.tongs.Configuration
+import com.github.tarcv.tongs.PoolingStrategy
 import com.github.tarcv.tongs.Tongs
 import com.github.tarcv.tongs.api.TongsConfiguration
-import com.github.tarcv.tongs.PoolingStrategy
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.OutputDirectory
@@ -108,7 +108,7 @@ class TongsRunTask extends DefaultTask implements VerificationTask {
                 .withExcludedAnnotation(excludedAnnotation)
                 .withTongsIntegrationTestRunType(tongsIntegrationTestRunType)
                 .withDdmTermination(false) // AGP doesn't terminate DdmLib, neither should Tongs
-                .build();
+                .build(true);
 
         boolean success = new Tongs(configuration).run()
         if (!success && !ignoreFailures) {

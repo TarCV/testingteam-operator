@@ -155,7 +155,7 @@ class RunListenerAdapter(private val runName: String,
                 else -> return
             }
 
-            var event = if (eventTest != expectedTest) {
+            val event = if (eventTest != expectedTest) {
                 TestEvent.OtherTest
             } else {
                 newEvent

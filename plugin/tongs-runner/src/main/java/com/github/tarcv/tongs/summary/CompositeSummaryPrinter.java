@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,12 +11,14 @@
 
 package com.github.tarcv.tongs.summary;
 
+import java.util.Arrays;
+
 public class CompositeSummaryPrinter implements SummaryPrinter {
 
     private final SummaryPrinter[] summaryPrinters;
 
     public CompositeSummaryPrinter(SummaryPrinter... summaryPrinters) {
-        this.summaryPrinters = summaryPrinters;
+        this.summaryPrinters = Arrays.copyOf(summaryPrinters, summaryPrinters.length);
     }
 
     @Override

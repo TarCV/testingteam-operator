@@ -14,24 +14,21 @@
 package com.github.tarcv.tongs;
 
 import com.github.tarcv.tongs.api.TongsConfiguration;
-import com.github.tarcv.tongs.PoolingStrategy;
 import com.github.tarcv.tongs.injector.RuleManagerFactory;
 import com.github.tarcv.tongs.system.axmlparser.InstrumentationInfo;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.*;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.*;
+import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.NONE;
 import static com.github.tarcv.tongs.system.axmlparser.InstrumentationInfoFactory.parseFromFile;
-import static java.util.Arrays.asList;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Configuration implements TongsConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
@@ -252,7 +249,7 @@ public class Configuration implements TongsConfiguration {
     public Configuration withPluginConfiguration(Map<String, Object> pluginConfiguration) {
         return newBuilder()
                 .withPluginConfiguration(pluginConfiguration)
-                .build();
+                .build(false);
     }
 
     public static class Builder {
@@ -399,7 +396,7 @@ public class Configuration implements TongsConfiguration {
             return this;
         }
 
-        public Configuration build() {
+        public Configuration build(boolean withWarnings) {
             checkNotNull(androidSdk, "SDK is required.");
             checkArgument(androidSdk.exists(), "SDK directory does not exist.");
             if (instrumentationApk != null) {
@@ -434,12 +431,14 @@ public class Configuration implements TongsConfiguration {
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);
             testRunnerArguments = assignValueOrDefaultIfNull(testRunnerArguments, Defaults.TEST_RUNNER_ARGUMENTS);
             testOutputTimeout = assignValueOrDefaultIfZero(testOutputTimeout, Defaults.TEST_OUTPUT_TIMEOUT_MILLIS);
-            excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.<String>emptyList());
+            excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.emptyList());
             checkArgument(totalAllowedRetryQuota >= 0, "Total allowed retry quota should not be negative.");
             checkArgument(retryPerTestCaseQuota >= 0, "Retry per test case quota should not be negative.");
             retryPerTestCaseQuota = assignValueOrDefaultIfZero(retryPerTestCaseQuota, Defaults.RETRY_QUOTA_PER_TEST_CASE);
-            logArgumentsBadInteractions();
-            poolingStrategy = validatePoolingStrategy(poolingStrategy);
+            if (withWarnings) {
+                logArgumentsBadInteractions();
+            }
+            poolingStrategy = validatePoolingStrategy(poolingStrategy, withWarnings);
             return new Configuration(this);
         }
 
@@ -463,19 +462,21 @@ public class Configuration implements TongsConfiguration {
          * We need to make sure zero or one strategy has been passed. If zero default to pool per device. If more than one
          * we throw an exception.
          */
-        private PoolingStrategy validatePoolingStrategy(PoolingStrategy poolingStrategy) {
-            if (poolingStrategy == null) {
-                logger.warn("No strategy was chosen in configuration, so defaulting to one pool per device");
-                poolingStrategy = new PoolingStrategy();
-                poolingStrategy.eachDevice = true;
+        private PoolingStrategy validatePoolingStrategy(PoolingStrategy poolingStrategy, boolean withWarnings) {
+            PoolingStrategy fixedStategy = poolingStrategy;
+            if (fixedStategy == null) {
+                if (withWarnings) {
+                    logger.warn("No strategy was chosen in configuration, so defaulting to one pool per device");
+                }
+                fixedStategy = new PoolingStrategy();
+                fixedStategy.eachDevice = true;
             } else {
-                long selectedStrategies = asList(
-                        poolingStrategy.eachDevice,
-                        poolingStrategy.splitTablets,
-                        poolingStrategy.computed,
-                        poolingStrategy.manual)
-                        .stream()
-                        .filter(p -> p != null)
+                long selectedStrategies = Stream.of(
+                        fixedStategy.eachDevice,
+                        fixedStategy.splitTablets,
+                        fixedStategy.computed,
+                        fixedStategy.manual)
+                        .filter(Objects::nonNull)
                         .count();
                 if (selectedStrategies > Defaults.STRATEGY_LIMIT) {
                     throw new IllegalArgumentException("You have selected more than one strategies in configuration. " +
@@ -483,19 +484,7 @@ public class Configuration implements TongsConfiguration {
                 }
             }
 
-            return poolingStrategy;
+            return fixedStategy;
         }
-    }
-
-    public static Builder aConfigurationBuilder() {
-        File nullFile = new File(".");
-
-        return new Configuration.Builder()
-                .withAndroidSdk(nullFile)
-                .withApplicationPackage("com.github.tarcv.tongstest")
-                .withInstrumentationPackage("com.github.tarcv.tongstest")
-                .withTestRunnerClass("android.support.test.runner.AndroidJUnitRunner")
-                .withTestRunnerArguments(Collections.emptyMap())
-                .withOutput(nullFile);
     }
 }

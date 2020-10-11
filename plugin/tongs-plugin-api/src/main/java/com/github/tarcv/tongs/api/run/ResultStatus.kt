@@ -19,4 +19,16 @@ enum class ResultStatus(private val overrideOrder: Int) {
     ASSUMPTION_FAILED(-1);
 
     fun overrideCompareTo(other: ResultStatus): Int = overrideOrder.compareTo(other.overrideOrder)
+
+    companion object {
+        @JvmStatic
+        fun isFailure(status: ResultStatus): Boolean {
+            return status !in listOf(PASS, IGNORED, ASSUMPTION_FAILED)
+        }
+
+        @JvmStatic
+        fun isIgnored(status: ResultStatus): Boolean {
+            return status in listOf(IGNORED, ASSUMPTION_FAILED)
+        }
+    }
 }

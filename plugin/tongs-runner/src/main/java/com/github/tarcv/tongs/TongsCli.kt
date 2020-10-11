@@ -18,10 +18,10 @@ import com.beust.jcommander.JCommander
 import com.beust.jcommander.Parameter
 import com.beust.jcommander.ParameterException
 import com.github.tarcv.tongs.injector.GsonInjector
-import com.github.tarcv.tongs.Utils
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
+import kotlin.system.exitProcess
 
 object TongsCli {
     private val logger = LoggerFactory.getLogger(TongsCli::class.java)
@@ -36,8 +36,7 @@ object TongsCli {
                 val out = StringBuilder(e.localizedMessage).append("\n\n")
                 jc.usage(out)
                 logger.error(out.toString())
-                System.exit(1)
-                return
+                exitProcess(1)
             }
             if (parsedArgs.help) {
                 jc.usage()
@@ -72,15 +71,15 @@ object TongsCli {
                     .withExcludedAnnotation(tongsConfiguration.excludedAnnotation)
                     .withTongsIntegrationTestRunType(tongsConfiguration.tongsIntegrationTestRunType)
                     .withPluginConfiguration(tongsConfiguration.configuration)
-                    .build()
+                    .build(true)
 
             val tongs = Tongs(configuration)
             if (!tongs.run() && !tongsConfiguration.ignoreFailures) {
-                System.exit(1)
+                exitProcess(1)
             }
         } catch (e: FileNotFoundException) {
             logger.error("Could not find configuration file", e)
-            System.exit(1)
+            exitProcess(1)
         }
     }
 

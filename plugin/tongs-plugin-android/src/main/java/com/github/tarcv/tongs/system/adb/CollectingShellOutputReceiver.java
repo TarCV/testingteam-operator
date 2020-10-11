@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -17,7 +17,7 @@ import com.android.ddmlib.IShellOutputReceiver;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Simple output-collecting command receiver
@@ -27,8 +27,7 @@ public class CollectingShellOutputReceiver implements IShellOutputReceiver {
 
 	@Override
 	public void addOutput(byte[] byteArray, int offset, int length) {
-		Charset latin1Charset = Charset.forName("ISO-8859-1");
-		CharBuffer charBuffer = latin1Charset.decode(ByteBuffer.wrap(byteArray));
+		CharBuffer charBuffer = StandardCharsets.ISO_8859_1.decode(ByteBuffer.wrap(byteArray));
 		sb.append(charBuffer.toString(), offset, length);
 	}
 

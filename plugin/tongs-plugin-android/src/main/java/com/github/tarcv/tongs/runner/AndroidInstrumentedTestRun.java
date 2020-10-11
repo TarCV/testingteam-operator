@@ -21,7 +21,6 @@ import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.runner.listeners.IResultProducer;
 import com.github.tarcv.tongs.runner.listeners.RunListenerAdapter;
-import com.github.tarcv.tongs.suite.ApkTestCase;
 import com.github.tarcv.tongs.system.io.RemoteFileManager;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -29,8 +28,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,26 +58,24 @@ public class AndroidInstrumentedTestRun {
 	}
 
 	public TestCaseRunResult execute() {
-		String applicationPackage = testRunParameters.getApplicationPackage();
-		String testPackage = testRunParameters.getTestPackage();
-		IDevice device = testRunParameters.getDeviceInterface();
+		final String testPackage = testRunParameters.getTestPackage();
+		final IDevice device = testRunParameters.getDeviceInterface();
 
-		RemoteAndroidTestRunner runner =
+		final RemoteAndroidTestRunner runner =
 				remoteAndroidTestRunnerFactory.createRemoteAndroidTestRunner(testPackage, testRunParameters.getTestRunner(), device);
 
 		runner.setRunName(poolName);
 		runner.setMaxtimeToOutputResponse(testRunParameters.getTestOutputTimeout());
 
 		// Custom filter is required to support Parameterized tests with default names
-		TestCaseEvent test = testRunParameters.getTest();
-		String testClassName;
-		String testMethodName;
-		TestCase testCase;
-		String specialFilter;
+		final TestCaseEvent test = testRunParameters.getTest();
+		final String testClassName;
+		final String testMethodName;
+		final String specialFilter;
 		if (test != null) {
+			final TestCase testCase = test.getTestCase();
 			testClassName = test.getTestClass();
 			testMethodName = test.getTestMethod();
-			testCase = test.getTestCase();
 			specialFilter = TESTCASE_FILTER;
 
 			if (testRunParameters.isWithOnDeviceLibrary()) {
@@ -99,7 +96,6 @@ public class AndroidInstrumentedTestRun {
 		} else {
 			testClassName = "Test case collection";
 			testMethodName = "";
-			testCase = new TestCase(ApkTestCase.class, "dummy", "dummy.Dummy", "dummy", Collections.singletonList("dummy"));
 			specialFilter = COLLECTING_RUN_FILTER;
 
 			runner.addBooleanArg("log", true);
@@ -143,7 +139,7 @@ public class AndroidInstrumentedTestRun {
 
 	private void addFilterAndCustomArgs(RemoteAndroidTestRunner runner, @Nullable String collectingRunFilter) {
 		testRunParameters.getTestRunnerArguments().entrySet().stream()
-				.filter(nameValue -> !nameValue.getKey().equals("filter"))
+				.filter(nameValue -> !"filter".equals(nameValue.getKey()))
 				.filter(nameValue -> !nameValue.getKey().startsWith("tongs_"))
 				.forEach(nameValue -> {
 					remoteAndroidTestRunnerFactory.properlyAddInstrumentationArg(runner,
@@ -152,7 +148,7 @@ public class AndroidInstrumentedTestRun {
 
 		@Nullable String customFilters = testRunParameters.getTestRunnerArguments().get("filter");
 		String filters = Stream.of(customFilters, collectingRunFilter)
-				.filter(filter -> filter != null)
+				.filter(Objects::nonNull)
 				.collect(Collectors.joining(","));
 		if (!filters.isEmpty()) {
 			runner.addInstrumentationArg("filter", filters);

@@ -11,12 +11,11 @@
 
 package com.github.tarcv.tongs.util;
 
-import com.android.ddmlib.testrunner.TestIdentifier;
 import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
-import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
 import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.testcases.TestCase;
+import com.github.tarcv.tongs.runner.listeners.TongsTestListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -39,7 +38,6 @@ public class TestPipelineEmulator {
     }
 
     public void emulateFor(TongsTestListener testRunListener, TestCase testCase) {
-        TestIdentifier test = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
         testRunListener.onTestStarted();
         if (trace != null) {
             testRunListener.onTestFailed(failureResult(testCase, ResultStatus.FAIL, trace));

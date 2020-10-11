@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,19 +13,19 @@ package com.github.tarcv.tongs.model;
 
 import com.github.tarcv.tongs.api.devices.Pool;
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
-import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.SetMultimap;
 
-import static com.google.common.collect.FluentIterable.from;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Class that keeps track of the number of times each testCase is executed for device.
  */
 public class PoolTestCaseFailureAccumulator implements PoolTestCaseAccumulator {
 
-    private SetMultimap<Pool, TestCaseEventCounter> map = HashMultimap.<Pool, TestCaseEventCounter>create();
+    private final SetMultimap<Pool, TestCaseEventCounter> map = HashMultimap.create();
 
     @Override
     public void record(Pool pool, TestCaseEvent testCaseEvent) {
@@ -33,13 +33,15 @@ public class PoolTestCaseFailureAccumulator implements PoolTestCaseAccumulator {
             map.put(pool, createNew(testCaseEvent));
         }
 
-        if (!from(map.get(pool)).anyMatch(isSameTestCase(testCaseEvent))) {
+        if (map.get(pool).stream().noneMatch(isSameTestCase(testCaseEvent))) {
             map.get(pool).add(
                     createNew(testCaseEvent)
                             .withIncreasedCount());
         } else {
-            from(map.get(pool))
-                    .firstMatch(isSameTestCase(testCaseEvent)).get()
+            map.get(pool).stream()
+                    .filter(isSameTestCase(testCaseEvent))
+                    .findFirst()
+                    .get()
                     .increaseCount();
         }
     }
@@ -47,8 +49,7 @@ public class PoolTestCaseFailureAccumulator implements PoolTestCaseAccumulator {
     @Override
     public int getCount(Pool pool, TestCaseEvent testCaseEvent) {
         if (map.containsKey(pool)) {
-            return from(map.get(pool))
-                    .firstMatch(isSameTestCase(testCaseEvent)).or(TestCaseEventCounter.EMPTY)
+            return map.get(pool).stream().filter(isSameTestCase(testCaseEvent)).findFirst().orElse(TestCaseEventCounter.EMPTY)
                     .getCount();
         } else {
             return 0;
@@ -58,8 +59,7 @@ public class PoolTestCaseFailureAccumulator implements PoolTestCaseAccumulator {
     @Override
     public int getCount(TestCaseEvent testCaseEvent) {
         int result = 0;
-        ImmutableList<TestCaseEventCounter> counters = from(map.values())
-                .filter(isSameTestCase(testCaseEvent)).toList();
+        List<TestCaseEventCounter> counters = map.values().stream().filter(isSameTestCase(testCaseEvent)).collect(Collectors.toList());
         for (TestCaseEventCounter counter : counters) {
             result += counter.getCount();
         }
@@ -71,12 +71,7 @@ public class PoolTestCaseFailureAccumulator implements PoolTestCaseAccumulator {
     }
 
     private static Predicate<TestCaseEventCounter> isSameTestCase(final TestCaseEvent testCaseEvent) {
-        return new Predicate<TestCaseEventCounter>() {
-            @Override
-            public boolean apply(TestCaseEventCounter input) {
-                return input.getTestCaseEvent() != null
-                        && testCaseEvent.equals(input.getTestCaseEvent());
-            }
-        };
+        return input -> input.getTestCaseEvent() != null
+                && testCaseEvent.equals(input.getTestCaseEvent());
     }
 }

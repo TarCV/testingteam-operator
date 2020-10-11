@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.tarcv.tongs</groupId>
   <artifactId>tongs-plugin-api</artifactId>
-  <version>0.6</version>
+  <version>0.6.1-SNAPSHOT</version>
   <dependencies>
     <dependency>
       <groupId>org.simpleframework</groupId>
@@ -38,7 +38,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>19.0</version>
+      <version>24.1.1-jre</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

@@ -75,9 +75,8 @@ public class DdmsUtils {
         variants.add(escapeNonAscii(singleQuote(value), '\''));
 
         return variants.stream()
-                .sorted((o1, o2) -> Integer.compare(o1.length(), o2.length()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException());
+                .min((o1, o2) -> Integer.compare(o1.length(), o2.length()))
+                .orElseThrow(IllegalStateException::new);
     }
 
     static boolean noEscapingNeeded(String value) {
@@ -85,9 +84,9 @@ public class DdmsUtils {
     }
 
     static String singleQuote(String str) {
-        StringBuffer buffer = new StringBuffer("'");
-        Matcher matcher = SINGLE_QUOTE_PATTERN.matcher(str);
-        String replacement = Matcher.quoteReplacement("'\\''");
+        final StringBuffer buffer = new StringBuffer("'");
+        final Matcher matcher = SINGLE_QUOTE_PATTERN.matcher(str);
+        final String replacement = Matcher.quoteReplacement("'\\''");
         while (matcher.find()) {
             matcher.appendReplacement(buffer, replacement);
         }
@@ -105,9 +104,9 @@ public class DdmsUtils {
     }
 
     static String escapeNonAscii(String str, @Nullable Character quote) {
-        ArrayList<Integer> result = new ArrayList<>();
-        AtomicBoolean inEscape = new AtomicBoolean(false);
-        Integer quoteCodepoint;
+        final ArrayList<Integer> result = new ArrayList<>();
+        final AtomicBoolean inEscape = new AtomicBoolean(false);
+        final Integer quoteCodepoint;
         if (quote != null) {
             assert String.valueOf(quote).codePoints().count() == 1;
             quoteCodepoint = String.valueOf(quote).codePointAt(0);
@@ -136,7 +135,7 @@ public class DdmsUtils {
 
                     String byteCode = String.format("%02x", (0x100 + b) % 0x100);
                     assert byteCode.codePoints().count() == 2;
-                    byteCode.codePoints().forEach(c -> result.add(c));
+                    byteCode.codePoints().forEach(result::add);
                 }
             } else {
                 boolean endEscaping = inEscape.compareAndSet(true, false);

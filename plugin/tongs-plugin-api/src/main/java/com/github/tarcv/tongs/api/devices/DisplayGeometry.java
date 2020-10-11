@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -24,8 +24,8 @@ public class DisplayGeometry {
 
 	public DisplayGeometry(int d1, int d2, double density) {
 		this.density = density;
-		small = (d1 > d2) ? d2 : d1;
-		large = (d1 > d2) ? d1 : d2;
+		small = Math.min(d1, d2);
+		large = Math.max(d1, d2);
 	}
 
 	public DisplayGeometry(Integer sw) {

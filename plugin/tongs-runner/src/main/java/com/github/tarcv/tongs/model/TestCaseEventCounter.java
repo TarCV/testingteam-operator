@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ public class TestCaseEventCounter {
 
     public static final TestCaseEventCounter EMPTY = new TestCaseEventCounter(null, 0);
 
-    private TestCaseEvent testCaseEvent;
-    private AtomicInteger count;
+    private final TestCaseEvent testCaseEvent;
+    private final AtomicInteger count;
 
     public TestCaseEventCounter(TestCaseEvent testCaseEvent, int initialCount) {
         this.testCaseEvent = testCaseEvent;

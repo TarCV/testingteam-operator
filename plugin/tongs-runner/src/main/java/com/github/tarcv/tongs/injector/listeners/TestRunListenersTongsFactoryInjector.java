@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -12,16 +12,15 @@
 package com.github.tarcv.tongs.injector.listeners;
 
 import com.github.tarcv.tongs.api.TongsConfiguration;
-import com.github.tarcv.tongs.injector.GsonInjector;
 import com.github.tarcv.tongs.runner.listeners.TestRunListenersFactoryTongs;
 
 import static com.github.tarcv.tongs.injector.system.FileManagerInjector.fileManager;
 
-public class TestRunListenersTongsFactoryInjector {
+public final class TestRunListenersTongsFactoryInjector {
 
     private TestRunListenersTongsFactoryInjector() {}
 
     public static TestRunListenersFactoryTongs testRunListenersTongsFactory(TongsConfiguration configuration) {
-        return new TestRunListenersFactoryTongs(configuration, fileManager(), GsonInjector.gson());
+        return new TestRunListenersFactoryTongs(configuration, fileManager());
     }
 }

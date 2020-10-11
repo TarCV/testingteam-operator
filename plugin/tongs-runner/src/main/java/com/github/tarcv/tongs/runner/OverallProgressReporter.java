@@ -13,9 +13,8 @@ package com.github.tarcv.tongs.runner;
 
 import com.github.tarcv.tongs.Utils;
 import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.model.*;
-
 import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.model.PoolTestCaseAccumulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +92,7 @@ public class OverallProgressReporter implements ProgressReporter {
         return progress / size;
     }
 
+    @Override
     public boolean requestRetry(Pool pool, TestCaseEvent testCase) {
         boolean result = retryWatchdog.requestRetry(failedTestCasesAccumulator.getCount(testCase));
         if (result && poolProgressTrackers.containsKey(pool)) {
@@ -111,7 +111,7 @@ public class OverallProgressReporter implements ProgressReporter {
         return failedTestCasesAccumulator.getCount(pool, testCase);
     }
 
-    private class RetryWatchdog {
+    private static class RetryWatchdog {
         private final Logger logger = LoggerFactory.getLogger(RetryWatchdog.class);
         private final int maxRetryPerTestCaseQuota;
         private final AtomicInteger totalAllowedRetryLeft;

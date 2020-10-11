@@ -60,6 +60,7 @@ public class JUnitTestSuiteLoader(
 
         fun decodeMessages(testInfoMessages: Collection<LogCatMessage>): List<JsonObject> {
             class MessageKey(val id: String, val lineIndex: String) : Comparable<MessageKey> {
+
                 override fun compareTo(other: MessageKey): Int {
                     return id.compareTo(other.id)
                             .let {
@@ -69,6 +70,24 @@ public class JUnitTestSuiteLoader(
                                     it
                                 }
                             }
+                }
+
+                override fun equals(other: Any?): Boolean {
+                    if (this === other) return true
+                    if (javaClass != other?.javaClass) return false
+
+                    other as MessageKey
+
+                    if (id != other.id) return false
+                    if (lineIndex != other.lineIndex) return false
+
+                    return true
+                }
+
+                override fun hashCode(): Int {
+                    var result = id.hashCode()
+                    result = 31 * result + lineIndex.hashCode()
+                    return result
                 }
             }
 
@@ -85,12 +104,12 @@ public class JUnitTestSuiteLoader(
                     }
                     .groupBy({ it.first.id })
                     .values
-                    .flatMap {
-                        it
+                    .flatMap { pair ->
+                        pair
                                 .sortedBy { it.first.lineIndex.toInt(16) }
                                 .map { it.second }
-                                .let {
-                                    val json = it.joinToString("", "[", "]")
+                                .let { arrayContent ->
+                                    val json = arrayContent.joinToString("", "[", "]")
                                     jsonParser
                                             .parse(json)
                                             .asJsonArray
@@ -138,7 +157,7 @@ public class JUnitTestSuiteLoader(
                         val allTests = collectedInfos.asSequence()
                                 .map { it.tests }
                                 .reduce { acc, set -> acc + set }
-                        var instrumentationApk = context.configuration.instrumentationApk.let {
+                        val instrumentationApk = context.configuration.instrumentationApk.let {
                             if (it == null) {
                                 logger.info("Path to the instrumentation APK is not specified. Trying to pull it from a device")
                                 try {
@@ -158,8 +177,7 @@ public class JUnitTestSuiteLoader(
                                 allTests
                         )
 
-                        testInfo.asSequence()
-                                .associateBy { it.identifier }
+                        testInfo.associateBy { it.identifier }
                     } else {
                         collectedInfos
                                 .asSequence()
