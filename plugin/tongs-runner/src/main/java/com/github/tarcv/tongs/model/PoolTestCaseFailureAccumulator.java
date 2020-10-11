@@ -33,17 +33,16 @@ public class PoolTestCaseFailureAccumulator implements PoolTestCaseAccumulator {
             map.put(pool, createNew(testCaseEvent));
         }
 
-        if (map.get(pool).stream().noneMatch(isSameTestCase(testCaseEvent))) {
-            map.get(pool).add(
-                    createNew(testCaseEvent)
-                            .withIncreasedCount());
-        } else {
-            map.get(pool).stream()
-                    .filter(isSameTestCase(testCaseEvent))
-                    .findFirst()
-                    .get()
-                    .increaseCount();
-        }
+        map.get(pool).stream()
+                .filter(isSameTestCase(testCaseEvent))
+                .findFirst()
+                .orElseGet(() -> {
+                    TestCaseEventCounter newCounter = createNew(testCaseEvent);
+                    map.get(pool).add(newCounter);
+
+                    return newCounter;
+                })
+                .increaseCount();
     }
 
     @Override

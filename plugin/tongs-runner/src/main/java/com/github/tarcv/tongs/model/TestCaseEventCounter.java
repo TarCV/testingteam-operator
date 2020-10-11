@@ -40,11 +40,6 @@ public class TestCaseEventCounter {
         return count.get();
     }
 
-    public TestCaseEventCounter withIncreasedCount() {
-        increaseCount();
-        return this;
-    }
-
     @Override
     public int hashCode() {
         return testCaseEvent.hashCode();
