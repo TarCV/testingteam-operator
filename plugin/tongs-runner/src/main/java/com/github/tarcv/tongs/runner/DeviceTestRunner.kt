@@ -98,6 +98,7 @@ class DeviceTestRunner(private val pool: Pool,
         val ruleManager = ruleManagerFactory.create(
                 TestCaseRunRuleFactory::class.java,
                 listOf(
+                        AndroidBasicUnlockTestCaseRunRuleFactory(), // must be executed BEFORE any UI actions
                         AndroidCleanupTestCaseRunRuleFactory(),
                         AndroidPermissionGrantingTestCaseRunRuleFactory() // must be executed AFTER the clean rule
                 ),
