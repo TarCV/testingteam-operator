@@ -75,6 +75,11 @@ class Summary private constructor(builder: Builder) {
             return this
         }
 
+        fun addIgnoredTests(testCase: Collection<TestCaseRunResult>): Builder {
+            this.ignoredTests.addAll(testCase)
+            return this
+        }
+
         fun addFailedTests(failedTest: TestCaseRunResult): Builder {
             this.failedTests.add(failedTest)
             return this
@@ -82,6 +87,11 @@ class Summary private constructor(builder: Builder) {
 
         fun addFatalCrashedTest(fatalCrashedTest: TestCaseRunResult): Builder {
             fatalCrashedTests.add(fatalCrashedTest)
+            return this
+        }
+
+        fun addFatalCrashedTests(fatalCrashedTest: Collection<TestCaseRunResult>): Builder {
+            fatalCrashedTests.addAll(fatalCrashedTest)
             return this
         }
 
