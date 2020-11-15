@@ -36,20 +36,25 @@ class SummaryCompiler(private val configuration: TongsConfiguration) {
         results
                 .groupBy(TestCaseRunResult::pool)
                 .forEach { pool, testResultsForPool ->
+                    // keep results only for final attempts
+                    val finalResults = testResultsForPool
+                            .asReversed()
+                            .distinctBy { it.testCase }
+                            .reversed()
+
                     val poolSummary = PoolSummary.Builder.aPoolSummary()
                             .withPoolName(pool.name)
-                            .addTestResults(testResultsForPool)
+                            .addTestResults(finalResults)
                             .build()
                     summaryBuilder.addPoolSummary(poolSummary)
 
                     val testCasesForPool = testCasesPerPool.getValue(pool)
-                    addFatalCrashedTests(pool, testCasesForPool, testResultsForPool, summaryBuilder)
-                    addFailedOrCrashedTests(testResultsForPool, summaryBuilder)
-                    addIgnoredTests(testResultsForPool, summaryBuilder)
+                    addFatalCrashedTests(pool, testCasesForPool, finalResults, summaryBuilder)
+                    addFailedOrCrashedTests(finalResults, summaryBuilder)
+                    addIgnoredTests(finalResults, summaryBuilder)
                 }
         addFatalCrashedPools(pools, testCasesPerPool, summaryBuilder)
 
-        // TODO: Use TestCaseRunResult datas instead of reading videos, logcat, etc
         summaryBuilder.withTitle(configuration.title)
         summaryBuilder.withSubtitle(configuration.subtitle)
         return summaryBuilder.build()

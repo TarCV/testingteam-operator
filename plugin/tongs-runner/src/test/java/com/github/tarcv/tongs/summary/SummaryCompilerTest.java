@@ -14,32 +14,35 @@ package com.github.tarcv.tongs.summary;
 import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.api.run.ResultStatus;
-import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.api.result.StackTrace;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
+import com.github.tarcv.tongs.api.run.ResultStatus;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
+import com.github.tarcv.tongs.api.testcases.TestCase;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.jmock.integration.junit4.JUnitRuleMockery;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
-import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestEvent;
 import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestCaseEvent;
+import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestEvent;
 import static com.github.tarcv.tongs.api.run.TestCaseRunResultExtKt.aTestResult;
 import static com.github.tarcv.tongs.api.testcases.TestCaseExtKt.aTestCase;
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItems;
@@ -127,6 +130,36 @@ public class SummaryCompilerTest {
                         .map(r -> String.format("%d times %s", r.getTotalFailureCount(), r.getTestCase().toString()))
                         .collect(Collectors.toList()),
                 contains("10 times com.example.FailedClassTest#doesJobProperly"));
+    }
+
+    @Test
+    public void onlyFinalAttemptIsIncluded() {
+        List<TestCaseRunResult> testResultsWithAttempts = new ArrayList<>(testResults);
+        TestCase testCase = aTestCase("FailedClassTest", "doesJobProperly");
+        TestCaseRunResult finalAttemptResult = aTestResult(
+                testCase,
+                ResultStatus.FAIL,
+                singletonList(new StackTrace("", "final attempt", "a failure stacktrace")),
+                devicePool, 2
+        );
+        testResultsWithAttempts.add(finalAttemptResult);
+        Assert.assertEquals(2,
+                testResultsWithAttempts.stream()
+                .filter(result -> result.getTestCase().equals(testCase))
+                .count());
+
+        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, testResultsWithAttempts);
+        List<TestCaseRunResult> poolResults = summary.getPoolSummaries().get(0).getTestResults().stream()
+                .filter(result -> result.getTestCase().equals(testCase))
+                .collect(Collectors.toList());
+        Assert.assertEquals(1, poolResults.size());
+        Assert.assertEquals(finalAttemptResult, poolResults.get(0));
+
+        List<TestCaseRunResult> runResults = summary.getFailedTests().stream()
+                .filter(result -> result.getTestCase().equals(testCase))
+                .collect(Collectors.toList());
+        Assert.assertEquals(1, runResults.size());
+        Assert.assertEquals(finalAttemptResult, runResults.get(0));
     }
 
     @Test
