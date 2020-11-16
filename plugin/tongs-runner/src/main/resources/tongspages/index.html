@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,7 +45,7 @@
         Ignored tests:
         <ul>
             {{#ignoredTests}}
-            <li>{{testCase.testClass}}#{{testCase.testMethod}} on {{device.serial}}</li><!-- TODO: change to pool.name when rescheduling is implemented -->
+            <li>{{testCase.testClass}}#{{testCase.testMethod}} on {{pool.name}}</li>
             {{/ignoredTests}}
             {{^ignoredTests}}
             <li>None.</li>
@@ -55,7 +55,7 @@
         Failed tests:
         <ul>
             {{#failedTests}}
-            <li>{{totalFailureCount}} times {{testCase.testClass}}#{{testCase.testMethod}} on {{device.serial}}</li>
+            <li>{{totalFailureCount}} times {{testCase.testClass}}#{{testCase.testMethod}} on {{pool.name}}</li>
             {{/failedTests}}
             {{^failedTests}}
             <li>None.</li>
@@ -68,7 +68,7 @@
             <li>{{.}}</li>
             {{/fatalErrors}}
             {{#fatalCrashedTests}}
-            <li>{{testCase.testClass}}#{{testCase.testMethod}} on {{device.serial}}</li>
+            <li>{{testCase.testClass}}#{{testCase.testMethod}} on {{pool.name}}</li>
             {{/fatalCrashedTests}}
             {{^fatalCrashedTests}}{{^fatalErrors}}
             <li>None.</li>
