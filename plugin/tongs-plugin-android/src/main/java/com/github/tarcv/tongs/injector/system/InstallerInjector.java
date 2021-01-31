@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2020 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,17 +14,17 @@
 package com.github.tarcv.tongs.injector.system;
 
 import com.github.tarcv.tongs.api.TongsConfiguration;
-import com.github.tarcv.tongs.system.adb.Installer;
+import com.github.tarcv.tongs.system.adb.PackageInstaller;
 
 public class InstallerInjector {
 
     private InstallerInjector() {}
 
-    public static Installer installer(TongsConfiguration configuration) {
-        String applicationPackage = configuration.getApplicationPackage();
-        String instrumentationPackage = configuration.getInstrumentationPackage();
-
-        return new Installer(applicationPackage, instrumentationPackage, configuration.getApplicationApk(),
-                configuration.getInstrumentationApk());
+    public static PackageInstaller installer(TongsConfiguration configuration) {
+        return new PackageInstaller(configuration.getApplicationApk(),
+                configuration.getApplicationPackage(),
+                configuration.getInstrumentationApk(),
+                configuration.getInstrumentationPackage()
+        );
     }
 }

@@ -14,23 +14,21 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.DdmPreferences
-import com.android.ddmlib.IDevice
-import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.system.adb.Installer
-import com.github.tarcv.tongs.system.io.RemoteFileManager
-
-import com.github.tarcv.tongs.device.clearLogcat
-import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
 import com.github.tarcv.tongs.api.run.DeviceRunRule
 import com.github.tarcv.tongs.api.run.DeviceRunRuleContext
 import com.github.tarcv.tongs.api.run.DeviceRunRuleFactory
+import com.github.tarcv.tongs.device.clearLogcat
+import com.github.tarcv.tongs.injector.system.InstallerInjector.installer
+import com.github.tarcv.tongs.model.AndroidDevice
+import com.github.tarcv.tongs.system.adb.PackageInstaller
+import com.github.tarcv.tongs.system.io.RemoteFileManager
 
 class AndroidSetupDeviceRuleFactory : DeviceRunRuleFactory<AndroidSetupDeviceRule> {
     override fun deviceRules(context: DeviceRunRuleContext): Array<out AndroidSetupDeviceRule> {
         val device = context.device
         if (device is AndroidDevice) {
             return arrayOf(
-                    AndroidSetupDeviceRule(device.deviceInterface, installer(context.configuration))
+                    AndroidSetupDeviceRule(device, installer(context.configuration))
             )
         } else {
             return emptyArray()
@@ -38,13 +36,16 @@ class AndroidSetupDeviceRuleFactory : DeviceRunRuleFactory<AndroidSetupDeviceRul
     }
 }
 
-class AndroidSetupDeviceRule(private val deviceInterface: IDevice, private val installer: Installer) : DeviceRunRule {
+class AndroidSetupDeviceRule(private val device: AndroidDevice, private val installer: PackageInstaller) : DeviceRunRule {
     override fun before() {
         DdmPreferences.setTimeOut(30000)
-        installer.prepareInstallation(deviceInterface)
+        installer.resetInstallation(device)
+
         // For when previous run crashed/disconnected and left files behind
+        val deviceInterface = device.deviceInterface
         RemoteFileManager.removeRemoteDirectory(deviceInterface)
         RemoteFileManager.createRemoteDirectory(deviceInterface)
+
         clearLogcat(deviceInterface)
     }
 
