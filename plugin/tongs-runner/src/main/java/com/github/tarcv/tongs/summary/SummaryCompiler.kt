@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -70,7 +70,11 @@ class SummaryCompiler(private val configuration: TongsConfiguration) {
             for (testResult in testResultsForPool) {
                 val totalFailureCount = testResult.totalFailureCount
                 if (totalFailureCount > 0) {
-                    summaryBuilder.addFailedTests(testResult)
+                    if (isFailure(testResult.status)) {
+                        summaryBuilder.addFailedTests(testResult)
+                    } else {
+                        summaryBuilder.addFlakyTest(testResult)
+                    }
                 } else if (isFailure(testResult.status)) {
                     // totalFailureCount of 0 here means something went wrong and this is actually a fatal crash
                     // TODO: handle this in a way that makes sure testResult.status == ERROR from plugins POV

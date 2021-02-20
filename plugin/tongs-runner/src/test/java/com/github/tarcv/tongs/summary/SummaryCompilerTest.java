@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -156,6 +156,31 @@ public class SummaryCompilerTest {
         Assert.assertEquals(finalAttemptResult, poolResults.get(0));
 
         List<TestCaseRunResult> runResults = summary.getFailedTests().stream()
+                .filter(result -> result.getTestCase().equals(testCase))
+                .collect(Collectors.toList());
+        Assert.assertEquals(1, runResults.size());
+        Assert.assertEquals(finalAttemptResult, runResults.get(0));
+    }
+
+    @Test
+    public void compilesSummaryWithFlakyTests() {
+        List<TestCaseRunResult> testResultsWithAttempts = new ArrayList<>(testResults);
+        TestCase testCase = aTestCase("FailedClassTest", "doesJobProperly");
+        TestCaseRunResult finalAttemptResult = aTestResult(
+                testCase,
+                ResultStatus.PASS,
+                singletonList(new StackTrace("", "final attempt", "a failure stacktrace")),
+                devicePool, 2
+        );
+        testResultsWithAttempts.add(finalAttemptResult);
+        Assert.assertEquals(2,
+                testResultsWithAttempts.stream()
+                .filter(result -> result.getTestCase().equals(testCase))
+                .count());
+
+        Summary summary = summaryCompiler.compileSummary(devicePools, testCaseEvents, testResultsWithAttempts);
+
+        List<TestCaseRunResult> runResults = summary.getFlakyTests().stream()
                 .filter(result -> result.getTestCase().equals(testCase))
                 .collect(Collectors.toList());
         Assert.assertEquals(1, runResults.size());

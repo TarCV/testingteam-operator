@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -24,6 +24,7 @@ class HtmlSummary(
         val subtitle: String,
         val ignoredTests: List<TestCaseRunResult>,
         val overallStatus: String, // TODO: replace strings with appropriate objects
+        val flakyTests: List<TestCaseRunResult>,
         val failedTests: List<TestCaseRunResult>,
         val fatalCrashedTests: List<TestCaseRunResult>,
         val fatalErrors: List<String>
