@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class DeviceTestFilesCleanerImpl implements DeviceTestFilesCleaner {
 
     @Override
     public boolean deleteTraceFiles(TestCaseEvent testIdentifier) {
-        File file = fileManager.getFile(TEST, pool, device, testIdentifier.getTestCase());
+        File file = fileManager.getFile(TEST, pool, device, testIdentifier.getTestCase(), "");
         boolean isDeleted = file.delete();
         if (!isDeleted) {
             logger.warn("Failed to delete a file {}", file.getAbsolutePath());

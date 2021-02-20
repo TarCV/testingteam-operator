@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -19,6 +19,7 @@ import com.github.tarcv.tongs.injector.summary.OutcomeAggregatorInjector.outcome
 import com.github.tarcv.tongs.injector.summary.SummaryCompilerInjector.summaryCompiler
 import com.github.tarcv.tongs.injector.summary.SummaryPrinterInjector.summaryPrinter
 import com.github.tarcv.tongs.model.AndroidDevice
+import com.github.tarcv.tongs.stopKoinIfNeeded
 import com.github.tarcv.tongs.suite.ApkTestCase
 import com.github.tarcv.tongs.system.io.FileManager
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
@@ -138,6 +139,8 @@ class SummarizerIntegrationTest {
         val runnerModule = module {
             single { configuration }
         }
+
+        stopKoinIfNeeded()
         startKoin {
             modules(runnerModule)
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -12,15 +12,13 @@
  */
 package com.github.tarcv.tongs.summary
 
-import com.github.tarcv.tongs.injector.summary.HtmlGeneratorInjector.htmlGenerator
 import com.github.tarcv.tongs.api.devices.Device.TEST_DEVICE
 import com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool
 import com.github.tarcv.tongs.api.result.*
-import com.github.tarcv.tongs.api.run.*
-import com.github.tarcv.tongs.api.testcases.TestCase
 import com.github.tarcv.tongs.api.result.StandardFileTypes.*
-import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
+import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.testcases.aTestCase
+import com.github.tarcv.tongs.injector.summary.HtmlGeneratorInjector.htmlGenerator
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
