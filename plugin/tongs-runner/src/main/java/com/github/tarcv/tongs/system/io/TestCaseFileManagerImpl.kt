@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -27,11 +27,11 @@ class TestCaseFileManagerImpl(
         private val testCaseEvent: TestCase
 ) : TestCaseFileManager {
     override fun getFile(fileType: FileType, suffix: String): File {
-        return fileManager.getFile(fileType, pool, device, testCaseEvent);
+        return fileManager.getFile(fileType, pool, device, testCaseEvent, suffix);
     }
 
     override fun getRelativeFile(fileType: FileType, suffix: String): File {
-        return fileManager.getRelativeFile(fileType, pool, device, testCaseEvent);
+        return fileManager.getRelativeFile(fileType, pool, device, testCaseEvent, suffix);
     }
 
     override fun createFile(fileType: FileType): File {

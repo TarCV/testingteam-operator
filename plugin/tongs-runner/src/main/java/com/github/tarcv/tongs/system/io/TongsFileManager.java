@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -99,15 +99,15 @@ public class TongsFileManager implements FileManager {
     }
 
     @Override
-    public File getFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier) {
-        String filenameForTest = FileUtils.createFilenameForTest(testIdentifier, fileType);
+    public File getFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier, String suffix) {
+        String filenameForTest = FileUtils.createFilenameForTest(testIdentifier, fileType, suffix);
         Path path = get(output.getAbsolutePath(), fileType.getDirectory(), pool.getName(), device.getSafeSerial(), filenameForTest);
         return path.toFile();
     }
 
     @Override
-    public File getRelativeFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier) {
-        File absoluteFile = getFile(fileType, pool, device, testIdentifier);
+    public File getRelativeFile(FileType fileType, Pool pool, Device device, TestCase testIdentifier, String suffix) {
+        File absoluteFile = getFile(fileType, pool, device, testIdentifier, suffix);
         return output.getAbsoluteFile().toPath().relativize(absoluteFile.toPath()).toFile();
     }
 
