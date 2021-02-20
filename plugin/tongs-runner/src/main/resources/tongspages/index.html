@@ -42,6 +42,16 @@
             </div>
         </div>
 
+        Flaky tests (eventually passed but some run attempts failed):
+        <ul>
+            {{#flakyTests}}
+            <li>{{totalFailureCount}} times {{testCase.testClass}}#{{testCase.testMethod}} on {{pool.name}}</li>
+            {{/flakyTests}}
+            {{^flakyTests}}
+            <li>None.</li>
+            {{/flakyTests}}
+        </ul>
+
         Ignored tests:
         <ul>
             {{#ignoredTests}}

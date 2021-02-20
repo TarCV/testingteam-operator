@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -31,6 +31,7 @@ class HtmlConverters {
 				summary.getSubtitle(),
 				summary.getIgnoredTests(),
 				new OutcomeAggregator().aggregate(summary) ? "pass" : "fail",
+				summary.getFlakyTests(),
 				summary.getFailedTests(),
         		summary.getFatalCrashedTests(),
         		summary.getFatalErrors() // TODO: Add to template

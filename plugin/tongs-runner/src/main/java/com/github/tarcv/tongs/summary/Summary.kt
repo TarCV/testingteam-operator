@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -25,6 +25,8 @@ class Summary private constructor(builder: Builder) {
         get() = unmodifiableList(field)
     val ignoredTests: List<TestCaseRunResult>
         get() = unmodifiableList(field)
+    val flakyTests: List<TestCaseRunResult>
+        get() = unmodifiableList(field)
     val failedTests: List<TestCaseRunResult>
         get() = unmodifiableList(field)
     val fatalCrashedTests: List<TestCaseRunResult>
@@ -39,6 +41,7 @@ class Summary private constructor(builder: Builder) {
         title = builder.title
         subtitle = builder.subtitle
         ignoredTests = builder.ignoredTests
+        flakyTests = builder.flakyTests
         failedTests = builder.failedTests
         fatalCrashedTests = builder.fatalCrashedTests
         fatalErrors = builder.fatalErrors
@@ -50,6 +53,7 @@ class Summary private constructor(builder: Builder) {
         internal val ignoredTests = ArrayList<TestCaseRunResult>()
         internal var title = "Report Title"
         internal var subtitle = "Report Subtitle"
+        internal val flakyTests = ArrayList<TestCaseRunResult>()
         internal val failedTests = ArrayList<TestCaseRunResult>()
         internal val fatalCrashedTests = ArrayList<TestCaseRunResult>()
         internal val fatalErrors = ArrayList<String>()
@@ -106,6 +110,11 @@ class Summary private constructor(builder: Builder) {
 
         fun addFatalError(message: String): Builder {
             fatalErrors.add(message)
+            return this
+        }
+
+        fun addFlakyTest(result: TestCaseRunResult): Builder {
+            flakyTests.add(result)
             return this
         }
 
