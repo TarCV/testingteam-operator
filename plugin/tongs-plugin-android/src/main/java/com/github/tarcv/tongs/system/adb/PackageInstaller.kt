@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -40,15 +40,19 @@ class PackageInstaller(
     private fun doResetInstallation(device: AndroidDevice, apk: File, packageId: String) {
         val deviceInterface = device.deviceInterface
         try {
-            deviceInterface.removeRemotePackage(packageId)
+            deviceInterface.uninstallPackage(packageId)
         } catch (e: InstallException) {
             logger.warn("Failed to remove package $packageId from ${deviceInterface.name}", e)
         }
 
-        repeatUntilSuccessful<InstallException>(
-            onError = { e: InstallException -> PackageInstaller.logger.warn("Failed to install $apk to ${deviceInterface.name}", e) })
+        repeatUntilSuccessful(
+            onError = { e: InstallException -> logger.warn("Failed to install $apk to ${deviceInterface.name}", e) })
             {
-                deviceInterface.installPackage(apk.absolutePath, true, "-t")
+                // -d -- allow downgrading debug packages. It helps when uninstallation failed, but installation of
+                //      an older app is requested
+                // -t -- allow installing test-only packages. It is required as often builds for UI-testing are often
+                //      marked as test-only ones.
+                deviceInterface.installPackage(apk.absolutePath, true, "-t", "-d")
             }
     }
 }
