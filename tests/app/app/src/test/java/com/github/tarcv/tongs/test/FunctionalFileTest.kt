@@ -27,6 +27,7 @@ class FunctionalFileTest {
                 2,
                 recordsForExpectedFailures
                         .map { it.name }
+                        .distinct()
                         .size
         )
         asserter.assertTrue("Recorded videos should not be empty and big enough",
