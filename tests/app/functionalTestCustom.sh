@@ -15,10 +15,6 @@ export GRADLE_OPTS="-Dorg.gradle.console=plain"
 # -ea is not supported by AGP for assembleAndroidTest
 ./gradlew assemble assembleAndroidTest
 
-export GRADLE_OPTS="-Dorg.gradle.console=plain -Dorg.gradle.jvmargs=-ea"
-# Make sure new options are enabled
-./gradlew --stop
-
 # Wait for the output directory to be unlocked after the previous run
 sleep 3
 

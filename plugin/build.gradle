@@ -10,6 +10,8 @@
  */
 
 plugins {
+    id "com.osacky.doctor" version "0.7.0"
+
     id "org.jetbrains.kotlin.jvm" version "1.3.50" apply(false) // update 'kotlinxCoroutinesCore' below when updating kotlin version here
     id "org.jetbrains.dokka" version "1.4.30" apply(false)
 
@@ -68,6 +70,7 @@ allprojects {
     repositories repos
 
     apply plugin: "jacoco"
+    apply plugin: "signing"
 
     version = VERSION_NAME
     group = GROUP
@@ -85,9 +88,7 @@ project(':tongs-gradle-plugin') {
 }
 subprojects { project ->
     project.afterEvaluate {
-        if (plugins.hasPlugin('com.android.library')) {
-            project.apply(from: file('publishAndroid.gradle'))
-        } else if (plugins.hasPlugin('org.gradle.java')) {
+        if (plugins.hasPlugin('org.gradle.java')) {
             project.apply(from: file('publish.gradle'))
 
             task copyPomForCi(type: Sync) {
