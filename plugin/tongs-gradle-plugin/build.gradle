@@ -13,8 +13,6 @@ apply plugin: 'groovy'
 apply plugin: 'project-report'
 
 
-apply from: '../dependencies.gradle'
-
 java {
     sourceCompatibility = javaSourceCompatibility
     targetCompatibility = javaTargetCompatibility
