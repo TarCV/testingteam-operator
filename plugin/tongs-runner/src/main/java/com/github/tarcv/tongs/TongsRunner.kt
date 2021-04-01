@@ -57,101 +57,8 @@ class TongsRunner(private val poolLoader: PoolLoader,
     )
 
     fun run(): Boolean {
-        var poolExecutor: ExecutorService? = null
         return try {
-            val pools = poolLoader.loadPools()
-            val numberOfPools = pools.size
-            val poolCountDownLatch = CountDownLatch(numberOfPools)
-            poolExecutor = Utils.namedExecutor(numberOfPools, "PoolExecutor-%d")
-
-            val deviceTestRunnerFactory = deviceTestRunnerFactory()
-
-            val poolTestCasesMap: Map<Pool, PoolTask> = pools
-                    .map { pool ->
-                        val deviceRunners = pool.devices.map { device ->
-                            device to deviceTestRunnerFactory.createDeviceTestRunner(pool, device, ruleManagerFactory)
-                        }
-
-                        deviceRunners.forEach { it.second.runBeforeRules() }
-
-                        val testCaseRules = testCaseRuleManager
-                                .createRulesFrom {
-                                    configuration ->
-                                    TestCaseRuleContext(configuration, pool)
-                                }
-                        val testCases = createTestSuiteLoaderForPool(pool)
-                                .also {
-                                    if (it.isEmpty()) {
-                                        throw NoTestCasesFoundException("No tests cases were found")
-                                    }
-                                }
-                                .map { testCaseEvent: TestCaseEvent ->
-                                    testCaseRules.fold(testCaseEvent) { acc, rule -> rule.transform(acc) }
-                                }
-                                .filter { testCaseEvent: TestCaseEvent ->
-                                    testCaseRules.all { rule -> rule.filter(testCaseEvent) }
-                                }
-                                .also {
-                                    if (it.isEmpty()) {
-                                        throw NoTestCasesFoundException(
-                                                "All tests cases were filtered out by test case rules")
-                                    }
-                                }
-
-                        pool.devices.forEach { device ->
-                            testCaseRunnerManager
-                                    .createRulesFrom {
-                                        configuration ->
-                                        TestCaseRunnerContext(
-                                                configuration,
-                                                pool,
-                                                device
-                                        )
-                                    }
-                                    .forEach { runner ->
-                                        testCases.forEach {
-                                            if ((!it.isEnabledOn(device)).not() && runner.supports(device, it.testCase)) {
-                                                it.addDeviceRunner(device, runner)
-                                            }
-                                        }
-                                    }
-                        }
-                        testCases.forEach { testCase ->
-                            val hasCompatibleDevice = pool.devices.any {
-                                device -> testCase.isEnabledOn(device) && testCase.runnersFor(device).isNotEmpty()
-                            }
-                            if (!hasCompatibleDevice) {
-                                throw IllegalStateException("No runner found for $testCase")
-                            }
-                        }
-
-                        pool to PoolTask(pool, deviceRunners, testCases)
-                    }
-                    .toMap()
-
-            // TODO: check that different sets of test cases in different pools doesn't fail run
-            val allResults: List<TestCaseRunResult> = ArrayList()
-            summaryGeneratorHook.registerHook(
-                    pools,
-                    poolTestCasesMap.mapValues { it.value.testCases },
-                    allResults
-            )
-
-            progressReporter.start()
-            for (pool in pools) {
-                val poolTask = poolTestCasesMap.getValue(pool)
-                val poolTestRunner = poolTestRunnerFactory.createPoolTestRunner(poolTask,
-                        allResults, poolCountDownLatch,
-                        progressReporter)
-                poolExecutor.execute(poolTestRunner)
-            }
-            poolCountDownLatch.await()
-            progressReporter.stop()
-
-            val overallSuccess = summaryGeneratorHook.defineOutcome()
-            summaryGeneratorHook.unregisterHook()
-            logger.info("Overall success: $overallSuccess")
-            overallSuccess
+            throwingRun()
         } catch (e: NoPoolLoaderConfiguredException) {
             logger.error("Configuring devices and pools failed", e)
             false
@@ -164,8 +71,107 @@ class TongsRunner(private val poolLoader: PoolLoader,
         } catch (e: Exception) {
             logger.error("Error while executing a test run", e)
             false
+        }
+    }
+
+    fun throwingRun(): Boolean {
+        val pools = poolLoader.loadPools()
+        val numberOfPools = pools.size
+        val poolCountDownLatch = CountDownLatch(numberOfPools)
+        val poolExecutor = Utils.namedExecutor(numberOfPools, "PoolExecutor-%d")
+        return try {
+            val deviceTestRunnerFactory = deviceTestRunnerFactory()
+
+            val poolTestCasesMap: Map<Pool, PoolTask> = pools
+                .map { pool ->
+                    val deviceRunners = pool.devices.map { device ->
+                        device to deviceTestRunnerFactory.createDeviceTestRunner(pool, device, ruleManagerFactory)
+                    }
+
+                    deviceRunners.forEach { it.second.runBeforeRules() }
+
+                    val testCaseRules = testCaseRuleManager
+                        .createRulesFrom { configuration ->
+                            TestCaseRuleContext(configuration, pool)
+                        }
+                    val testCases = createTestSuiteLoaderForPool(pool)
+                        .also {
+                            if (it.isEmpty()) {
+                                throw NoTestCasesFoundException("No tests cases were found")
+                            }
+                        }
+                        .map { testCaseEvent: TestCaseEvent ->
+                            testCaseRules.fold(testCaseEvent) { acc, rule -> rule.transform(acc) }
+                        }
+                        .filter { testCaseEvent: TestCaseEvent ->
+                            testCaseRules.all { rule -> rule.filter(testCaseEvent) }
+                        }
+                        .also {
+                            if (it.isEmpty()) {
+                                throw NoTestCasesFoundException(
+                                    "All tests cases were filtered out by test case rules"
+                                )
+                            }
+                        }
+
+                    pool.devices.forEach { device ->
+                        testCaseRunnerManager
+                            .createRulesFrom { configuration ->
+                                TestCaseRunnerContext(
+                                    configuration,
+                                    pool,
+                                    device
+                                )
+                            }
+                            .forEach { runner ->
+                                testCases.forEach {
+                                    if ((!it.isEnabledOn(device)).not() && runner.supports(device, it.testCase)) {
+                                        it.addDeviceRunner(device, runner)
+                                    }
+                                }
+                            }
+                    }
+                    testCases.forEach { testCase ->
+                        val hasCompatibleDevice = pool.devices.any { device ->
+                            testCase.isEnabledOn(device) && testCase.runnersFor(device).isNotEmpty()
+                        }
+                        if (!hasCompatibleDevice) {
+                            throw IllegalStateException("No runner found for $testCase")
+                        }
+                    }
+
+                    pool to PoolTask(pool, deviceRunners, testCases)
+                }
+                .toMap()
+
+            // TODO: check that different sets of test cases in different pools doesn't fail run
+            val allResults: List<TestCaseRunResult> = ArrayList()
+            summaryGeneratorHook.registerHook(
+                pools,
+                poolTestCasesMap.mapValues { it.value.testCases },
+                allResults
+            )
+
+            progressReporter.start()
+            for (pool in pools) {
+                val poolTask = poolTestCasesMap.getValue(pool)
+                val poolTestRunner = poolTestRunnerFactory.createPoolTestRunner(
+                    poolTask,
+                    allResults, poolCountDownLatch,
+                    progressReporter
+                )
+                poolExecutor.execute(poolTestRunner)
+            }
+            poolCountDownLatch.await()
+            progressReporter.stop()
+
+            val overallSuccess = summaryGeneratorHook.defineOutcome()
+            summaryGeneratorHook.unregisterHook()
+            logger.info("Overall success: $overallSuccess")
+
+            overallSuccess
         } finally {
-            poolExecutor?.shutdown()
+            poolExecutor.shutdownNow()
         }
     }
 
