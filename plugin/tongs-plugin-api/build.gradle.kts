@@ -1,9 +1,8 @@
 plugins {
     `java-library`
-    kotlin("jvm")
 }
 
-apply(from = "../dependencies.gradle")
+apply(plugin = "kotlin")
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -14,17 +13,17 @@ repositories {
     mavenCentral()
 }
 
-val org.gradle.api.plugins.ExtraPropertiesExtension.deps: Map<String, String>
-    get() = this["deps"] as Map<String, String>
+val deps: Map<String, String>
+    get() = rootProject.extra["deps"] as Map<String, String>
 dependencies {
     implementation(kotlin("stdlib"))
 
-    implementation(extra.deps.getValue("commonsLang"))
-    implementation(extra.deps.getValue("gson"))
-    implementation(extra.deps.getValue("guava"))
-    implementation(extra.deps.getValue("jsr305"))
+    implementation(deps.getValue("commonsLang"))
+    implementation(deps.getValue("gson"))
+    implementation(deps.getValue("guava"))
+    implementation(deps.getValue("jsr305"))
     api("org.simpleframework:simple-xml:2.7.1")
-    api(extra.deps.getValue("slf4j"))
+    api(deps.getValue("slf4j"))
 
     testCompile(group = "junit", name = "junit", version = "4.12")
 }

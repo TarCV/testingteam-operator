@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -35,10 +35,7 @@ class ApkTestInfoReader {
                 val method: DexBackedMethod
         )
 
-        class Test(
-                val testIdentifier: TestIdentifier,
-                val parts: Set<String>
-        ) {
+        class Test(val testIdentifier: TestIdentifier) {
             var foundMethod: FoundMethod? = null
         }
 
@@ -48,7 +45,7 @@ class ApkTestInfoReader {
                 .forEach { test ->
                     val parts = listOf(test.className) + splitIdentifiers(test.testName)
 
-                    val testInfo = Test(test, parts.toSet())
+                    val testInfo = Test(test)
                     testMatches.add(testInfo)
 
                     parts
@@ -89,7 +86,7 @@ class ApkTestInfoReader {
                             )
                             .groupingBy { it }
                             .eachCount()
-                            .forEach { test, matchingParts ->
+                            .forEach { (test, matchingParts) ->
                                 test.foundMethod.let {
                                     if (it == null || it.matchingParts < matchingParts) {
                                         test.foundMethod = FoundMethod(matchingParts, method)
@@ -98,11 +95,19 @@ class ApkTestInfoReader {
                             }
                 }
 
+        val notFoundTests = testMatches
+            .filter { test -> test.foundMethod == null }
+            .map { test -> test.testIdentifier.toString() }
+        if (notFoundTests.isNotEmpty()) {
+            throw RuntimeException("Failed to find info about these tests in APK" +
+                    " (Different APK is installed on the device?): $notFoundTests")
+        }
+
         return testMatches
+                .filter { test -> test.foundMethod != null } // TODO: print a warning
                 .map { test ->
                     val testMethod = test.foundMethod!!.method
                     val testClass = testMethod.classDef
-                    val testClassName = decodeClassName(testClass.type)
                     val annotations = ArrayList<AnnotationInfo>()
 
                     // Method annotations override class ones, so they should be added last

@@ -15,8 +15,6 @@ apply plugin: 'application'
 
 mainClassName = 'com.github.tarcv.tongs.TongsCli'
 
-apply from: '../dependencies.gradle'
-
 java {
     //noinspection GroovyUnusedAssignment
     sourceCompatibility = javaSourceCompatibility
@@ -39,7 +37,7 @@ dependencies {
     implementation deps.jcommander
     implementation deps.slf4j
     implementation deps.gson
-    implementation "org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation("org.lesscss:lesscss:1.7.0.1.1") {
         exclude(module: "slf4j-simple")
     }
@@ -52,7 +50,7 @@ dependencies {
     testImplementation(
             deps.jmock,
             deps.jmockJUnit)
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 }
 
 jar {
