@@ -30,6 +30,7 @@ class RuleManagerTest {
 
         class DefaultActualRule : ActualRule()
 
+        @Suppress("UNUSED_PARAMETER")
         class ActualRuleContext(someDependency: Int)
 
         abstract class ActualRuleFactory<out T : ActualRule> {

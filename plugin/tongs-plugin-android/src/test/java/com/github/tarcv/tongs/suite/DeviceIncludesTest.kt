@@ -65,7 +65,6 @@ class DeviceIncludesTest {
                 device3 to setOf(test1),
                 device4 to setOf(test2)
         )
-        val allTests = setOf(test1, test2)
         val excludes = JUnitTestSuiteLoader.calculateDeviceIncludes(
                 input.asSequence()
         )
