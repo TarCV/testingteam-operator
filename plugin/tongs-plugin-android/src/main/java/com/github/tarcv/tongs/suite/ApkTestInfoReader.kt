@@ -28,8 +28,6 @@ import java.io.File
 
 class ApkTestInfoReader {
     fun readTestInfo(apk: File, testsToCheck: Collection<TestIdentifier>): List<TestInfo> {
-        val dex = DexFileFactory.loadDexFile(apk, null)
-
         class FoundMethod(
                 val matchingParts: Int,
                 val method: DexBackedMethod
@@ -60,12 +58,29 @@ class ApkTestInfoReader {
                             }
                 }
 
-        val knownClasses = dex.classes
+        val dexClasses = generateSequence(1) { it + 1}
+            .map {
+                val indexStr = if (it == 1) {
+                    ""
+                } else {
+                    it.toString()
+                }
+
+                try {
+                    DexFileFactory.loadDexEntry(apk, "classes${indexStr}.dex", true, null)
+                } catch (e: DexFileFactory.DexFileNotFoundException) {
+                    null
+                }
+            }
+            .takeWhile { it != null }
+            .toList()
+            .flatMap { it!!.dexFile.classes }
+
+        val knownClasses = dexClasses
                 .filter(Companion::isClass)
                 .associateBy { decodeClassName(it.type) }
 
-        dex
-                .classes
+        dexClasses
                 .filter(Companion::isClass)
                 .flatMap { clazz ->
                     (clazz.virtualMethods + clazz.directMethods)
