@@ -49,7 +49,8 @@ class TongsPlugin implements Plugin<Project> {
         project.configurations.all {
             resolutionStrategy.eachDependency { DependencyResolveDetails details ->
                 if (details.requested.version.isEmpty() &&
-                        "com.github.tarcv.tongs:tongs-ondevice".equalsIgnoreCase("${details.requested.group}:${details.requested.name}")
+                        // TODO: get module name from root gradle.properties
+                        "com.github.TarCV.testingteam-operator:tongs-ondevice".equalsIgnoreCase("${details.requested.group}:${details.requested.name}")
                 ) {
                     details.useVersion BuildConfig.PLUGIN_VERSION
                     details.because "Default version provided by Tongs plugin"

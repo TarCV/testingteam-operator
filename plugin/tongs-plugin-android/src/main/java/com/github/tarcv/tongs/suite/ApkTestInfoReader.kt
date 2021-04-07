@@ -18,18 +18,16 @@ import com.github.tarcv.tongs.api.testcases.AnnotationInfo
 import com.github.tarcv.tongs.runner.TestInfo
 import org.jf.dexlib2.AccessFlags
 import org.jf.dexlib2.DexFileFactory
-import org.jf.dexlib2.dexbacked.DexBackedAnnotation
 import org.jf.dexlib2.dexbacked.DexBackedClassDef
 import org.jf.dexlib2.dexbacked.DexBackedMethod
 import org.jf.dexlib2.iface.Annotation
 import org.jf.dexlib2.iface.BasicAnnotation
 import org.jf.dexlib2.iface.value.*
+import org.slf4j.LoggerFactory
 import java.io.File
 
 class ApkTestInfoReader {
     fun readTestInfo(apk: File, testsToCheck: Collection<TestIdentifier>): List<TestInfo> {
-        val dex = DexFileFactory.loadDexFile(apk, null)
-
         class FoundMethod(
                 val matchingParts: Int,
                 val method: DexBackedMethod
@@ -51,8 +49,8 @@ class ApkTestInfoReader {
                     parts
                             .forEach { part ->
                                 testParts
-                                        .computeIfAbsent(part) { _ ->
-                                            ArrayList<Test>()
+                                        .computeIfAbsent(part) {
+                                            ArrayList()
                                         }
                                         .let {
                                             (it as MutableList).add(testInfo)
@@ -60,12 +58,29 @@ class ApkTestInfoReader {
                             }
                 }
 
-        val knownClasses = dex.classes
+        val dexClasses = generateSequence(1) { it + 1}
+            .map {
+                val indexStr = if (it == 1) {
+                    ""
+                } else {
+                    it.toString()
+                }
+
+                try {
+                    DexFileFactory.loadDexEntry(apk, "classes${indexStr}.dex", true, null)
+                } catch (e: DexFileFactory.DexFileNotFoundException) {
+                    null
+                }
+            }
+            .takeWhile { it != null }
+            .toList()
+            .flatMap { it!!.dexFile.classes }
+
+        val knownClasses = dexClasses
                 .filter(Companion::isClass)
                 .associateBy { decodeClassName(it.type) }
 
-        dex
-                .classes
+        dexClasses
                 .filter(Companion::isClass)
                 .flatMap { clazz ->
                     (clazz.virtualMethods + clazz.directMethods)
@@ -104,7 +119,7 @@ class ApkTestInfoReader {
         }
 
         return testMatches
-                .filter { test -> test.foundMethod != null } // TODO: print a warning
+                .filter { test -> test.foundMethod != null }
                 .map { test ->
                     val testMethod = test.foundMethod!!.method
                     val testClass = testMethod.classDef
@@ -148,22 +163,27 @@ class ApkTestInfoReader {
     private fun appendSuperclassAnnotationsFull(testClassName: String, knownClasses: Map<String, DexBackedClassDef>, out: java.util.ArrayList<AnnotationInfo>) {
         val testClass = knownClasses[testClassName]
         if (testClass == null) {
-            // TODO: log
-                return
+            logger.warn("Can't find class '$testClassName' in dex entries")
+            return
         }
         appendSuperclassAnnotationsRoot(testClass, knownClasses, out)
 
         val eligibleAnnotations = testClass.annotations
                 .filter { annotation ->
-            val annotationClass = knownClasses[decodeClassName(annotation.type)]
-            if (annotationClass == null) {
-                // TODO: log
-                true
-            } else if (annotationClass.annotations.any { decodeClassName(it.type) == inheritedAnnotation }) {
-                true
-            } else {
-                false
-            }
+                    val className = decodeClassName(annotation.type)
+                    val annotationClass = knownClasses[className]
+                    when {
+                        annotationClass == null -> {
+                            logger.warn("Can't find annotation '$className' in dex entries")
+                            true
+                        }
+                        annotationClass.annotations.any { decodeClassName(it.type) == inheritedAnnotation } -> {
+                            true
+                        }
+                        else -> {
+                            false
+                        }
+                    }
         }
 
         appendAnnotationInfos(eligibleAnnotations, out)
@@ -216,7 +236,9 @@ class ApkTestInfoReader {
     }
 
     companion object {
-        private val inheritedAnnotation = "java.lang.annotation.Inherited"
+        private const val inheritedAnnotation = "java.lang.annotation.Inherited"
+
+        private val logger = LoggerFactory.getLogger(ApkTestInfoReader::class.java)
 
         private val ignoredMethods = listOf("<init>", "<clinit>")
 
@@ -240,15 +262,11 @@ class ApkTestInfoReader {
                     isStatic -> MethodType.PUBLIC_STATIC
                     else -> MethodType.PUBLIC_INSTANCE
                 }
-                AccessFlags.PROTECTED in accessFlags -> when {
-                    isStatic -> MethodType.PROTECTED_STATIC
-                    else -> MethodType.PROTECTED_INSTANCE
-                }
                 AccessFlags.PRIVATE in accessFlags -> when {
                     isStatic -> MethodType.PRIVATE_STATIC
                     else -> MethodType.PRIVATE_INSTANCE
                 }
-                else -> when {
+                else -> when { // AccessFlags.PROTECTED or default
                     isStatic -> MethodType.PROTECTED_STATIC
                     else -> MethodType.PROTECTED_INSTANCE
                 }
@@ -274,10 +292,6 @@ class ApkTestInfoReader {
         }
 
         private operator fun Int.contains(flag: AccessFlags): Boolean = this and flag.value != 0
-
-        private fun Collection<DexBackedAnnotation>.filterOutVmAnnotations(): List<DexBackedAnnotation> {
-            return this.filter { !it.type.startsWith("dalvik.annotation.") }
-        }
 
         private fun splitIdentifiers(testIdentifier: String): List<String> {
             class Acc {

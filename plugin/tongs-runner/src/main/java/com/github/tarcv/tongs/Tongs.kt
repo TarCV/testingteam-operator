@@ -40,6 +40,7 @@ class Tongs(configuration: Configuration) {
         single { createTongsRunner(get()) }
     }
 
+    @JvmOverloads
     fun run(allowThrows: Boolean = false): Boolean {
         startKoin {
             modules(runnerModule)

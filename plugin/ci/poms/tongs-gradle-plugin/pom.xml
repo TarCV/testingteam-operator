@@ -7,22 +7,21 @@
   <!-- that they should prefer consuming it instead. -->
   <!-- do_not_remove: published-with-gradle-metadata -->
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.github.tarcv.tongs</groupId>
+  <groupId>com.github.TarCV.testingteam-operator</groupId>
   <artifactId>tongs-gradle-plugin</artifactId>
-  <version>0.6.2-SNAPSHOT</version>
+  <version>0.6.3-SNAPSHOT</version>
   <name>TestingTeam Operator Gradle Plugin</name>
   <description>A Gradle plugin that adds TestingTeam Operator tasks for Android instrumentation tests</description>
   <url>https://github.com/TarCV/testingteam-operator</url>
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
   <developers>
     <developer>
       <name>TarCV</name>
-      <email>2857607+tarcv@users.noreply.github.com</email>
       <organization>TarCV</organization>
       <organizationUrl>https://github.com/TarCV</organizationUrl>
     </developer>
@@ -34,9 +33,9 @@
   </scm>
   <dependencies>
     <dependency>
-      <groupId>com.github.tarcv.tongs</groupId>
+      <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>tongs-runner</artifactId>
-      <version>0.6.2-SNAPSHOT</version>
+      <version>0.6.3-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>
