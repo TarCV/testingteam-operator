@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -14,6 +14,7 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.IDevice
+import com.github.tarcv.tongs.api.HasConfiguration
 import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.api.run.TestCaseRunRule
 import com.github.tarcv.tongs.api.run.TestCaseRunRuleAfterArguments
@@ -22,12 +23,18 @@ import com.github.tarcv.tongs.api.run.TestCaseRunRuleFactory
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.system.PermissionGrantingManager
 
-class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidPermissionGrantingTestCaseRunRule> {
+class AndroidPermissionGrantingTestCaseRunRuleFactory : TestCaseRunRuleFactory<AndroidPermissionGrantingTestCaseRunRule>,
+    HasConfiguration {
+    override val configurationSections: Array<String> = arrayOf("androidPermissionAnnotation")
+
     override fun testCaseRunRules(context: TestCaseRunRuleContext): Array<out AndroidPermissionGrantingTestCaseRunRule> {
+        val packagePrefix = context.configuration.pluginConfiguration["package"] as? String
+            ?: "com.github.tarcv.tongs"
+
         val device = context.device
         return if (device is AndroidDevice) {
             val permissionsToGrant = context.testCaseEvent.testCase.annotations
-                    .firstOrNull { it.fullyQualifiedName == "com.github.tarcv.tongs.GrantPermission" }
+                    .firstOrNull { it.fullyQualifiedName == "$packagePrefix.GrantPermission" }
                     .let {
                         if (it != null) {
                             it.properties["value"] as List<String>
