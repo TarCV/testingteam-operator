@@ -133,18 +133,30 @@ class JUnitTestSuiteLoader(
                 .filterIsInstance(AndroidDevice::class.java) // TODO: handle other types of devices
                 .map { device ->
                     async {
-                        try {
-                            collectTestsFromLogOnlyRun(device)
-                        } catch (e: InterruptedException) {
-                            throw e
-                        } catch (e: Exception) {
-                            // TODO: specific exception
-                            throw RuntimeException("Failed to collect test cases from ${device.name}", e)
+                        kotlin.runCatching {
+                            try {
+                                collectTestsFromLogOnlyRun(device)
+                            } catch (e: InterruptedException) {
+                                throw e
+                            } catch (e: Exception) {
+                                logger.warn("Failed to collect test cases from ${device.name}", e)
+                                throw e
+                            }
                         }
                     }
                 }
                 .awaitAll()
-                .let { collectedInfos ->
+                .let { collectedInfoResults ->
+                    val collectedInfos = collectedInfoResults.mapNotNull { it.getOrNull() }
+                    if (collectedInfos.isEmpty()) {
+                        val lastCause = if (collectedInfoResults.isEmpty()) {
+                            null
+                        } else {
+                            collectedInfoResults.last().exceptionOrNull()
+                        }
+                        throw RuntimeException("Failed to collect any test cases from the devices", lastCause)
+                    }
+
                     collectedInfos.forEach {
                         if (!it.hasOnDeviceLibrary) {
                             logger.warn("Instrumented tests on ${it.device} are linked without 'ondevice' library." +
