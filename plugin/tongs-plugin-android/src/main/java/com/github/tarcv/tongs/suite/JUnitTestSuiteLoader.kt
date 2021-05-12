@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -27,13 +27,17 @@ import com.github.tarcv.tongs.runner.TestInfo
 import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
-import java.util.*
 
-public class JUnitTestSuiteLoader(
+class JUnitTestSuiteLoader(
         private val context: TestSuiteLoaderContext,
         private val testRunFactory: AndroidTestRunFactory,
         private val remoteAndroidTestRunnerFactory: IRemoteAndroidTestRunnerFactory,
@@ -281,7 +285,7 @@ public class JUnitTestSuiteLoader(
             device: AndroidDevice,
             withOnDeviceLib: Boolean): Pair<List<LogCatMessage>, TestCollectingListener.Result> = withContext(Dispatchers.IO) {
         val testCollectingListener = TestCollectingListener()
-        val logCatCollector: LogcatReceiver = LogcatReceiver(device)
+        val logCatCollector = LogcatReceiver(device)
         val testRun = testRunFactory.createCollectingRun(
                 device, context.pool, testCollectingListener, withOnDeviceLib)
         try {
