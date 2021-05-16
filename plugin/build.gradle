@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ ext {
     versions = [
             androidTools : '26.5.3',
             androidPlugin: '3.6.0',// should be the same as in buildscripts in the ondevice build.gradle file
-            handleBars   : '4.1.2',
+            handleBars   : '4.2.0',
             junit        : '4.12',
             jmock        : '2.8.2',
             koin         : '2.1.0'
@@ -44,8 +44,8 @@ ext {
             ddmlib               : "com.android.tools.ddms:ddmlib:${versions.androidTools}",
             sdklib               : "com.android.tools:common:${versions.androidTools}",
             androidToolsCommon   : "com.android.tools:common:${versions.androidTools}",
-            commonsLang          : "org.apache.commons:commons-lang3:3.4",
-            commonsIo            : "commons-io:commons-io:2.5",
+            commonsLang          : "org.apache.commons:commons-lang3:3.12.0",
+            commonsIo            : "commons-io:commons-io:2.8.0",
             handleBars           : "com.github.jknack:handlebars:${versions.handleBars}",
             handleBarsHuminize   : "com.github.jknack:handlebars-humanize:${versions.handleBars}",
             gson                 : 'com.google.code.gson:gson:2.6.2',

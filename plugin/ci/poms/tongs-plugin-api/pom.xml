@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.TarCV.testingteam-operator</groupId>
   <artifactId>tongs-plugin-api</artifactId>
-  <version>0.6.3-SNAPSHOT</version>
+  <version>0.6.4-SNAPSHOT</version>
   <name>TestingTeam Operator plugin API package</name>
   <description>Package required for developing your own TestingTeam Operator plugins</description>
   <url>https://github.com/TarCV/testingteam-operator</url>
@@ -52,7 +52,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.4</version>
+      <version>3.12.0</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
