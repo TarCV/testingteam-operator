@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.TarCV.testingteam-operator</groupId>
   <artifactId>tongs-gradle-plugin</artifactId>
-  <version>0.6.3-SNAPSHOT</version>
+  <version>0.6.4-SNAPSHOT</version>
   <name>TestingTeam Operator Gradle Plugin</name>
   <description>A Gradle plugin that adds TestingTeam Operator tasks for Android instrumentation tests</description>
   <url>https://github.com/TarCV/testingteam-operator</url>
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>tongs-runner</artifactId>
-      <version>0.6.3-SNAPSHOT</version>
+      <version>0.6.4-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

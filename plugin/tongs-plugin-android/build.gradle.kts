@@ -21,7 +21,7 @@ dependencies {
 
     implementation("com.shazam:axmlparser:1.0")
     implementation(deps.getValue("commonsIo"))
-    implementation(group = "org.apache.commons", name = "commons-text", version = "1.4")
+    implementation(group = "org.apache.commons", name = "commons-text", version = "1.9")
     implementation(deps.getValue("ddmlib"))
     implementation(deps.getValue("sdklib"))
     implementation("org.smali:dexlib2:2.4.0") {
