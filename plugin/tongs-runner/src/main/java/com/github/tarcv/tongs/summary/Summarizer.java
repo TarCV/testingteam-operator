@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -13,23 +13,29 @@ package com.github.tarcv.tongs.summary;
 
 import com.github.tarcv.tongs.Configuration;
 import com.github.tarcv.tongs.api.devices.Pool;
-import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.github.tarcv.tongs.api.result.TestCaseRunResult;
-import com.github.tarcv.tongs.injector.GsonInjector;
+import com.github.tarcv.tongs.api.run.TestCaseEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.RECORD_LISTENER_EVENTS;
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public class Summarizer {
 
@@ -68,7 +74,11 @@ public class Summarizer {
 
     static GsonBuilder testRecorderGsonBuilder() {
         return new GsonBuilder()
-                .registerTypeAdapter(Class.class, GsonInjector.classSerializer())
+                .registerTypeAdapter(Class.class, new JsonSerializer<Class<?>>() {
+                    public JsonElement serialize(Class<?> src, Type typeOfSrc, JsonSerializationContext context) {
+                        return new JsonPrimitive(src.getName());
+                    }
+                })
                 .enableComplexMapKeySerialization();
     }
 

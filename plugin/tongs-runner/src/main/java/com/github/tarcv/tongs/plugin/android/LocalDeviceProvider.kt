@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,20 +11,22 @@
 
 package com.github.tarcv.tongs.plugin.android
 
-import com.github.tarcv.tongs.injector.device.ConnectedDeviceProviderInjector
 import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.devices.DeviceProvider
 import com.github.tarcv.tongs.api.devices.DeviceProviderContext
 import com.github.tarcv.tongs.api.devices.DeviceProviderFactory
 import com.github.tarcv.tongs.system.adb.ConnectedDeviceProvider
+import org.koin.core.context.KoinContextHandler
 import java.util.stream.Collectors
 
 class LocalDeviceProviderFactory: DeviceProviderFactory<LocalDeviceProvider> {
     override fun deviceProviders(context: DeviceProviderContext): Array<out LocalDeviceProvider> {
-        return arrayOf(LocalDeviceProvider(
-                ConnectedDeviceProviderInjector.connectedDeviceProvider(),
-                HashSet(context.configuration.excludedSerials)
-        ))
+        val connectedDeviceProvider by KoinContextHandler.get().inject<ConnectedDeviceProvider>()
+        return arrayOf(
+     LocalDeviceProvider(
+         connectedDeviceProvider,
+         HashSet(context.configuration.excludedSerials)
+     ))
     }
 }
 

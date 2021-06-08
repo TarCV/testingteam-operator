@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -36,10 +36,10 @@ public class OverallProgressReporter implements ProgressReporter {
 
     public OverallProgressReporter(int totalAllowedRetryQuota,
                                    int retryPerTestCaseQuota,
-                                   Map<Pool, PoolProgressTracker> poolProgressTrackers,
+                                   PoolProgressTrackers poolProgressTrackers,
                                    PoolTestCaseAccumulator failedTestCasesAccumulator) {
         this.retryWatchdog = new RetryWatchdog(totalAllowedRetryQuota, retryPerTestCaseQuota);
-        this.poolProgressTrackers = poolProgressTrackers;
+        this.poolProgressTrackers = poolProgressTrackers.getTrackers();
         this.failedTestCasesAccumulator = failedTestCasesAccumulator;
     }
 

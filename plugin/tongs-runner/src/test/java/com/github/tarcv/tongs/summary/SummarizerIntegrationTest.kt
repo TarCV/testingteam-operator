@@ -9,15 +9,24 @@
  */
 package com.github.tarcv.tongs.summary
 
+import com.github.tarcv.tongs.Configuration
 import com.github.tarcv.tongs.aConfigurationBuilder
 import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.devices.Pool
-import com.github.tarcv.tongs.api.result.*
+import com.github.tarcv.tongs.api.result.FileTableReportData
+import com.github.tarcv.tongs.api.result.FileType
+import com.github.tarcv.tongs.api.result.ImageReportData
+import com.github.tarcv.tongs.api.result.LinkedFileReportData
+import com.github.tarcv.tongs.api.result.SimpleHtmlReportData
+import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData
+import com.github.tarcv.tongs.api.result.SimpleTableReportData
+import com.github.tarcv.tongs.api.result.StandardFileTypes
+import com.github.tarcv.tongs.api.result.Table
+import com.github.tarcv.tongs.api.result.TestCaseFile
+import com.github.tarcv.tongs.api.result.TestCaseFileManager
+import com.github.tarcv.tongs.api.result.TestReportData
+import com.github.tarcv.tongs.api.result.VideoReportData
 import com.github.tarcv.tongs.api.testcases.TestCase
-import com.github.tarcv.tongs.injector.ConfigurationInjector.configuration
-import com.github.tarcv.tongs.injector.summary.OutcomeAggregatorInjector.outcomeAggregator
-import com.github.tarcv.tongs.injector.summary.SummaryCompilerInjector.summaryCompiler
-import com.github.tarcv.tongs.injector.summary.SummaryPrinterInjector.summaryPrinter
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.stopKoinIfNeeded
 import com.github.tarcv.tongs.suite.ApkTestCase
@@ -34,8 +43,10 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.koin.core.context.KoinContextHandler
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
+import org.koin.java.KoinJavaComponent.get
 import java.io.File
 import java.lang.reflect.Type
 import java.nio.file.Paths
@@ -78,8 +89,16 @@ class SummarizerIntegrationTest {
                (its name guarantees interesting HTML content)
              */
 
-        val summarizer = Summarizer(configuration(), summaryCompiler(), summaryPrinter(), outcomeAggregator())
-        SummarizerIntegrationTest::class.java.getResourceAsStream("/summarizerIntegration/summarizeInputs.json").bufferedReader().use {
+        val outcomeAggregator by KoinContextHandler.get().inject<OutcomeAggregator>()
+        val summaryCompiler by KoinContextHandler.get().inject<SummaryCompiler>()
+        val summaryPrinter  by KoinContextHandler.get().inject<SummaryPrinter>()
+        val summarizer = Summarizer(
+     get(Configuration::class.java), summaryCompiler, summaryPrinter,
+     outcomeAggregator
+ )
+        SummarizerIntegrationTest::class.java.getResourceAsStream("/summarizerIntegration/summarizeInputs.json")
+            .let { requireNotNull(it) { "Failed to read summary inputs" } }
+            .bufferedReader().use {
             summarizer.summarizeFromRecordedJson(it, gson)
         }
 
@@ -241,7 +260,9 @@ class SummarizerIntegrationTest {
                     }
                     .forEach { (aFile, aResource) ->
                         val actualText = aFile.readLines().joinToString(System.lineSeparator())
-                        val expectedBody = Companion::class.java.getResourceAsStream(aResource).bufferedReader()
+                        val expectedBody = Companion::class.java.getResourceAsStream(aResource)
+                                .let { requireNotNull(it) { "Failed to read $aResource" } }
+                                .bufferedReader()
                                 .use{ it.readLines() }
                                 .joinToString(System.lineSeparator())
                         Assert.assertFalse("${aFile.path} should not contain unresolved symbols",
@@ -274,6 +295,7 @@ class SummarizerIntegrationTest {
                     add("$basePath/")
                 }
                 Companion::class.java.getResourceAsStream("$basePath/")
+                        .let { requireNotNull(it) { "Failed to read $basePath/" } }
                         .bufferedReader()
                         .lineSequence()
                         .flatMap {
@@ -288,6 +310,7 @@ class SummarizerIntegrationTest {
 
         private fun isResourceAFolder(path: String): Boolean {
             val firstFile = Companion::class.java.getResourceAsStream("$path/")
+                    .let { requireNotNull(it) { "Failed to read $path/" } }
                     .bufferedReader()
                     .readLine()
             val firstFileStream = Companion::class.java.getResourceAsStream("$path/$firstFile")

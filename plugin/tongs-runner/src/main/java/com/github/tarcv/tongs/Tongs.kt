@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,14 +13,26 @@
  */
 package com.github.tarcv.tongs
 
-import com.github.tarcv.tongs.injector.RuleManagerFactory
-import com.github.tarcv.tongs.injector.TongsRunnerInjector.createTongsRunner
-import com.github.tarcv.tongs.injector.withRules
-import com.github.tarcv.tongs.runner.AndroidDdmRunRuleFactory
 import com.github.tarcv.tongs.api.run.RunConfiguration
 import com.github.tarcv.tongs.api.run.RunRule
 import com.github.tarcv.tongs.api.run.RunRuleContext
 import com.github.tarcv.tongs.api.run.RunRuleFactory
+import com.github.tarcv.tongs.injector.GsonInjector
+import com.github.tarcv.tongs.injector.RuleManagerFactory
+import com.github.tarcv.tongs.injector.accumulatorModule
+import com.github.tarcv.tongs.injector.deviceGeometryModule
+import com.github.tarcv.tongs.injector.deviceModule
+import com.github.tarcv.tongs.injector.listenersModule
+import com.github.tarcv.tongs.injector.modulesCreatedAtStart
+import com.github.tarcv.tongs.injector.poolingModule
+import com.github.tarcv.tongs.injector.runnerModule
+import com.github.tarcv.tongs.injector.summary.htmlGeneratorSummaryModule
+import com.github.tarcv.tongs.injector.summary.summaryModule
+import com.github.tarcv.tongs.injector.summary.summaryPrinterModule
+import com.github.tarcv.tongs.injector.systemModule
+import com.github.tarcv.tongs.injector.withRules
+import com.github.tarcv.tongs.runner.AndroidDdmRunRuleFactory
+import com.google.gson.Gson
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DurationFormatUtils
 import org.koin.core.context.KoinContextHandler
@@ -31,19 +43,34 @@ import org.slf4j.LoggerFactory
 import java.io.File
 
 class Tongs(configuration: Configuration) {
-    private val runnerModule = module {
+    private val startModule = module(createdAtStart = modulesCreatedAtStart) {
         single { configuration }
         single {
             val conf = get<Configuration>()
             RuleManagerFactory(conf, conf.pluginsInstances)
         }
-        single { createTongsRunner(get()) }
+        single<Gson> {
+            GsonInjector.gson()
+        }
     }
 
     @JvmOverloads
     fun run(allowThrows: Boolean = false): Boolean {
         startKoin {
-            modules(runnerModule)
+            modules(
+                startModule,
+
+                htmlGeneratorSummaryModule, // needs nothing
+                accumulatorModule,
+                deviceModule, // needs Configuration
+                poolingModule, // needs Configuration, RuleManagerFactory
+                deviceGeometryModule, // needs CommandOutputLogger from poolingModule
+                systemModule, // needs Configuration
+                runnerModule,
+                listenersModule,
+                summaryPrinterModule,
+                summaryModule
+            )
         }
         val tongsRunner by KoinContextHandler.get().inject<TongsRunner>()
         try {

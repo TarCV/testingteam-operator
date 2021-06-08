@@ -11,6 +11,7 @@
 
 package com.github.tarcv.tongs.runner.listeners;
 
+import com.github.tarcv.tongs.Configuration;
 import com.github.tarcv.tongs.api.TongsConfiguration;
 import com.github.tarcv.tongs.api.devices.Device;
 import com.github.tarcv.tongs.api.devices.Pool;
@@ -30,10 +31,10 @@ import static java.util.Arrays.asList;
 
 public class TestRunListenersFactoryTongs {
 
-    private final TongsConfiguration configuration;
+    private final Configuration configuration;
     private final FileManager fileManager;
 
-    public TestRunListenersFactoryTongs(TongsConfiguration configuration,
+    public TestRunListenersFactoryTongs(Configuration configuration,
                                         FileManager fileManager) {
         this.configuration = configuration;
         this.fileManager = fileManager;

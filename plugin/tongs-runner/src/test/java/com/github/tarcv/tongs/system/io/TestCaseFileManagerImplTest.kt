@@ -18,12 +18,12 @@ import com.github.tarcv.tongs.api.devices.Pool
 import com.github.tarcv.tongs.api.result.FileType
 import com.github.tarcv.tongs.api.result.TestCaseFileManager
 import com.github.tarcv.tongs.api.testcases.aTestCase
-import com.github.tarcv.tongs.injector.system.FileManagerInjector
 import com.github.tarcv.tongs.stopKoinIfNeeded
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.Assert
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.koin.core.context.KoinContextHandler
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import java.io.File
@@ -68,7 +68,8 @@ class TestCaseFileManagerImplTest(
                 .withName(poolName)
                 .addDevice(device)
                 .build()
-            TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCase)
+            val fileManager1 by KoinContextHandler.get().inject<FileManager>()
+            TestCaseFileManagerImpl(fileManager1, pool, device, testCase)
         }
     }
 
