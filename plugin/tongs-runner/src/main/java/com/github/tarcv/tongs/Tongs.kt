@@ -42,36 +42,11 @@ import org.koin.dsl.module
 import org.slf4j.LoggerFactory
 import java.io.File
 
-class Tongs(configuration: Configuration) {
-    private val startModule = module(createdAtStart = modulesCreatedAtStart) {
-        single { configuration }
-        single {
-            val conf = get<Configuration>()
-            RuleManagerFactory(conf, conf.pluginsInstances)
-        }
-        single<Gson> {
-            GsonInjector.gson()
-        }
-    }
-
+class Tongs(private val configuration: Configuration) {
     @JvmOverloads
     fun run(allowThrows: Boolean = false): Boolean {
-        startKoin {
-            modules(
-                startModule,
+        injectAll(configuration)
 
-                htmlGeneratorSummaryModule, // needs nothing
-                accumulatorModule,
-                deviceModule, // needs Configuration
-                poolingModule, // needs Configuration, RuleManagerFactory
-                deviceGeometryModule, // needs CommandOutputLogger from poolingModule
-                systemModule, // needs Configuration
-                runnerModule,
-                listenersModule,
-                summaryPrinterModule,
-                summaryModule
-            )
-        }
         val tongsRunner by KoinContextHandler.get().inject<TongsRunner>()
         try {
             val startOfTestsMs = System.nanoTime()
@@ -145,5 +120,35 @@ class Tongs(configuration: Configuration) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(Tongs::class.java)
+
+        fun injectAll(configuration: Configuration) {
+            val startModule = module(createdAtStart = modulesCreatedAtStart) {
+                single { configuration }
+                single {
+                    val conf = get<Configuration>()
+                    RuleManagerFactory(conf, conf.pluginsInstances)
+                }
+                single<Gson> {
+                    GsonInjector.gson()
+                }
+            }
+
+            startKoin {
+                modules(
+                    startModule,
+
+                    htmlGeneratorSummaryModule, // needs nothing
+                    accumulatorModule,
+                    deviceModule, // needs Configuration
+                    poolingModule, // needs Configuration, RuleManagerFactory
+                    deviceGeometryModule, // needs CommandOutputLogger from poolingModule
+                    systemModule, // needs Configuration
+                    runnerModule,
+                    listenersModule,
+                    summaryPrinterModule,
+                    summaryModule
+                )
+            }
+        }
     }
 }

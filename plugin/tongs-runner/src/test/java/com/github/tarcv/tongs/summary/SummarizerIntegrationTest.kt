@@ -27,8 +27,8 @@ import com.github.tarcv.tongs.api.result.TestCaseFileManager
 import com.github.tarcv.tongs.api.result.TestReportData
 import com.github.tarcv.tongs.api.result.VideoReportData
 import com.github.tarcv.tongs.api.testcases.TestCase
+import com.github.tarcv.tongs.koinRule
 import com.github.tarcv.tongs.model.AndroidDevice
-import com.github.tarcv.tongs.stopKoinIfNeeded
 import com.github.tarcv.tongs.suite.ApkTestCase
 import com.github.tarcv.tongs.system.io.FileManager
 import com.github.tarcv.tongs.system.io.TestCaseFileManagerImpl
@@ -42,19 +42,22 @@ import org.hamcrest.CoreMatchers.startsWith
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
+import org.junit.rules.TestRule
 import org.koin.core.context.KoinContextHandler
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
 import org.koin.java.KoinJavaComponent.get
 import java.io.File
 import java.lang.reflect.Type
 import java.nio.file.Paths
 
 class SummarizerIntegrationTest {
-    @get:Rule
-    val temporaryFolder = TemporaryFolder()
+    private val temporaryFolder = TemporaryFolder()
 
+    @get:Rule
+    val rules: TestRule = RuleChain.emptyRuleChain()
+        .around(temporaryFolder)
+        .around(koinRule { createConfiguration() })
 
     private val resourcedRoot = "/summarizerIntegration"
     private val linkedFilesSubDir = "linked"
@@ -77,7 +80,6 @@ class SummarizerIntegrationTest {
 
     @Test
     fun summarize() {
-        initConfiguration()
         initLinkedFolder()
 
 
@@ -143,8 +145,8 @@ class SummarizerIntegrationTest {
                 }
     }
 
-    private fun initConfiguration() {
-        val configuration = aConfigurationBuilder()
+    private fun createConfiguration(): Configuration {
+        return aConfigurationBuilder()
                 .withApplicationPackage("com.github.tarcv.tongstestapp.f2")
                 .withInstrumentationPackage("com.github.tarcv.tongstestapp.test")
                 .withTestRunnerClass("android.support.test.runner.AndroidJUnitRunner")
@@ -155,14 +157,6 @@ class SummarizerIntegrationTest {
                 ))
                 .withOutput(temporaryFolder.root)
                 .build(true)
-        val runnerModule = module {
-            single { configuration }
-        }
-
-        stopKoinIfNeeded()
-        startKoin {
-            modules(runnerModule)
-        }
     }
 
     internal class ComplexEnumDeserializer<T : Enum<*>>(val constants: Array<T>) : JsonDeserializer<T> {

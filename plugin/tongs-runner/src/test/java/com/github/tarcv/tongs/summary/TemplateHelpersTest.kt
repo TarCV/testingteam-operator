@@ -13,15 +13,20 @@
 package com.github.tarcv.tongs.summary
 
 import com.github.tarcv.tongs.io.HtmlGenerator
+import com.github.tarcv.tongs.koinRule
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.not
 import org.junit.Assert
+import org.junit.Rule
 import org.junit.Test
 import org.koin.core.context.KoinContextHandler
 import java.io.File
 
 class TemplateHelpersTest {
+    @get:Rule
+    val koinRule = koinRule()
+
     @Test
     fun collectionsSizeIsAccesibleViaHelper() {
         val htmlGenerator by KoinContextHandler.get().inject<HtmlGenerator>()

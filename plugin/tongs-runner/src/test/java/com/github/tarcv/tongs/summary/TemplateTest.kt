@@ -30,6 +30,7 @@ import com.github.tarcv.tongs.api.result.tableOf
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.testcases.aTestCase
 import com.github.tarcv.tongs.io.HtmlGenerator
+import com.github.tarcv.tongs.koinRule
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -46,6 +47,9 @@ class TemplateTest {
 
     @get:Rule
     val temporaryFolder = TemporaryFolder()
+
+    @get:Rule
+    val koinRule = koinRule()
 
     @Test
     fun fullTestResultPageIsCorrect() {

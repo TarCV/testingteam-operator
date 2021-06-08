@@ -12,11 +12,32 @@
  */
 package com.github.tarcv.tongs
 
+import org.junit.rules.ExternalResource
+import org.junit.rules.TestRule
 import org.koin.core.context.KoinContextHandler
 import org.koin.core.context.stopKoin
 
-fun stopKoinIfNeeded() {
-    if (KoinContextHandler.getOrNull() != null) {
-        stopKoin()
+fun koinRule(configurationProvider: () -> Configuration = { aConfigurationBuilder().build(true) })
+: TestRule {
+    return object : ExternalResource() {
+        override fun before() {
+            super.before()
+            stopKoinIfNeeded()
+            Tongs.injectAll(configurationProvider())
+        }
+
+        override fun after() {
+            try {
+                stopKoinIfNeeded()
+            } finally {
+                super.after()
+            }
+        }
+
+        private fun stopKoinIfNeeded() {
+            if (KoinContextHandler.getOrNull() != null) {
+                stopKoin()
+            }
+        }
     }
 }
