@@ -30,11 +30,13 @@ import com.github.tarcv.tongs.injector.summary.htmlGeneratorSummaryModule
 import com.github.tarcv.tongs.injector.summary.summaryModule
 import com.github.tarcv.tongs.injector.summary.summaryPrinterModule
 import com.github.tarcv.tongs.injector.systemModule
+import com.github.tarcv.tongs.injector.testLoadingModule
 import com.github.tarcv.tongs.injector.withRules
 import com.github.tarcv.tongs.runner.AndroidDdmRunRuleFactory
 import com.google.gson.Gson
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DurationFormatUtils
+import org.koin.core.Koin
 import org.koin.core.context.KoinContextHandler
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -121,7 +123,7 @@ class Tongs(private val configuration: Configuration) {
     companion object {
         private val logger = LoggerFactory.getLogger(Tongs::class.java)
 
-        fun injectAll(configuration: Configuration) {
+        fun injectAll(configuration: Configuration): Koin {
             val startModule = module(createdAtStart = modulesCreatedAtStart) {
                 single { configuration }
                 single {
@@ -133,7 +135,7 @@ class Tongs(private val configuration: Configuration) {
                 }
             }
 
-            startKoin {
+            return startKoin {
                 modules(
                     startModule,
 
@@ -141,6 +143,7 @@ class Tongs(private val configuration: Configuration) {
                     accumulatorModule,
                     deviceModule, // needs Configuration
                     poolingModule, // needs Configuration, RuleManagerFactory
+                    testLoadingModule, // needs RuleManagerFactory
                     deviceGeometryModule, // needs CommandOutputLogger from poolingModule
                     systemModule, // needs Configuration
                     runnerModule,
@@ -148,7 +151,7 @@ class Tongs(private val configuration: Configuration) {
                     summaryPrinterModule,
                     summaryModule
                 )
-            }
+            }.koin
         }
     }
 }

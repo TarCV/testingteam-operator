@@ -142,7 +142,7 @@ class TemplateTest {
     private fun aTestCaseRunResult(datas: List<TestReportData>): TestCaseRunResult {
         return TestCaseRunResult(
                 pool, TEST_DEVICE,
-                aTestCase( "Class", "method"),
+                aTestCase("Class", "method"),
                 ResultStatus.FAIL, listOf(StackTrace("", "stackTrace", "stackTrace\n\ttrace")),
                 Instant.now(), Instant.now().plusMillis(10),
                 Instant.now(), Instant.now().plusMillis(10),

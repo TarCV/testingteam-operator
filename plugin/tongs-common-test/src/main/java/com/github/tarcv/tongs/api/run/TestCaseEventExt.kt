@@ -14,14 +14,14 @@ import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.testcases.TestCase
 
 fun TestCaseEvent.Companion.aTestCaseEvent(testIdentifier: TestCase): TestCaseEvent {
-    return TestCaseEvent(testIdentifier, emptyList(), emptyList())
+    return TestCaseEvent(testIdentifier, emptyList())
 }
 
 fun aTestCaseEvent(testIdentifier: TestCase): TestCaseEvent = TestCaseEvent.Companion.aTestCaseEvent(testIdentifier)
 
 fun aTestEvent(testIdentifier: TestCase, excludes: List<Device>, failureCount: Int): TestCaseEvent {
-    return TestCaseEvent(testIdentifier, emptyList(), excludes, failureCount)
+    return TestCaseEvent(testIdentifier, excludes, failureCount)
 }
 fun TestCaseEvent.Companion.aTestEvent(testIdentifier: TestCase, excludes: List<Device>, failureCount: Int): TestCaseEvent {
-    return TestCaseEvent(testIdentifier, emptyList(), excludes, failureCount)
+    return TestCaseEvent(testIdentifier, excludes, failureCount)
 }

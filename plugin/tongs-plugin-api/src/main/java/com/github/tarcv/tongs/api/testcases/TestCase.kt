@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License.
@@ -12,28 +12,36 @@
  */
 package com.github.tarcv.tongs.api.testcases
 
+import com.github.tarcv.tongs.api.devices.Device
 import java.util.Collections.emptyMap
 
-class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestIdentifier and TestCase classes
-        val typeTag: Class<*>, // TODO: consider changing to :Enum<*>
+data class TestCase @JvmOverloads constructor( // TODO: consider splitting into TestIdentifier and TestCase classes
+    val typeTag: Class<*>, // TODO: consider changing to :Enum<*>
 
-        /**
-         * The package of the class containing the test case.
-         * It might not be provided by some test providers, in which case it is an empty string.
-         */
-        val testPackage: String,
+/**
+     * The package of the class containing the test case.
+     * It might not be provided by some test providers, in which case it is an empty string.
+     */
+    val testPackage: String,
 
-        val testClass: String,
-        val testMethod: String, // TODO: consider adding 'variation' property
-        val readablePath: List<String>,
-        val properties: Map<String, String> = emptyMap(), // TODO: consider moving to TestCaseEvent, consider changing key type to Enum or Class
-        val annotations: List<AnnotationInfo> = emptyList(), // TODO: remove from comparison, consider replacing with properties
-        val extra: Any = Any()
-        // TODO: add detectedOnDevices property excluded from comparison
+    val testClass: String,
+    val testMethod: String, // TODO: consider adding 'variation' property
+    val readablePath: List<String>,
+    val properties: Map<String, String> = emptyMap(), // TODO: consider changing key type to Enum or Class
+    val annotations: List<AnnotationInfo> = emptyList(), // TODO: consider replacing with properties
+
+    /**
+     * List of devices in a pool that can run this test case. Null means all devices.
+     */
+    val includedDevices: Set<Device>?,
+    val extra: Any = Any()
 ) {
     init {
-        if (testMethod.isEmpty() || testClass.isEmpty()) {
-            throw IllegalArgumentException("Test identifiers must be specified")
+        require (!(testMethod.isEmpty() || testClass.isEmpty())) {
+            "Test identifiers must be specified"
+        }
+        require(includedDevices == null || includedDevices.isNotEmpty()) {
+            "includedDevice should be either null or non-empty"
         }
     }
 

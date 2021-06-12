@@ -229,6 +229,7 @@ class SummarizerIntegrationTest {
                     context.deserialize(jsonObject.get("readablePath"), List::class.java),
                     context.deserialize(jsonObject.get("properties"), Map::class.java),
                     context.deserialize(jsonObject.get("annotations"), List::class.java),
+                    null,
                     Any()
             )
         }

@@ -20,12 +20,10 @@ import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.run.TestCaseRunnerContext
 import com.github.tarcv.tongs.api.testcases.NoTestCasesFoundException
 import com.github.tarcv.tongs.api.testcases.TestCaseRuleContext
-import com.github.tarcv.tongs.api.testcases.TestSuiteLoaderContext
 import com.github.tarcv.tongs.injector.RuleManagerFactory
 import com.github.tarcv.tongs.injector.TestCaseRuleManager
 import com.github.tarcv.tongs.injector.TestCaseRunnerManager
-import com.github.tarcv.tongs.injector.runner.RemoteAndroidTestRunnerFactoryInjector
-import com.github.tarcv.tongs.injector.runner.TestRunFactoryInjector
+import com.github.tarcv.tongs.injector.TestSuiteLoaderSupplier
 import com.github.tarcv.tongs.pooling.NoDevicesForPoolException
 import com.github.tarcv.tongs.pooling.NoPoolLoaderConfiguredException
 import com.github.tarcv.tongs.pooling.PoolLoader
@@ -33,11 +31,9 @@ import com.github.tarcv.tongs.runner.DeviceTestRunner
 import com.github.tarcv.tongs.runner.DeviceTestRunnerFactory
 import com.github.tarcv.tongs.runner.PoolTestRunnerFactory
 import com.github.tarcv.tongs.runner.ProgressReporter
-import com.github.tarcv.tongs.suite.ApkTestInfoReader
-import com.github.tarcv.tongs.suite.JUnitTestSuiteLoader
 import com.github.tarcv.tongs.summary.SummaryGeneratorHook
+import com.github.tarcv.tongs.tests.JoiningTestProvider
 import org.koin.core.context.KoinContextHandler
-import org.koin.java.KoinJavaComponent.get
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CountDownLatch
 
@@ -179,15 +175,21 @@ class TongsRunner(private val poolLoader: PoolLoader,
 
         // TODO: move to a separate file
         @Throws(NoTestCasesFoundException::class)
-        private fun createTestSuiteLoaderForPool(pool: Pool): Collection<TestCaseEvent> {
-            val configuration = get(Configuration::class.java)
-            val testSuiteLoaderContext = TestSuiteLoaderContext(configuration, pool)
-            return JUnitTestSuiteLoader(
-                    testSuiteLoaderContext,
-                    TestRunFactoryInjector.testRunFactory(configuration),
-                    RemoteAndroidTestRunnerFactoryInjector.remoteAndroidTestRunnerFactory(configuration),
-                    ApkTestInfoReader()
-            ).loadTestSuite()
+        fun createTestSuiteLoaderForPool(pool: Pool): Collection<TestCaseEvent> {
+            val loaderSupplier = KoinContextHandler.get().get<TestSuiteLoaderSupplier>()
+            return loaderSupplier
+                .supply(pool)
+                .let {
+                    JoiningTestProvider(it, pool)
+                }
+                .loadTestSuite()
+                .map {
+                    TestCaseEvent(
+                        it,
+                        emptyList(),
+                        0
+                    )
+                }
         }
     }
 

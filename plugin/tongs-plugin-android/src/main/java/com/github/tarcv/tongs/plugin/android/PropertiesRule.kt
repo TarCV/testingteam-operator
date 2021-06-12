@@ -46,18 +46,18 @@ class PropertiesTestCaseRule(packagePrefix: String?) : TestCaseRule {
         }
 
         return TestCaseEvent(
-                TestCase(
-                        testCaseEvent.testCase.typeTag,
-                        testCaseEvent.testCase.testPackage,
-                        testCaseEvent.testCase.testClass,
-                        testCaseEvent.testCase.testMethod,
-                        testCaseEvent.testCase.readablePath,
-                        properties,
-                        testCaseEvent.testCase.annotations,
-                        testCaseEvent.testCase.extra
-                ),
-                testCaseEvent.includedDevices,
-                testCaseEvent.excludedDevices
+            TestCase(
+                    testCaseEvent.testCase.typeTag,
+                    testCaseEvent.testCase.testPackage,
+                    testCaseEvent.testCase.testClass,
+                    testCaseEvent.testCase.testMethod,
+                    testCaseEvent.testCase.readablePath,
+                    properties,
+                    testCaseEvent.testCase.annotations,
+                    testCaseEvent.testCase.includedDevices,
+                    testCaseEvent.testCase.extra
+            ),
+            testCaseEvent.excludedDevices
         )
     }
 }

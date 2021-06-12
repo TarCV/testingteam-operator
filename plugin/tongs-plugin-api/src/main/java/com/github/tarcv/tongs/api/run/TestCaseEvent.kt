@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -12,27 +12,22 @@
 package com.github.tarcv.tongs.api.run
 
 import com.github.tarcv.tongs.api.devices.Device
-import com.github.tarcv.tongs.api.testcases.AnnotationInfo
 import com.github.tarcv.tongs.api.testcases.TestCase
 import com.google.common.base.Objects
-import java.util.*
+import java.util.Collections
 import java.util.Collections.emptyList
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 class TestCaseEvent private constructor( // TODO: avoid creating objects of this class in plugins
         val testCase: TestCase,
-        val includedDevices: Collection<Device>,
         excludedDevices: Collection<Device>,
         val totalFailureCount: Int = 0,
         private val deviceRunners: MutableMap<Device, MutableList<TestCaseRunner>> = HashMap()
 ) {
     constructor(
-            testCase: TestCase,
-            includedDevices: Collection<Device>,
-            excludedDevices: Collection<Device>,
-            totalFailureCount: Int = 0
-    ) : this(testCase, includedDevices, excludedDevices, totalFailureCount, HashMap())
+        testCase: TestCase,
+        excludedDevices: Collection<Device>,
+        totalFailureCount: Int = 0
+    ) : this(testCase, excludedDevices, totalFailureCount, HashMap())
 
     val testMethod: String
         get() = testCase.testMethod
@@ -42,14 +37,10 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
     val excludedDevices: Set<Device>
         get() = Collections.unmodifiableSet(_excludedDevices)
 
-    private val _excludedDevices: HashSet<Device>
-
-    init {
-        this._excludedDevices = HashSet(excludedDevices)
-    }
+    private val _excludedDevices = HashSet(excludedDevices)
 
     fun isEnabledOn(device: Device): Boolean {
-        val included = includedDevices.isEmpty() || includedDevices.contains(device)
+        val included = testCase.includedDevices?.contains(device) ?: true
         val excluded = _excludedDevices.contains(device)
         return included && !excluded
     }
@@ -74,7 +65,7 @@ class TestCaseEvent private constructor( // TODO: avoid creating objects of this
     }
 
     fun withFailureCount(totalFailureCount: Int): TestCaseEvent {
-        return TestCaseEvent(testCase, includedDevices, excludedDevices, totalFailureCount, deviceRunners)
+        return TestCaseEvent(testCase, excludedDevices, totalFailureCount, deviceRunners)
     }
 
     fun addDeviceRunner(device: Device, runner: TestCaseRunner) {
