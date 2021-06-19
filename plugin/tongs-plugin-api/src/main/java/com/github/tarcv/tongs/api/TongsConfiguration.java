@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,13 +11,12 @@
 
 package com.github.tarcv.tongs.api;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public interface TongsConfiguration {
     @Nonnull
@@ -75,6 +74,8 @@ public interface TongsConfiguration {
     boolean shouldTerminateDdm();
 
     List<Object> getPluginsInstances();
+
+    List<String> getExcludedPlugins();
 
     Map<String, Object> getPluginConfiguration();
 

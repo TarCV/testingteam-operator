@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -15,8 +15,7 @@ import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.api.run.RunConfiguration
 import org.slf4j.Logger
 import java.lang.reflect.InvocationTargetException
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.IdentityHashMap
 
 class RuleManagerFactory(
         private val configuration: Configuration,
@@ -25,13 +24,17 @@ class RuleManagerFactory(
     private val configurationSectionsMap: IdentityHashMap<HasConfiguration, Map<String, String>> = buildConfigurationSectionsMap(allUserFactories)
 
     @JvmOverloads
-    fun <C, R, F> create(
+    fun <C, R, F : Any> create(
             factoryClass: Class<F>,
             predefinedFactories: List<F> = emptyList(),
             factoryInvoker: (F, C) -> Array<out R>
     ): RuleManager<C, R, F> {
+        val filteredPredefinedFactories = predefinedFactories
+            .filter {
+                it.javaClass.name !in configuration.excludedPlugins
+            }
         val userFactories = allUserFactories.filterIsInstance(factoryClass)
-        return RuleManager(factoryClass, predefinedFactories, userFactories, factoryInvoker)
+        return RuleManager(factoryClass, filteredPredefinedFactories, userFactories, factoryInvoker)
     }
 
     internal fun <F> configurationForFactory(factory: F): Configuration {
@@ -113,6 +116,7 @@ class RuleManagerFactory(
             return ruleClassNames
                     .asSequence()
                     .map { className ->
+                        @Suppress("UNCHECKED_CAST")
                         Class.forName(className) as Class<Any>
                     }
                     .map { clazz ->
@@ -124,11 +128,6 @@ class RuleManagerFactory(
                         }
                     }
                     .toList()
-        }
-
-        @JvmStatic
-        fun <T> fixGenericClass(clazz: Class<in T>): Class<T> {
-            return clazz as Class<T>
         }
     }
 
