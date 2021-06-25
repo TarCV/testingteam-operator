@@ -48,19 +48,21 @@ data class TestCaseRunResult(
         val endTimestampUtc: Instant = Instant.EPOCH,
         val netStartTimestampUtc: Instant?,
         val netEndTimestampUtc: Instant?,
-        private val baseTotalFailureCount: Int,
+        val baseTotalFailureCount: Int,
         val additionalProperties: Map<String, String>,
         val coverageReport: TestCaseFile? = null,
         val data: List<TestReportData>
 ): RunTesult() {
+    val failureCount = when(status) {
+        ResultStatus.PASS, ResultStatus.IGNORED, ResultStatus.ASSUMPTION_FAILED -> 0
+        ResultStatus.FAIL, ResultStatus.ERROR -> 1
+    }
+
     val totalFailureCount: Int
         get() {
-            val increment = when(status) {
-                ResultStatus.PASS, ResultStatus.IGNORED, ResultStatus.ASSUMPTION_FAILED -> 0
-                ResultStatus.FAIL, ResultStatus.ERROR -> 1
-            }
-            return baseTotalFailureCount + increment
+            return baseTotalFailureCount + failureCount
         }
+
     val timeTaken: Duration
         get() {
             val endInstant = endTimestampUtc
