@@ -36,13 +36,12 @@ private fun errorMessage(path: TestCaseFile): String {
     return "Failed to read report data from file '$path'"
 }
 
-// TODO: merge with com.github.tarcv.tongs.summary.TestResult
+@Suppress("MemberVisibilityCanBePrivate")
 data class TestCaseRunResult(
         val pool: Pool,
         val device: Device,
         val testCase: TestCase,
 
-        // TODO: Split result to a different class (sealed class hierarchy)
         val status: ResultStatus,
         val stackTraces: List<StackTrace>,
         val startTimestampUtc: Instant,
@@ -66,7 +65,7 @@ data class TestCaseRunResult(
         get() {
             val endInstant = endTimestampUtc
             return if (endInstant == Instant.EPOCH) {
-                throw IllegalStateException("Can't check timeTaken before the test case finishes execution")
+                Duration.ZERO
             } else {
                 Duration.between(startTimestampUtc, endInstant)
             }
