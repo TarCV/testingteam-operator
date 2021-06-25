@@ -67,7 +67,7 @@ class DeviceTestRunner(private val pool: Pool,
                             val startTimestampUtc = Instant.now()
                             try {
                                 runEvent(testCaseEvent, startTimestampUtc, progressReporter, queueOfTestsInPool)
-                                        .validateRunResult(testCaseEvent, startTimestampUtc, "Something")
+                                        .fixRunResult(testCaseEvent, startTimestampUtc)
                                         .copy(endTimestampUtc = Instant.now())
                             } catch (e: Exception) {
                                 fatalErrorResult(testCaseEvent, e, startTimestampUtc)
@@ -144,7 +144,7 @@ class DeviceTestRunner(private val pool: Pool,
                                         additionalProperties = combineProperties(executeContext.testCaseEvent, it.additionalProperties)
                                 )
                             }
-                            .validateRunResult(testCaseEvent, startTimestampUtc, "Test case runner")
+                            .fixRunResult(testCaseEvent, startTimestampUtc)
                 }
         )
 
@@ -162,10 +162,9 @@ class DeviceTestRunner(private val pool: Pool,
 
                         rule.after(args)
                         args.result
-                                .validateRunResult(
-                                        testCaseEvent,
-                                        startTimestampUtc,
-                                        "Rule ${rule.javaClass.name}"
+                                .fixRunResult(
+                                    testCaseEvent,
+                                    startTimestampUtc
                                 )
                     } catch (e: Exception) {
                         val header = "Exception ${inRuleText} (after)"
@@ -194,29 +193,16 @@ class DeviceTestRunner(private val pool: Pool,
                 emptyList())
     }
 
-    private fun TestCaseRunResult.validateRunResult(
-            testCaseEvent: TestCaseEvent,
-            startTimestampUtc: Instant,
-            changer: String
-    ): TestCaseRunResult {
-        val testCase = testCaseEvent.testCase
-        if (pool != this@DeviceTestRunner.pool
-                || device != this@DeviceTestRunner.device
-                || this.testCase != testCase
-                || this.startTimestampUtc != startTimestampUtc) {
-            throw RuntimeException(
-                    "$changer attempted to change pool, device, testCase or startTimestampUtc field of a run result")
-        }
-        if (this.totalFailureCount < testCaseEvent.totalFailureCount) {
-            throw RuntimeException("$changer attempted to decrease totalFailureCount")
-        }
-        val isFailed = this.status == ResultStatus.ERROR || this.status == ResultStatus.FAIL
-        if (isFailed && this.totalFailureCount < testCaseEvent.totalFailureCount + 1) {
-            throw RuntimeException("$changer attempted to set wrong totalFailureCount for a failure or error result")
-        }
-
-        return this
-    }
+    private fun TestCaseRunResult.fixRunResult(
+        testCaseEvent: TestCaseEvent,
+        startTimestampUtc: Instant
+    ): TestCaseRunResult = copy(
+        pool = this@DeviceTestRunner.pool,
+        device = this@DeviceTestRunner.device,
+        testCase = testCaseEvent.testCase,
+        startTimestampUtc = startTimestampUtc,
+        baseTotalFailureCount = baseTotalFailureCount.coerceAtLeast(testCaseEvent.totalFailureCount)
+    )
 
     private fun runUntilResult(context: TestCaseRunRuleContext): TestCaseRunResult {
         return try {
