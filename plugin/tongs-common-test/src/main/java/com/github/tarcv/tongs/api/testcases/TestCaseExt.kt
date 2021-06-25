@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -9,9 +9,11 @@
  */
 package com.github.tarcv.tongs.api.testcases
 
+import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.run.TestTypeTag
 
-fun aTestCase(clazz: String, method: String): TestCase {
+@JvmOverloads
+fun aTestCase(clazz: String, method: String, includes: List<Device>? = null): TestCase {
     assert(clazz.contains('.').not())
     val pkg = "com.example"
     return TestCase(
@@ -19,6 +21,7 @@ fun aTestCase(clazz: String, method: String): TestCase {
             pkg,
             "$pkg.$clazz",
             method,
-            listOf("$method ($pkg.$clazz)")
+            listOf("$method ($pkg.$clazz)"),
+            includedDevices = includes?.toSet()
     )
 }

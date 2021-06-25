@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2018 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -20,15 +20,12 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.tarcv.tongs.api.run.TestCaseEvent.TEST_TYPE_TAG;
+import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.api.run.TestCaseEventExtKt.aTestCaseEvent;
 import static com.github.tarcv.tongs.api.testcases.TestCaseExtKt.aTestCase;
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
-import static com.github.tarcv.tongs.api.devices.Pool.Builder.aDevicePool;
 import static com.github.tarcv.tongs.runner.FakePoolTestCaseAccumulator.aFakePoolTestCaseAccumulator;
 import static com.github.tarcv.tongs.runner.FakeProgressReporterTrackers.aFakeProgressReporterTrackers;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 
 public class OverallProgressReporterTest {
 
@@ -48,7 +45,7 @@ public class OverallProgressReporterTest {
     public void requestRetryIsAllowedIfFailedLessThanPermitted() throws Exception {
         fakeTestCasesAccumulator.thatAlwaysReturns(0);
         overallProgressReporter = new OverallProgressReporter(1, 1,
-                aFakeProgressReporterTrackers().thatAlwaysReturns(mockPoolProgressTracker),
+                new PoolProgressTrackers(aFakeProgressReporterTrackers().thatAlwaysReturns(mockPoolProgressTracker)),
                 fakeTestCasesAccumulator);
 
         mockery.checking(new Expectations() {{
@@ -62,7 +59,7 @@ public class OverallProgressReporterTest {
     public void requestRetryIsNotAllowedIfFailedMoreThanPermitted() throws Exception {
         fakeTestCasesAccumulator.thatAlwaysReturns(2);
         overallProgressReporter = new OverallProgressReporter(1, 1,
-                aFakeProgressReporterTrackers().thatAlwaysReturns(mockPoolProgressTracker),
+                new PoolProgressTrackers(aFakeProgressReporterTrackers().thatAlwaysReturns(mockPoolProgressTracker)),
                 fakeTestCasesAccumulator);
 
         mockery.checking(new Expectations() {{

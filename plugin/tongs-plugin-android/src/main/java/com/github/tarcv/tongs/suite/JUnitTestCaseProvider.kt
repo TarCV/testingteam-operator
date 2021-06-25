@@ -13,15 +13,13 @@ package com.github.tarcv.tongs.suite
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.testcases.NoTestCasesFoundException
 import com.github.tarcv.tongs.api.testcases.TestCase
-import com.github.tarcv.tongs.api.testcases.TestSuiteLoader
-import com.github.tarcv.tongs.api.testcases.TestSuiteLoaderContext
+import com.github.tarcv.tongs.api.testcases.TestCaseProvider
+import com.github.tarcv.tongs.api.testcases.TestCaseProviderContext
 import com.github.tarcv.tongs.device.clearLogcat
 import com.github.tarcv.tongs.model.AndroidDevice
 import com.github.tarcv.tongs.runner.AndroidTestRunFactory
-import com.github.tarcv.tongs.runner.IRemoteAndroidTestRunnerFactory
 import com.github.tarcv.tongs.runner.JsonInfoDecorder
 import com.github.tarcv.tongs.runner.TestInfo
 import com.github.tarcv.tongs.runner.listeners.LogcatReceiver
@@ -37,13 +35,12 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
 
-class JUnitTestSuiteLoader(
-        private val context: TestSuiteLoaderContext,
-        private val testRunFactory: AndroidTestRunFactory,
-        private val remoteAndroidTestRunnerFactory: IRemoteAndroidTestRunnerFactory,
-        private val apkTestInfoReader: ApkTestInfoReader
-) : TestSuiteLoader {
-    private val logger = LoggerFactory.getLogger(JUnitTestSuiteLoader::class.java)
+class JUnitTestCaseProvider(
+    private val context: TestCaseProviderContext,
+    private val testRunFactory: AndroidTestRunFactory,
+    private val apkTestInfoReader: ApkTestInfoReader
+) : TestCaseProvider {
+    private val logger = LoggerFactory.getLogger(JUnitTestCaseProvider::class.java)
 
     companion object {
         const val logcatWaiterSleep: Long = 2500
@@ -128,7 +125,7 @@ class JUnitTestSuiteLoader(
     }
 
     @Throws(NoTestCasesFoundException::class)
-    override fun loadTestSuite(): Collection<TestCaseEvent> = runBlocking {
+    override fun loadTestSuite(): Collection<TestCase> = runBlocking {
         context.pool.devices
                 .filterIsInstance(AndroidDevice::class.java) // TODO: handle other types of devices
                 .map { device ->
@@ -139,7 +136,7 @@ class JUnitTestSuiteLoader(
                             } catch (e: InterruptedException) {
                                 throw e
                             } catch (e: Exception) {
-                                logger.warn("Failed to collect test cases from ${device.name}", e)
+                                logger.warn("Didn't collect test cases from ${device.name}", e)
                                 throw e
                             }
                         }
@@ -154,7 +151,8 @@ class JUnitTestSuiteLoader(
                         } else {
                             collectedInfoResults.last().exceptionOrNull()
                         }
-                        throw RuntimeException("Failed to collect any test cases from the devices", lastCause)
+                        logger.warn("Didn't collect any test cases using Android Debug Bridge", lastCause)
+                        return@let emptyList<TestCase>()
                     }
 
                     collectedInfos.forEach {
@@ -223,7 +221,7 @@ class JUnitTestSuiteLoader(
         return localPath.toFile()
     }
 
-    private fun finalizeTestInformation(collectedInfos: List<CollectedInfo>, annotationInfos: Map<TestIdentifier, TestInfo>): Collection<TestCaseEvent> {
+    private fun finalizeTestInformation(collectedInfos: List<CollectedInfo>, annotationInfos: Map<TestIdentifier, TestInfo>): Collection<TestCase> {
         val devicesInfo = collectedInfos
                 .asSequence()
                 .map { it.device to it.tests }
@@ -240,20 +238,15 @@ class JUnitTestSuiteLoader(
 
         return annotationInfos
                 .map { (identifier, info) ->
-                    val testCase = TestCase(
+                    TestCase(
                             ApkTestCase::class.java,
                             info.`package`,
                             identifier.className,
                             identifier.testName,
                             info.readablePath,
                             emptyMap(),
-                            info.annotations
-                    )
-                    TestCaseEvent(
-                            testCase,
-                            devicesInfo[identifier] ?: emptyList(),
-                            emptyList(),
-                            0
+                            info.annotations,
+                            devicesInfo[identifier]?.toSet()
                     )
                 }
     }
@@ -302,7 +295,7 @@ class JUnitTestSuiteLoader(
                 device, context.pool, testCollectingListener, withOnDeviceLib)
         try {
             clearLogcat(device.deviceInterface)
-            logCatCollector.start(this@JUnitTestSuiteLoader.javaClass.simpleName)
+            logCatCollector.start(this@JUnitTestCaseProvider.javaClass.simpleName)
 
             testRun.execute()
 

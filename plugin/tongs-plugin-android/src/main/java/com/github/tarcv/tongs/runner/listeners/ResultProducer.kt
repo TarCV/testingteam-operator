@@ -15,8 +15,17 @@ package com.github.tarcv.tongs.runner.listeners
 import com.github.tarcv.tongs.api.TongsConfiguration
 import com.github.tarcv.tongs.api.devices.Diagnostics
 import com.github.tarcv.tongs.api.devices.Pool
-import com.github.tarcv.tongs.api.result.*
+import com.github.tarcv.tongs.api.result.FileTableReportData
+import com.github.tarcv.tongs.api.result.ImageReportData
+import com.github.tarcv.tongs.api.result.LinkedFileReportData
+import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData
 import com.github.tarcv.tongs.api.result.SimpleMonoTextReportData.Type
+import com.github.tarcv.tongs.api.result.StackTrace
+import com.github.tarcv.tongs.api.result.Table
+import com.github.tarcv.tongs.api.result.TestCaseFileManager
+import com.github.tarcv.tongs.api.result.TestCaseRunResult
+import com.github.tarcv.tongs.api.result.TestReportData
+import com.github.tarcv.tongs.api.result.VideoReportData
 import com.github.tarcv.tongs.api.run.ResultStatus
 import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.run.TestCaseEvent.Companion.TEST_TYPE_TAG
@@ -37,7 +46,7 @@ class TestCollectorResultProducer(private val pool: Pool, private val device: An
 
     override fun getResult(): TestCaseRunResult {
         return TestCaseRunResult(
-                pool, device, TestCase(TEST_TYPE_TAG, "dummy", "dummy.Dummy", "dummy", listOf("dummy")),
+                pool, device, TestCase(TEST_TYPE_TAG, "dummy", "dummy.Dummy", "dummy", listOf("dummy"), includedDevices = null),
                 ResultStatus.PASS, emptyList(),
                 Instant.now(), Instant.now(), Instant.now(), Instant.now(),
                 0,

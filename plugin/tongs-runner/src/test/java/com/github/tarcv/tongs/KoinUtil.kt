@@ -12,11 +12,37 @@
  */
 package com.github.tarcv.tongs
 
+import org.junit.rules.ExternalResource
+import org.koin.core.Koin
 import org.koin.core.context.KoinContextHandler
 import org.koin.core.context.stopKoin
 
-fun stopKoinIfNeeded() {
-    if (KoinContextHandler.getOrNull() != null) {
-        stopKoin()
+fun koinRule(configurationProvider: () -> Configuration = { aConfigurationBuilder().build(true) })
+: KoinRule = KoinRule(configurationProvider)
+
+class KoinRule(private val configurationProvider: () -> Configuration) : ExternalResource() {
+    private var _koin: Koin? = null
+    val koin: Koin
+        get() = _koin ?: throw IllegalStateException("Accessing Koin after it was stopped")
+
+    override fun before() {
+        super.before()
+        stopKoinIfNeeded()
+        _koin = Tongs.injectAll(configurationProvider())
+    }
+
+    override fun after() {
+        try {
+            stopKoinIfNeeded()
+        } finally {
+            _koin = null
+            super.after()
+        }
+    }
+
+    private fun stopKoinIfNeeded() {
+        if (KoinContextHandler.getOrNull() != null) {
+            stopKoin()
+        }
     }
 }

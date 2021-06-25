@@ -18,21 +18,21 @@ import com.github.tarcv.tongs.api.devices.Pool
 import com.github.tarcv.tongs.api.result.FileType
 import com.github.tarcv.tongs.api.result.TestCaseFileManager
 import com.github.tarcv.tongs.api.testcases.aTestCase
-import com.github.tarcv.tongs.injector.system.FileManagerInjector
-import com.github.tarcv.tongs.stopKoinIfNeeded
+import com.github.tarcv.tongs.koinRule
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.Assert
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
+import org.koin.core.context.KoinContextHandler
 import java.io.File
 import kotlin.random.Random
 
 class TestCaseFileManagerImplTest(
 ) {
     private val poolName = RandomStringUtils.randomAlphanumeric(10)
-    private val deviceName: String
+    private val testDevice = Device.TEST_DEVICE
     private val testCase = aTestCase(
         RandomStringUtils.randomAlphanumeric(10),
         RandomStringUtils.randomAlphanumeric(10)
@@ -41,35 +41,24 @@ class TestCaseFileManagerImplTest(
 
     private val tempFileRule = TemporaryFolder()
 
-    private val fileManager: TestCaseFileManager
+    @get:Rule
+    val rules: RuleChain = RuleChain.emptyRuleChain()
+        .around(tempFileRule)
+        .around(run {
+            koinRule {
+                aConfigurationBuilder()
+                    .withOutput(tempFileRule.newFolder("output"))
+                    .build(true)
+            }
+        })
 
-    init {
-        tempFileRule.create()
-
-        val configuration = aConfigurationBuilder()
-            .withOutput(tempFileRule.newFolder("output"))
-            .build(true)
-
-        val runnerModule = module {
-            single { configuration }
-        }
-
-        stopKoinIfNeeded()
-        startKoin {
-            modules(runnerModule)
-        }
-
-        val testDevice = Device.TEST_DEVICE
-        deviceName = testDevice.safeSerial
-
-        fileManager = run {
-            val device = testDevice
-            val pool = Pool.Builder()
-                .withName(poolName)
-                .addDevice(device)
-                .build()
-            TestCaseFileManagerImpl(FileManagerInjector.fileManager(), pool, device, testCase)
-        }
+    private val fileManager: TestCaseFileManager by lazy {
+        val pool = Pool.Builder()
+            .withName(poolName)
+            .addDevice(testDevice)
+            .build()
+        val fileManager1 by KoinContextHandler.get().inject<FileManager>()
+        TestCaseFileManagerImpl(fileManager1, pool, testDevice, testCase)
     }
 
     private val typeDirectory = "dirIHJ"
@@ -176,10 +165,13 @@ class TestCaseFileManagerImplTest(
             "'${file.path}' should contain the current pool name '$poolName'",
             file.path.contains(poolName)
         )
+
+        val deviceName = testDevice.safeSerial
         Assert.assertTrue(
             "'${file.path}' should contain the current device name '$deviceName'",
             file.path.contains(deviceName)
         )
+
         Assert.assertTrue(
             "'${file.path}' should contain the current test class name '$testCaseFixedClass'",
             file.path.contains(testCaseFixedClass)

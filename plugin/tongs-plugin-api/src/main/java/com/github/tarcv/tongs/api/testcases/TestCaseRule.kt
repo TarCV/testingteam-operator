@@ -13,8 +13,8 @@
 package com.github.tarcv.tongs.api.testcases
 
 import com.github.tarcv.tongs.api.devices.Pool
-import com.github.tarcv.tongs.api.run.TestCaseEvent
 import com.github.tarcv.tongs.api.run.RunConfiguration
+import com.github.tarcv.tongs.api.run.TestCaseEvent
 
 class TestCaseRuleContext(
         val configuration: RunConfiguration,
@@ -26,6 +26,6 @@ interface TestCaseRuleFactory<out T: TestCaseRule> {
 }
 
 interface TestCaseRule {
-    fun transform(testCaseEvent: TestCaseEvent): TestCaseEvent = testCaseEvent
+    fun transform(testCaseEvent: TestCaseEvent): TestCaseEvent = testCaseEvent // TODO: replace with TestCase
     fun filter(testCaseEvent: TestCaseEvent): Boolean = true
 }

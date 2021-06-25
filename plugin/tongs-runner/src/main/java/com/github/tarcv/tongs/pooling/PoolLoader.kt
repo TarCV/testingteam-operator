@@ -12,13 +12,10 @@
 package com.github.tarcv.tongs.pooling
 
 import com.github.tarcv.tongs.Configuration
-import com.github.tarcv.tongs.injector.pooling.DeviceProviderManager
 import com.github.tarcv.tongs.api.devices.Pool
+import com.github.tarcv.tongs.injector.DeviceProviderManager
 import com.github.tarcv.tongs.plugin.DeviceProviderContextImpl
 import org.slf4j.LoggerFactory
-
-import java.util.*
-
 import java.lang.String.format
 
 class PoolLoader(private val configuration: Configuration, private val deviceProviderManager: DeviceProviderManager) {

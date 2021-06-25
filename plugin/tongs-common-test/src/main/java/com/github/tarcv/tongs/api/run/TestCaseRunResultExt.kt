@@ -36,7 +36,7 @@ fun aTestResult(testClass: String, testMethod: String, status: ResultStatus, tra
     return TestCaseRunResult.Companion.aTestResult(testClass, testMethod, status, traces)
 }
 fun TestCaseRunResult.Companion.aTestResult(testClass: String, testMethod: String, status: ResultStatus, traces: List<StackTrace>): TestCaseRunResult {
-    val testCase = aTestCase(testClass, testMethod)
+    val testCase = aTestCase(testClass, testMethod, null)
     return TestCaseRunResult.Companion.aTestResult(testCase, status, traces, pool)
 }
 

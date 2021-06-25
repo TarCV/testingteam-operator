@@ -20,19 +20,19 @@ import kotlin.test.asserter
 
 class ResultListenerTest {
     private val event = TestCaseEvent(
-            TestCase(
-                    ApkTestCase::class.java,
-                    "com.test",
-                    "com.test.Test",
-                    "test",
-                    emptyList(),
-                    emptyMap(),
-                    emptyList(),
-                    Any()
-            ),
-            emptyList(),
-            emptyList(),
-            0
+        TestCase(
+                ApkTestCase::class.java,
+                "com.test",
+                "com.test.Test",
+                "test",
+                emptyList(),
+                emptyMap(),
+                emptyList(),
+                null,
+                Any()
+        ),
+        emptyList(),
+        0
     )
     private val test = TestIdentifier(event.testClass, event.testMethod)
     private val resultListener = ResultListener("runName")

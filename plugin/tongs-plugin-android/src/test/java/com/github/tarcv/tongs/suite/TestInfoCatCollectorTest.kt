@@ -18,7 +18,7 @@ import org.junit.Test
 class TestInfoCatCollectorTest {
     @Test
     fun testSingleThread() {
-        val finalResult = JUnitTestSuiteLoader.decodeMessages(
+        val finalResult = JUnitTestCaseProvider.decodeMessages(
             listOf(
                     LogCatMessage(Log.LogLevel.INFO, "0000-1001:{"),
                     LogCatMessage(Log.LogLevel.INFO, "0000-1002:\"a"),
@@ -35,7 +35,7 @@ class TestInfoCatCollectorTest {
 
     @Test
     fun testTwoThreadsAndOutOfOrder() {
-        val finalResult = JUnitTestSuiteLoader.decodeMessages(
+        val finalResult = JUnitTestCaseProvider.decodeMessages(
                 listOf(LogCatMessage(Log.LogLevel.INFO, "2000-3001:{"),
                     LogCatMessage(Log.LogLevel.INFO, "2000-3005:\": 1"),
                     LogCatMessage(Log.LogLevel.INFO, "2000-3003:\": 0,"),

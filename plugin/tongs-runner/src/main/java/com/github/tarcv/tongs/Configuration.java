@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2021 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -21,8 +21,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.github.tarcv.tongs.api.TongsConfiguration.TongsIntegrationTestRunType.NONE;
@@ -39,8 +46,12 @@ public class Configuration implements TongsConfiguration {
     private final String applicationPackage;
     private final String instrumentationPackage;
     private final String testRunnerClass;
+
     private final List<String> pluginsClasses;
     private final List<Object> pluginsInstances = Collections.synchronizedList(new ArrayList<>());
+    private final Object pluginsLock = new Object();
+    @GuardedBy("pluginsLock") private List<String> pluginsExcludedClasses = null;
+
     private final Map<String, String> testRunnerArguments;
     private final File output;
     private final String title;
@@ -57,6 +68,8 @@ public class Configuration implements TongsConfiguration {
     private final TongsIntegrationTestRunType tongsIntegrationTestRunType;
     private final boolean terminateDdm;
     private final Map<String, Object> pluginConfiguration;
+
+    private final String PLUGIN_EXCLUDE_PREFIX = "-";
 
     private Configuration(Builder builder) {
         androidSdk = builder.androidSdk;
@@ -233,11 +246,28 @@ public class Configuration implements TongsConfiguration {
     public List<Object> getPluginsInstances() {
         synchronized (pluginsInstances) {
             if (pluginsInstances.isEmpty() && !pluginsClasses.isEmpty()) {
-                List<Object> instances = RuleManagerFactory.factoryInstancesForRuleNames(pluginsClasses);
+                List<Object> instances = RuleManagerFactory.factoryInstancesForRuleNames(
+                        pluginsClasses.stream()
+                                .filter(name -> !name.startsWith(PLUGIN_EXCLUDE_PREFIX))
+                                .collect(Collectors.toList())
+                );
                 pluginsInstances.addAll(instances);
             }
 
             return pluginsInstances;
+        }
+    }
+
+    @Override
+    public List<String> getExcludedPlugins() {
+        synchronized (pluginsLock) {
+            if (pluginsExcludedClasses == null) {
+                pluginsExcludedClasses = pluginsClasses.stream()
+                        .filter(name -> name.startsWith(PLUGIN_EXCLUDE_PREFIX))
+                        .map(name -> name.substring(PLUGIN_EXCLUDE_PREFIX.length()))
+                        .collect(Collectors.toList());
+            }
+            return Collections.unmodifiableList(pluginsExcludedClasses);
         }
     }
 
@@ -462,7 +492,7 @@ public class Configuration implements TongsConfiguration {
          * We need to make sure zero or one strategy has been passed. If zero default to pool per device. If more than one
          * we throw an exception.
          */
-        private PoolingStrategy validatePoolingStrategy(PoolingStrategy poolingStrategy, boolean withWarnings) {
+        private static PoolingStrategy validatePoolingStrategy(PoolingStrategy poolingStrategy, boolean withWarnings) {
             PoolingStrategy fixedStategy = poolingStrategy;
             if (fixedStategy == null) {
                 if (withWarnings) {
