@@ -16,6 +16,7 @@ import com.github.tarcv.tongs.api.devices.Device
 import com.github.tarcv.tongs.api.devices.Pool
 import com.github.tarcv.tongs.api.result.Table.Companion.tableFromFile
 import com.github.tarcv.tongs.api.run.ResultStatus
+import com.github.tarcv.tongs.api.run.ResultStatus.Companion.isFailure
 import com.github.tarcv.tongs.api.testcases.TestCase
 import org.apache.commons.lang3.StringEscapeUtils
 import org.slf4j.LoggerFactory
@@ -53,13 +54,12 @@ data class TestCaseRunResult(
         val coverageReport: TestCaseFile? = null,
         val data: List<TestReportData>
 ): RunTesult() {
-    val failureCount = when(status) {
-        ResultStatus.PASS, ResultStatus.IGNORED, ResultStatus.ASSUMPTION_FAILED -> 0
-        ResultStatus.FAIL, ResultStatus.ERROR -> 1
-    }
-
-    val totalFailureCount: Int
+    val totalFailureCount: Int // TODO: remove this calculation from TestCaseEvent and TestCaseRunResult
         get() {
+            val failureCount = when {
+                isFailure(status) -> 1
+                else -> 0
+            }
             return baseTotalFailureCount + failureCount
         }
 

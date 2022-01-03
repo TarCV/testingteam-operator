@@ -93,7 +93,7 @@ class SummarizerIntegrationTest {
 
         val outcomeAggregator by KoinContextHandler.get().inject<OutcomeAggregator>()
         val summaryCompiler by KoinContextHandler.get().inject<SummaryCompiler>()
-        val summaryPrinter  by KoinContextHandler.get().inject<SummaryPrinter>()
+        val summaryPrinter  by KoinContextHandler.get().inject<CompositeSummaryPrinter>()
         val summarizer = Summarizer(
      get(Configuration::class.java), summaryCompiler, summaryPrinter,
      outcomeAggregator
