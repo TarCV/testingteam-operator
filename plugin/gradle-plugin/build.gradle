@@ -29,7 +29,6 @@ jar {
     manifest {
         attributes 'Implementation-Title': POM_NAME,
                 'Implementation-Version': VERSION_NAME,
-                'Built-Date': new Date(),
                 'Built-JDK': System.getProperty('java.version'),
                 'Built-Gradle': gradle.gradleVersion
     }
