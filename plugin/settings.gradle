@@ -12,6 +12,7 @@
 include ':common'
 include ':common-test'
 include ':runner'
+include ':cli'
 include ':gradle-plugin'
 include ':plugin-android-ondevice'
 include ':plugin-api'

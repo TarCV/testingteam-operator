@@ -87,7 +87,7 @@ fi
 
 pushd ../../plugin
     set +e
-    ./gradlew :tongs-runner:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json" && exit 1
+    ./gradlew :cli:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json" && exit 1
     set -e
 popd
 ./gradlew :app:testF2DebugUnitTest
@@ -98,7 +98,7 @@ cleanReportsAndLogs
 
 pushd ../../plugin
     set +e
-    CI_NO_ONDEVICE=true ./gradlew :tongs-runner:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json" && exit 1
+    CI_NO_ONDEVICE=true ./gradlew :cli:run --stacktrace -PworkingDir="$TEST_ROOT" -Pargs="--sdk $SDK_PATH --apk $TEST_ROOT/app/build/outputs/apk/f2/debug/app-f2-universal-debug.apk --test-apk $TEST_ROOT/app/build/outputs/apk/androidTest/f2/debug/app-f2-debug-androidTest.apk --config $TEST_ROOT/app/tongs.json" && exit 1
     set -e
 popd
 ./gradlew :app:testF2DebugUnitTest

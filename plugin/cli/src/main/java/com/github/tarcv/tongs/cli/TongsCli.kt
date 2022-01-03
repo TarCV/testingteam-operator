@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -11,12 +11,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.github.tarcv.tongs
+package com.github.tarcv.tongs.cli
 
 import com.beust.jcommander.IStringConverter
 import com.beust.jcommander.JCommander
 import com.beust.jcommander.Parameter
 import com.beust.jcommander.ParameterException
+import com.github.tarcv.tongs.CommonDefaults
+import com.github.tarcv.tongs.Configuration
+import com.github.tarcv.tongs.Tongs
+import com.github.tarcv.tongs.TongsConfigurationJsonExtension
+import com.github.tarcv.tongs.Utils
 import com.github.tarcv.tongs.injector.GsonInjector
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -25,6 +30,8 @@ import kotlin.system.exitProcess
 
 object TongsCli {
     private val logger = LoggerFactory.getLogger(TongsCli::class.java)
+
+    private const val defaultOutput = "tongs-output"
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -55,7 +62,7 @@ object TongsCli {
                     .withAndroidSdk(parsedArgs.sdk ?: Utils.cleanFileSafe(CommonDefaults.ANDROID_SDK))
                     .withApplicationApk(parsedArgs.apk)
                     .withInstrumentationApk(parsedArgs.testApk)
-                    .withOutput(Utils.cleanFileSafe(tongsConfiguration.baseOutputDir ?: Defaults.TONGS_OUTPUT))
+                    .withOutput(Utils.cleanFileSafe(tongsConfiguration.baseOutputDir ?: defaultOutput))
                     .withTitle(tongsConfiguration.title)
                     .withSubtitle(tongsConfiguration.subtitle)
                     .withTestPackage(tongsConfiguration.testPackage)

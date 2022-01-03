@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,7 +11,9 @@
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
-apply plugin: 'java-library'
+apply plugin: 'application'
+
+mainClassName = 'com.github.tarcv.tongs.TongsCli'
 
 java {
     //noinspection GroovyUnusedAssignment
@@ -21,32 +23,10 @@ java {
 }
 
 dependencies {
-    api project(':common')
-    api project(':plugin-api')
-    implementation project(':plugin-android')
-
-    implementation deps.koin
-    implementation deps.guava
-    implementation deps.commonsIo
-    implementation deps.commonsLang
-    implementation deps.jsr305
-    implementation deps.handleBars
-    implementation deps.handleBarsHuminize
-    implementation deps.slf4j
+    implementation project(':runner')
+    implementation deps.jcommander
     implementation deps.gson
-    implementation 'org.jetbrains.kotlin:kotlin-reflect'
-    implementation("org.lesscss:lesscss:1.7.0.1.1") {
-        exclude(module: "slf4j-simple")
-    }
-
-    testImplementation project(':common-test')
-    testImplementation deps.hamcrest
-    testImplementation(deps.junit) {
-        exclude module:'hamcrest-core'
-    }
-    testImplementation(
-            deps.jmock,
-            deps.jmockJUnit)
+    implementation 'org.slf4j:slf4j-log4j12:1.7.21'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 }
 
@@ -56,9 +36,21 @@ jar {
                 'Implementation-Version': VERSION_NAME,
                 'Built-Date': new Date(),
                 'Built-JDK': System.getProperty('java.version'),
-                'Built-Gradle': gradle.gradleVersion
+                'Built-Gradle': gradle.gradleVersion,
+                'Main-class': mainClassName
     }
 //    archiveBaseName = POM_ARTIFACT_ID
+}
+
+run {
+    systemProperties System.getProperties()
+
+    if(project.hasProperty('args')) {
+        args project.args.split('\\s+')
+    }
+    if (project.hasProperty('workingDir')) {
+        workingDir file(project.workingDir)
+    }
 }
 
 compileKotlin {

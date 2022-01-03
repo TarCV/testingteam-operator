@@ -49,7 +49,7 @@ ext {
             handleBars           : "com.github.jknack:handlebars:${versions.handleBars}",
             handleBarsHuminize   : "com.github.jknack:handlebars-humanize:${versions.handleBars}",
             gson                 : 'com.google.code.gson:gson:2.6.2',
-            slf4j                : 'org.slf4j:slf4j-log4j12:1.7.21',
+            slf4j                : 'org.slf4j:slf4j-api:1.7.21',
             hamcrest             : 'org.hamcrest:hamcrest-all:1.3',
             jmock                : "org.jmock:jmock:${versions.jmock}",
             jcommander           : "com.beust:jcommander:1.48",

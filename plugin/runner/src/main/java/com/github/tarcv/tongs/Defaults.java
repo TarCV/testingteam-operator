@@ -22,7 +22,6 @@ class Defaults {
 
     static final Map<String, String> TEST_RUNNER_ARGUMENTS = Collections.emptyMap();
     static final long TEST_OUTPUT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(1);
-    static final String TONGS_OUTPUT = "tongs-output";
     static final int STRATEGY_LIMIT = 1;
     static final String TITLE = "Tongs Report";
     static final String SUBTITLE = "";
