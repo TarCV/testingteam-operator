@@ -76,12 +76,12 @@ allprojects {
     group = GROUP
 }
 
-project(':tongs-ondevice') {
+project(':plugin-android-ondevice') {
     sonarqube {
         skipProject = true
     }
 }
-project(':tongs-gradle-plugin') {
+project(':gradle-plugin') {
     sonarqube {
         skipProject = true
     }
