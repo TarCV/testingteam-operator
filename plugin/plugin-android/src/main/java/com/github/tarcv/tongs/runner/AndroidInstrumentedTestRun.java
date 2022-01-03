@@ -121,7 +121,7 @@ public class AndroidInstrumentedTestRun {
 				}
 			}
 
-			logger.info("Cmd: " + runner.getAmInstrumentCommand());
+			logger.debug("Cmd: " + runner.getAmInstrumentCommand());
 			runner.run(testRunListeners.toArray(new ITestRunListener[0]));
 		} catch (ShellCommandUnresponsiveException | TimeoutException e) {
 			logger.warn("Test: " + testClassName + " got stuck. You can increase the timeout in settings if it's too strict");

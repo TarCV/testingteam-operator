@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2022 TarCV
  * Copyright (C) 2013 The Android Open Source Project
  *
  * Based on com/android/builder/testing/ConnectedDeviceProvider.java from Android Gradle Plugin 3.3.2 source code
@@ -229,9 +229,9 @@ public class ConnectedDeviceProvider {
 
         static String translateLogLevel(Logger logger) {
             if (logger.isTraceEnabled() || logger.isDebugEnabled()) {
+                // DdmLib Log.i is outputted as slf4j debug level (because DdmLib logs sensitive data with Log.i),
+                // so it is outputted when isDebugEnabled, not when slf4j isInfoEnabled
                 return Log.LogLevel.VERBOSE.getStringValue();
-            } else if (logger.isInfoEnabled()) {
-                return Log.LogLevel.INFO.getStringValue();
             } else if (logger.isWarnEnabled()) {
                 return Log.LogLevel.WARN.getStringValue();
             } else if (logger.isErrorEnabled()) {
@@ -247,10 +247,8 @@ public class ConnectedDeviceProvider {
             switch (logLevel) {
                 case VERBOSE:
                 case DEBUG:
+                case INFO: // DdmLib logs sensitive data with Log.i, so DdmLib 'info' have to be translated to slf4j 'debug'
                     logger.debug(logFormat, tag, message);
-                    break;
-                case INFO:
-                    logger.info(logFormat, tag, message);
                     break;
                 case WARN:
                     logger.warn(logFormat, tag, message);
