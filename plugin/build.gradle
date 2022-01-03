@@ -10,7 +10,7 @@
  */
 
 plugins {
-    id "com.osacky.doctor" version "0.7.0"
+    id "com.osacky.doctor" version "0.7.3"
 
     id "org.jetbrains.kotlin.jvm" version "1.3.50" apply(false) // update 'kotlinxCoroutinesCore' below when updating kotlin version here
     id "org.jetbrains.dokka" version "1.4.30" apply(false)
@@ -128,5 +128,12 @@ sonarqube {
         property "sonar.projectName", "Tongs"
         property "sonar.organization", "tarcv"
         property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
+
+doctor {
+    javaHome {
+        failOnError.set(false)
+        extraMessage.set("Make sure your Terminal JAVA_HOME is set to this project's JDK")
     }
 }
