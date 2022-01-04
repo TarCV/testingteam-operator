@@ -5,8 +5,8 @@ plugins {
 apply(plugin = "kotlin")
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = rootProject.extra["javaSourceCompatibility"] as JavaVersion
+    targetCompatibility = rootProject.extra["javaTargetCompatibility"] as JavaVersion
 }
 
 repositories {
@@ -25,5 +25,5 @@ dependencies {
     api("org.simpleframework:simple-xml:2.7.1")
     api(deps.getValue("slf4j"))
 
-    testCompile(group = "junit", name = "junit", version = "4.12")
+    testImplementation(group = "junit", name = "junit", version = "4.12")
 }

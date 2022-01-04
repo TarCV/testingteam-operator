@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ ext {
     javaTargetCompatibility = JavaVersion.VERSION_1_8
 
     versions = [
-            androidTools : '26.5.3',
-            androidPlugin: '3.6.0',// should be the same as in buildscripts in the ondevice build.gradle file
+            androidTools : '27.1.3',
+            androidPlugin: '4.1.3',
             handleBars   : '4.2.0',
             junit        : '4.12',
             jmock        : '2.8.2',
@@ -88,6 +88,17 @@ project(':gradle-plugin') {
         skipProject = true
     }
 }
+project(':plugin-android-ondevice') {
+    buildscript {
+        repositories {
+            google()
+        }
+        dependencies {
+            classpath "com.android.tools.build:gradle:${versions.androidPlugin}"
+        }
+    }
+}
+
 subprojects { project ->
     project.afterEvaluate {
         if (plugins.hasPlugin('org.gradle.java')) {

@@ -11,18 +11,16 @@
 package com.github.tarcv.tongs.runner
 
 import com.android.ddmlib.Log
+import com.android.ddmlib.testrunner.IInstrumentationResultParser
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.github.tarcv.tongs.runner.listeners.BroadcastingListener
-import java.lang.RuntimeException
 import java.lang.reflect.InvocationTargetException
 
 class TongsInstrumentationResultParser(
         runName: String,
         listeners: Collection<ITestRunListener>
 ) : InstrumentationResultParser(runName, PatchingListener(listeners)) {
-    // TODO: Consider forking DdmLib to patch this class more cleanly
-
     private val streamBuilder = StringBuilder()
     private var insideStream: Boolean = false
 
@@ -112,7 +110,7 @@ class TongsInstrumentationResultParser(
         private val statusPrefix: String = prefixesClass.privateStaticFieldValue("STATUS")
         private val resultPrefix: String = prefixesClass.privateStaticFieldValue("RESULT")
 
-        private val streamKey: String = InstrumentationResultParser::class.java.privateStaticFieldValue("STREAM")
+        private val streamKey: String = IInstrumentationResultParser.StatusKeys::class.java.privateStaticFieldValue("STREAM")
 
         private val parseMethod = InstrumentationResultParser::class.java
                 .declaredMethods

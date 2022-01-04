@@ -17,9 +17,7 @@ apply plugin: "dev.jacomet.logging-capabilities"
 mainClassName = 'com.github.tarcv.tongs.TongsCli'
 
 java {
-    //noinspection GroovyUnusedAssignment
     sourceCompatibility = javaSourceCompatibility
-    //noinspection GroovyUnusedAssignment
     targetCompatibility = javaTargetCompatibility
 }
 
