@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.TarCV.testingteam-operator</groupId>
   <artifactId>cli</artifactId>
-  <version>0.6.5-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
   <name>TestingTeam Operator Utility</name>
   <description>A utility that parallelizes Android Test execution to all connected devices and emulators</description>
   <url>https://github.com/TarCV/testingteam-operator</url>
@@ -34,7 +34,7 @@
     <dependency>
       <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>runner</artifactId>
-      <version>0.6.5-SNAPSHOT</version>
+      <version>0.7.0-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -51,7 +51,7 @@
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-core</artifactId>
+      <artifactId>logback-classic</artifactId>
       <version>1.2.10</version>
       <scope>runtime</scope>
     </dependency>

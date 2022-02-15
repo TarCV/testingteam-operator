@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -13,10 +13,9 @@
  */
 package com.github.tarcv.tongs.pooling;
 
+import com.github.tarcv.tongs.ComputedPooling;
 import com.github.tarcv.tongs.model.AndroidDevice;
 import com.google.common.collect.ImmutableMap;
-import com.github.tarcv.tongs.ComputedPooling;
-
 import org.junit.Test;
 
 import static com.github.tarcv.tongs.model.AndroidDevice.Builder.aDevice;
@@ -25,14 +24,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ComputedPoolsCategorizerTest {
 
-	private final ComputedPooling computedPooling = new ComputedPooling() {{
-		characteristic = Characteristic.api;
-		groups = ImmutableMap.of(
+	private final ComputedPooling computedPooling = new ComputedPooling(
+		ComputedPooling.Characteristic.api,
+		ImmutableMap.of(
 				"OneToTen", 1,
 				"elevenToTwenty", 11,
 				"TwentyOneUp", 21
-		);
-	}};
+		)
+	);
 
 	private final ComputedPoolsCategorizer computedPoolsCategorizer = new ComputedPoolsCategorizer(computedPooling);
 

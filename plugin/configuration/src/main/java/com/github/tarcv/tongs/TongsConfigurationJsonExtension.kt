@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2016 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -11,17 +11,17 @@
 
 package com.github.tarcv.tongs
 
-class GradlePoolingStrategy extends PoolingStrategy {
+class TongsConfigurationJsonExtension: TongsConfigurationExtension() {
+    /**
+     * The strategy that will be used to calculate the grouping of devices to pools.
+     */
+    var poolingStrategy: PoolingStrategy = PoolingStrategy()
 
-    void computed(Closure<?> computedClosure) {
-        computed = new ComputedPooling()
-        computedClosure.setDelegate(computed)
-        computedClosure.call()
-    }
+    /**
+     * Android specific options
+     */
+    var android: AndroidConfiguration = AndroidConfiguration()
 
-    void manual(Closure<?> manualClosure) {
-        manual = new GradleManualPooling()
-        manualClosure.setDelegate(manual)
-        manualClosure.call()
-    }
+    var applicationPackage: String? = null
+    var instrumentationPackage: String? = null
 }

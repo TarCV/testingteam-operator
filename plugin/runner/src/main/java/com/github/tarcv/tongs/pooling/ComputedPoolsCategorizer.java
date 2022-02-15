@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -33,7 +33,7 @@ public class ComputedPoolsCategorizer {
 
 	public ComputedPoolsCategorizer(ComputedPooling computedPooling) {
 		this.bounds = createBounds(computedPooling);
-		this.deviceCharacteristicReader = computedPooling.characteristic;
+		this.deviceCharacteristicReader = computedPooling.getCharacteristic();
 	}
 
 	@Nullable
@@ -55,7 +55,7 @@ public class ComputedPoolsCategorizer {
 	}
 
 	private static List<Bound> createBounds(ComputedPooling computedPooling) {
-		return computedPooling.groups
+		return computedPooling.getGroups()
 				.entrySet()
 				.stream()
 				.map(entry -> new Bound(entry.getKey(), entry.getValue()))

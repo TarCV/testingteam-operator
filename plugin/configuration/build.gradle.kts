@@ -16,14 +16,11 @@ repositories {
 val deps: Map<String, String>
     get() = rootProject.extra["deps"] as Map<String, String>
 dependencies {
-    implementation(kotlin("stdlib"))
+    // This module should have minimal dependencies as it is "imported" by the gradle plugin
 
-    implementation(deps.getValue("commonsLang"))
-    implementation(deps.getValue("gson"))
-    implementation(deps.getValue("guava"))
     implementation(deps.getValue("jsr305"))
-    api(project(":configuration"))
-    api("org.simpleframework:simple-xml:2.7.1")
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib")
+
     api(deps.getValue("slf4j"))
 
     testImplementation(group = "junit", name = "junit", version = "4.12")

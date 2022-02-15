@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.TarCV.testingteam-operator</groupId>
   <artifactId>plugin-android</artifactId>
-  <version>0.6.5-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
   <name>TestingTeam Operator Android plugin</name>
   <description>TestingTeam Operator plugin for running Android instrumented tests</description>
   <url>https://github.com/TarCV/testingteam-operator</url>
@@ -46,7 +46,7 @@
     <dependency>
       <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>common</artifactId>
-      <version>0.6.5-SNAPSHOT</version>
+      <version>0.7.0-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -70,13 +70,13 @@
     <dependency>
       <groupId>com.android.tools.ddms</groupId>
       <artifactId>ddmlib</artifactId>
-      <version>26.5.3</version>
+      <version>27.1.3</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>com.android.tools</groupId>
       <artifactId>common</artifactId>
-      <version>26.5.3</version>
+      <version>27.1.3</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

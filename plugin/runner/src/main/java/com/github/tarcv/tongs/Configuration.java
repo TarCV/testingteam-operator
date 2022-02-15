@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -499,14 +499,15 @@ public class Configuration implements TongsConfiguration {
                     logger.warn("No strategy was chosen in configuration, so defaulting to one pool per device");
                 }
                 fixedStategy = new PoolingStrategy();
-                fixedStategy.eachDevice = true;
+                fixedStategy.setEachDevice(true);
             } else {
                 long selectedStrategies = Stream.of(
-                        fixedStategy.eachDevice,
-                        fixedStategy.splitTablets,
-                        fixedStategy.computed,
-                        fixedStategy.manual)
+                        fixedStategy.getEachDevice(),
+                        fixedStategy.getSplitTablets(),
+                        fixedStategy.getComputed(),
+                        fixedStategy.getManual())
                         .filter(Objects::nonNull)
+                        .filter(o -> !Boolean.FALSE.equals(o))
                         .count();
                 if (selectedStrategies > Defaults.STRATEGY_LIMIT) {
                     throw new IllegalArgumentException("You have selected more than one strategies in configuration. " +

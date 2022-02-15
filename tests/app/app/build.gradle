@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
-apply plugin: 'com.github.tarcv.tongs'
+apply plugin: 'com.github.tarcv.testing-operator'
 
 android {
     compileSdkVersion 28
@@ -64,9 +64,9 @@ dependencies {
     androidTestImplementation "androidx.test:rules:$testVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVersion"
     if (Boolean.valueOf(System.getenv("CI_NO_ONDEVICE"))) {
-        androidTestCompileOnly 'com.github.TarCV.testingteam-operator:tongs-ondevice'
+        androidTestCompileOnly "com.github.TarCV.testingteam-operator:plugin-android-ondevice"
     } else {
-        androidTestImplementation 'com.github.TarCV.testingteam-operator:tongs-ondevice'
+        androidTestImplementation 'com.github.TarCV.testingteam-operator:plugin-android-ondevice'
     }
 }
 

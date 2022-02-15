@@ -13,15 +13,14 @@
  */
 package com.github.tarcv.tongs.api.devices;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
 public abstract class Device {
     private String nameSuffix;
 
-    @NotNull public abstract String getHost();
+    @Nonnull public abstract String getHost();
 
     public abstract String getSerial();
 
@@ -72,7 +71,7 @@ public abstract class Device {
     public static final Device TEST_DEVICE = new Device() {
         private final Object uniqueIdentifier = new Object();
 
-        @NotNull
+        @Nonnull
         @Override
         public String getHost() {
             return "localhost";

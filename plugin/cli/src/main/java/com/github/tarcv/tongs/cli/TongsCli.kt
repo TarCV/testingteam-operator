@@ -31,8 +31,6 @@ import kotlin.system.exitProcess
 object TongsCli {
     private val logger = LoggerFactory.getLogger(TongsCli::class.java)
 
-    private const val defaultOutput = "tongs-output"
-
     @JvmStatic
     fun main(args: Array<String>) {
         val parsedArgs = CommandLineArgs()
@@ -40,20 +38,32 @@ object TongsCli {
             try {
                 jc.parse(*args)
             } catch (e: ParameterException) {
-                val out = StringBuilder(e.localizedMessage).append("\n\n")
-                jc.usage(out)
-                logger.error(out.toString())
+                StringBuilder(e.localizedMessage)
+                    .append("\n\n").let {
+                        jc.usage(it)
+                        logger.error(it.toString())
+                    }
                 exitProcess(1)
             }
             if (parsedArgs.help) {
-                jc.usage()
-                return
+                StringBuilder().let {
+                    jc.usage(it)
+                    logger.error(it.toString())
+                }
+                exitProcess(0)
             }
         }
 
         try {
             val tongsConfiguration = parsedArgs.configurationFile
-                    .bufferedReader(Charsets.UTF_8)
+                    .let { 
+                        if (it == "-") {
+                            System.`in`.bufferedReader(Charsets.UTF_8)
+                        } else {
+                            requireNotNull(FileConverter().convert(it)) {"Configuration should be set" }
+                                .bufferedReader(Charsets.UTF_8)
+                        }
+                    }
                     .use { configFileReader ->
                         GsonInjector.gson().fromJson(configFileReader, TongsConfigurationJsonExtension::class.java)
                     }
@@ -61,13 +71,16 @@ object TongsCli {
             val configuration = Configuration.Builder.configuration()
                     .withAndroidSdk(parsedArgs.sdk ?: Utils.cleanFileSafe(CommonDefaults.ANDROID_SDK))
                     .withApplicationApk(parsedArgs.apk)
+                    .withApplicationPackage(tongsConfiguration.applicationPackage)
                     .withInstrumentationApk(parsedArgs.testApk)
-                    .withOutput(Utils.cleanFileSafe(tongsConfiguration.baseOutputDir ?: defaultOutput))
+                    .withInstrumentationPackage(tongsConfiguration.instrumentationPackage)
+                    .withOutput(Utils.cleanFileSafe(tongsConfiguration.baseOutputDir ?: CommonDefaults.DEFAULT_OUTPUT))
                     .withTitle(tongsConfiguration.title)
                     .withSubtitle(tongsConfiguration.subtitle)
                     .withTestPackage(tongsConfiguration.testPackage)
                     .withPlugins(tongsConfiguration.plugins)
                     .withTestOutputTimeout(tongsConfiguration.testOutputTimeout)
+                    .withTestRunnerClass(tongsConfiguration.android.testRunnerClass)
                     .withTestRunnerArguments(tongsConfiguration.android.instrumentationArguments)
                     .withExcludedSerials(tongsConfiguration.excludedSerials)
                     .withFallbackToScreenshots(tongsConfiguration.fallbackToScreenshots)
@@ -95,14 +108,14 @@ object TongsCli {
         @field:Parameter(names = ["--sdk"], description = "Path to Android SDK", converter = FileConverter::class)
         var sdk: File? = null
 
-        @field:Parameter(names = ["--apk"], description = "Application APK", converter = FileConverter::class, required = true)
-        lateinit var apk: File
+        @field:Parameter(names = ["--apk"], description = "Application APK", converter = FileConverter::class)
+        var apk: File? = null
 
-        @field:Parameter(names = ["--test-apk"], description = "Test application APK", converter = FileConverter::class, required = true)
-        lateinit var testApk: File
+        @field:Parameter(names = ["--test-apk"], description = "Test application APK", converter = FileConverter::class)
+        var testApk: File? = null
 
-        @field:Parameter(names = ["--config"], description = "Path of JSON config file", converter = FileConverter::class, required = true)
-        lateinit var configurationFile: File
+        @field:Parameter(names = ["--config"], description = "Path of JSON config file", required = true)
+        lateinit var configurationFile: String
 
         @JvmField
         @field:Parameter(names = ["-h", "--help"], description = "Command help", help = true, hidden = true)

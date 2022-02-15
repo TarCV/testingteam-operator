@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2015 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ class PoolLoader(private val configuration: Configuration, private val devicePro
                 return SerialBasedDevicePoolLoader(poolingStrategy.manual)
             }
 
-            if (poolingStrategy.splitTablets != null && poolingStrategy.splitTablets) {
+            if (poolingStrategy.splitTablets) {
                 return DefaultAndTabletDevicePoolLoader()
             }
 
@@ -82,7 +82,7 @@ class PoolLoader(private val configuration: Configuration, private val devicePro
                 return ComputedDevicePoolLoader(poolingStrategy.computed)
             }
 
-            if (poolingStrategy.eachDevice != null && poolingStrategy.eachDevice) {
+            if (poolingStrategy.eachDevice) {
                 return EveryoneGetsAPoolLoader()
             }
 

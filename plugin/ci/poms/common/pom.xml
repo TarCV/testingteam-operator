@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.TarCV.testingteam-operator</groupId>
   <artifactId>common</artifactId>
-  <version>0.6.5-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
   <name>TestingTeam Operator common utils</name>
   <description>Helpers for various TestingTeam Operator modules</description>
   <url>https://github.com/TarCV/testingteam-operator</url>
@@ -34,7 +34,7 @@
     <dependency>
       <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>plugin-api</artifactId>
-      <version>0.6.5-SNAPSHOT</version>
+      <version>0.7.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 TarCV
+ * Copyright 2022 TarCV
  * Copyright 2014 Shazam Entertainment Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -38,7 +38,7 @@ public class SerialBasedDevicePoolLoader implements DevicePoolLoader {
 	public Collection<Pool> loadPools(List<Device> devices) {
         final Collection<Pool> pools = new ArrayList<>();
 
-        for (Entry<String, Collection<String>> pool : manualPooling.groupings.entrySet()) {
+        for (Entry<String, Collection<String>> pool : manualPooling.getGroupings().entrySet()) {
             final Pool.Builder poolBuilder = aDevicePool().withName(pool.getKey());
             for (String serial : pool.getValue()) {
                 final Device device = devices.stream()

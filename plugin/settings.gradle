@@ -17,3 +17,5 @@ include ':gradle-plugin'
 include ':plugin-android-ondevice'
 include ':plugin-api'
 include ':plugin-android'
+include 'configuration'
+

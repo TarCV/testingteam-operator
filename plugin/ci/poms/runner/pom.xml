@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.TarCV.testingteam-operator</groupId>
   <artifactId>runner</artifactId>
-  <version>0.6.5-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
   <name>TestingTeam Operator</name>
   <description>A library that parallelizes Android Test execution to all connected devices and emulators</description>
   <url>https://github.com/TarCV/testingteam-operator</url>
@@ -34,19 +34,19 @@
     <dependency>
       <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>common</artifactId>
-      <version>0.6.5-SNAPSHOT</version>
+      <version>0.7.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>plugin-api</artifactId>
-      <version>0.6.5-SNAPSHOT</version>
+      <version>0.7.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>plugin-android</artifactId>
-      <version>0.6.5-SNAPSHOT</version>
+      <version>0.7.0-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

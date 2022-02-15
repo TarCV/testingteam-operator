@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.TarCV.testingteam-operator</groupId>
   <artifactId>common-test</artifactId>
-  <version>0.6.5-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
   <name>TestingTeam Operator unit-test helpers</name>
   <description>Various helpers to help testing TestingTeam Operator itself</description>
   <url>https://github.com/TarCV/testingteam-operator</url>
@@ -40,7 +40,7 @@
     <dependency>
       <groupId>com.github.TarCV.testingteam-operator</groupId>
       <artifactId>common</artifactId>
-      <version>0.6.5-SNAPSHOT</version>
+      <version>0.7.0-SNAPSHOT</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>
