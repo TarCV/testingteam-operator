@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 TarCV
+ * Copyright 2022 TarCV
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
  *
@@ -229,11 +229,17 @@ class JUnitTestCaseProvider(
 
         val allTests = devicesInfo.keys
 
-        val testsWithoutInfo = allTests - annotationInfos.keys
+        val testsWithoutInfo = (allTests - annotationInfos.keys)
+            .filterNot {
+                // this is a synthetic test name meaning something crashed while collecting the list of tests
+                it.testName == "initializationError"
+            }
+
         if (testsWithoutInfo.isNotEmpty()) {
-            throw RuntimeException(
-                    "In pool ${context.pool.name} received no additional information" +
-                            " for ${testsWithoutInfo.joinToString(", ")}")
+            logger.warn(
+                    "In pool ${context.pool.name} received no annotation information" +
+                            " for ${testsWithoutInfo.joinToString(", ")}"
+            )
         }
 
         return annotationInfos
