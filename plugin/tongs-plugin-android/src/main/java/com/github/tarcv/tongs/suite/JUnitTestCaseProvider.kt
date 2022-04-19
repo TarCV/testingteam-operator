@@ -236,9 +236,10 @@ class JUnitTestCaseProvider(
             }
 
         if (testsWithoutInfo.isNotEmpty()) {
-            throw RuntimeException(
-                    "In pool ${context.pool.name} received no additional information" +
-                            " for ${testsWithoutInfo.joinToString(", ")}")
+            logger.warn(
+                    "In pool ${context.pool.name} received no annotation information" +
+                            " for ${testsWithoutInfo.joinToString(", ")}"
+            )
         }
 
         return annotationInfos
